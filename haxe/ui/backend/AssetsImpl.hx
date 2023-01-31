@@ -12,7 +12,7 @@ using StringTools;
 
 class AssetsImpl extends AssetsBase {
 	private override function getImageFromHaxeResource(resourceId:String, callback:String->ImageInfo->Void):Void {
-		throw haxe.exceptions.NotImplementException;
+		trace('image internal not implemented');
 		// if (Resource.listNames().indexOf(resourceId) == -1) {
 		// 	callback(resourceId, null);
 		// } else {
@@ -22,7 +22,7 @@ class AssetsImpl extends AssetsBase {
 	}
 
 	private override function getImageInternal(resourceId:String, callback:ImageInfo->Void):Void {
-		throw haxe.exceptions.NotImplementException;
+		trace('image internal not implemented');
 	}
 
 	var assets:Assets;
@@ -60,6 +60,6 @@ class AssetsImpl extends AssetsBase {
 	}
 
 	public override function imageFromBytes(bytes:Bytes, callback:ImageInfo->Void) {
-		throw haxe.exceptions.NotImplementException;
+		trace('image loading');
 	}
 }
