@@ -1,0 +1,9 @@
+<vbox id="mainBox" style="padding: 5px;">
+    <box id="redBox" width="100" height="100" style="padding: 20px;background-color: red;border: 3px solid black;">
+        <box id="greenBox" width="100%" height="100%" style="padding: 20px;;background-color: green;border: 2px solid black;">
+            <box id="blueBox" width="100%" height="100%" style="padding: 20px;;background-color: blue;border: 1px solid black;">
+                <button id="theButton" text="Button" width="100%" height="100%" onclick="trace('clicked')" />
+            </box>
+        </box>
+    </box>
+</vbox>
