@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.Mesh;
 import haxe.ui.backend.ceramic.MouseHelper;
 import ceramic.Color;
 import ceramic.Entity;
@@ -18,9 +19,10 @@ import ceramic.MouseButton;
 
 class ComponentImpl extends ComponentBase {
 	private var eventMap:Map<String, UIEvent->Void>;
-
+	private var addedRoot:Bool = false;
 	public function new() {
 		super();
+
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
 	}
@@ -92,7 +94,11 @@ class ComponentImpl extends ComponentBase {
 			if (this.clipQuad == null) {
 				this.clipQuad = new Quad();
 				this.clipQuad.visible = false;
-				this.parentComponent.visual.add(clipQuad);
+				if (this.parentComponent != null) {
+					this.parentComponent.visual.add(clipQuad);
+				} else {
+					this.visual.add(clipQuad);
+				}
 			}
 
 			// this.clipQuad.x = value.left + visual.x - parentComponent.visual.x;
@@ -103,7 +109,6 @@ class ComponentImpl extends ComponentBase {
 			this.clipQuad.y = top;
 			this.clipQuad.width = value.width;
 			this.clipQuad.height = value.height;
-
 			// trace('x: $x | y: $y | cx: $clipX | cy: $clipY |w: ${value.width} |h:${value.height}');
 		}
 	}
@@ -150,6 +155,11 @@ class ComponentImpl extends ComponentBase {
 		// trace('${pad(this.id)}: add component -> ${child.id}');
 		child.visual.depth = getDepthIndex(cast this) + 1;
 		this.visual.add(child.visual);
+		if (this.parentComponent == null && !this.addedRoot) {
+			App.app.scenes.main.add(this.visual);
+			this.addedRoot = true;
+		}
+
 		return child;
 	}
 
@@ -349,7 +359,7 @@ class ComponentImpl extends ComponentBase {
 				if (eventMap.exists(MouseEvent.MOUSE_WHEEL) == false) {
 					var entity = new Entity();
 					entity.id = MouseEvent.MOUSE_WHEEL;
-					screen.onMouseWheel(visual, MouseHelper.onMouseWheel.bind(type, listener));
+					screen.onMouseWheel(visual, MouseHelper.onMouseWheel.bind(cast this, type, listener));
 					this.eventCallbacks.set(MouseEvent.MOUSE_WHEEL, entity);
 					eventMap.set(MouseEvent.MOUSE_WHEEL, listener);
 				}

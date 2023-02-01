@@ -5,6 +5,7 @@ import haxe.ui.events.MouseEvent;
 import ceramic.TouchInfo;
 import haxe.ui.events.UIEvent;
 import ceramic.MouseButton;
+import haxe.ui.core.Component;
 
 class MouseHelper {
 	static final clickTimeMs:Float = 40;
@@ -79,7 +80,10 @@ class MouseHelper {
 		listener(event);
 	}
 
-	static public function onMouseWheel(type:String, listener:UIEvent->Void, x:Float, y:Float) {
+	static public function onMouseWheel(comp:Component, type:String, listener:UIEvent->Void, x:Float, y:Float) {
+		if (!comp.hitTest(App.app.screen.pointerX, App.app.screen.pointerY)) {
+    	return;
+		}
 		var event = new MouseEvent(type);
 		event.delta = y * -1;
 		listener(event);
