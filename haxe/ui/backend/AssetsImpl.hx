@@ -13,16 +13,23 @@ using StringTools;
 class AssetsImpl extends AssetsBase {
 	private override function getImageFromHaxeResource(resourceId:String, callback:String->ImageInfo->Void):Void {
 		trace('image internal not implemented');
-		// if (Resource.listNames().indexOf(resourceId) == -1) {
-		// 	callback(resourceId, null);
-		// } else {
-		// 	var bytes = Resource.getBytes(resourceId);
-		// 	imageFromBytes(bytes, callback.bind(resourceId));
-		// }
+		if (Resource.listNames().indexOf(resourceId) == -1) {
+			callback(resourceId, null);
+		} else {
+			var bytes = Resource.getBytes(resourceId);
+			imageFromBytes(bytes, callback.bind(resourceId));
+		}
 	}
 
 	private override function getImageInternal(resourceId:String, callback:ImageInfo->Void):Void {
 		trace('image internal not implemented');
+		var path = Assets.assetNameFromPath(resourceId);
+		if (path != null) {
+
+		} else {
+			
+		}
+		callback(null);
 	}
 
 	var assets:Assets;
@@ -60,6 +67,12 @@ class AssetsImpl extends AssetsBase {
 	}
 
 	public override function imageFromBytes(bytes:Bytes, callback:ImageInfo->Void) {
-		trace('image loading');
+		Texture.fromBytes(bytes, (texture) -> {
+			callback({
+				data: texture,
+				width: Std.int(texture.width),
+				height: Std.int(texture.height)
+			});
+		});
 	}
 }

@@ -3,8 +3,6 @@ import haxe.ui.core.Component;
 import ceramic.RenderTexture;
 import ceramic.Quad;
 import haxe.io.Bytes;
-import ceramic.AlphaColor;
-import ceramic.Pixels;
 import ceramic.Texture;
 import ceramic.UInt8Array;
 
@@ -15,7 +13,6 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 	var hasSize = false;
 	public function new(component:Component) {
 		super(component);
-		//component.styleable = false;
 		render = new RenderTexture(100, 100);
 	}
 
@@ -36,7 +33,7 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 			}
 			texture.submitPixels(UInt8Array.fromBytes(pixels));
 		}
-		
+
 		if (this.visual == null) {
 			visual = new Quad();
 			visual.texture = texture;

@@ -365,8 +365,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-
-		trace('${pad(this.id)}: map event -> ${type}');
+		//trace('${pad(this.id)}: map event -> ${type}');
 	}
 
 	private override function unmapEvent(type:String, listener:UIEvent->Void) {
@@ -438,7 +437,7 @@ class ComponentImpl extends ComponentBase {
 		if (_textDisplay == null) {
 			super.createTextDisplay(text);
 			this.visual.add(_textDisplay.visual);
-			trace('${pad(this.id)}: create text diplay');
+			//trace('${pad(this.id)}: create text diplay');
 		}
 		return _textDisplay;
 	}
