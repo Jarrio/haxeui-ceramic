@@ -1,3 +1,7 @@
 package haxe.ui.backend;
 
-typedef ToolkitOptions = {}
+import ceramic.Assets;
+
+typedef ToolkitOptions = {
+	var assets:Assets;
+}

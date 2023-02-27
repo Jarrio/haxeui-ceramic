@@ -1,18 +1,15 @@
 package haxe.ui.backend;
 
-import ceramic.Entity;
-import assets.Images;
+import ceramic.Files;
 import ceramic.Texture;
-import ceramic.Quad;
 import haxe.io.Bytes;
-import ceramic.Assets;
 import haxe.ui.assets.ImageInfo;
+import ceramic.App.app;
 
 using StringTools;
 
 class AssetsImpl extends AssetsBase {
 	private override function getImageFromHaxeResource(resourceId:String, callback:String->ImageInfo->Void):Void {
-		trace('image internal not implemented');
 		if (Resource.listNames().indexOf(resourceId) == -1) {
 			callback(resourceId, null);
 		} else {
@@ -22,48 +19,59 @@ class AssetsImpl extends AssetsBase {
 	}
 
 	private override function getImageInternal(resourceId:String, callback:ImageInfo->Void):Void {
-		trace('image internal not implemented');
-		var path = Assets.assetNameFromPath(resourceId);
-		if (path != null) {
-
-		} else {
-			
+		var asset = null;
+		if (Toolkit.screen.options != null && Toolkit.screen.options.assets != null) {
+			asset = Toolkit.screen.options.assets.imageAsset(resourceId);
 		}
-		callback(null);
+
+		//if asset still null check if it's in the scene
+		if (asset == null) {
+			asset = app.scenes.main.assets.imageAsset(resourceId);
+		}
+
+		//still missing? check in the global asset object
+		if (asset == null) {
+			asset = app.assets.imageAsset(resourceId);
+		}
+		
+		if (asset != null) {
+			if (asset.texture != null) {
+				callback({
+					data: asset.texture,
+					width: Std.int(asset.texture.width),
+					height: Std.int(asset.texture.height)
+				});
+			} else {
+				asset.owner.onceComplete(null, (suc) -> {
+					if (suc) {
+						callback({
+							data: asset.texture,
+							width: Std.int(asset.texture.width),
+							height: Std.int(asset.texture.height)
+						});
+					} else {
+						callback(null);
+					}
+				});
+			}
+		} else {
+			callback(null);
+		}
 	}
 
-	var assets:Assets;
-
 	override function imageFromFile(filename:String, callback:ImageInfo->Void) {
-		var assets = ceramic.App.app.assets;
-		var dir = Sys.getCwd() + '/assets';
-		if (filename.startsWith('haxeui-core')) {
-			var split = filename.split('/');
-			var file = split[split.length - 1];
-			filename = '/haxeui-core/$file';
-		}
-		var path = dir + filename;
-		assets.addImage(path);
-		assets.onceComplete(new Entity(), success -> {
-			if (success) {
-				trace('success');
-				var texture = assets.texture(path);
-				if (texture != null) {
-					callback({
-						data: texture,
-						width: Std.int(texture.width),
-						height: Std.int(texture.height),
-					});
-				} else {
-					trace('Failed to load image $path...');
-					callback(null);
-				}
+		var bytes = Files.getBytes(filename);
+		Texture.fromBytes(bytes, (texture) -> {
+			if (texture != null) {
+				callback({
+					data: texture,
+					width: Std.int(texture.width),
+					height: Std.int(texture.height)
+				});
 			} else {
-				trace('Failed to load image $path...');
 				callback(null);
 			}
 		});
-		assets.load();
 	}
 
 	public override function imageFromBytes(bytes:Bytes, callback:ImageInfo->Void) {
