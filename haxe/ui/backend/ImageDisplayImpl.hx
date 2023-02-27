@@ -15,7 +15,7 @@ class ImageDisplayImpl extends ImageBase {
 	private override function validateData():Void {
 		if (_imageInfo != null) {
 			this.visual.texture = _imageInfo.data;
-
+			
 			this.visual.width = Std.int(_imageInfo.width);
 			this.visual.height = Std.int(_imageInfo.height);
 		}
@@ -29,6 +29,12 @@ class ImageDisplayImpl extends ImageBase {
 		if (visual.y != _top) {
 				visual.y = _top;
 		}
+	}
+
+	private override function validateDisplay() {
+		var scaleX:Float = _imageWidth / (_imageInfo.width / Toolkit.scaleX);
+		var scaleY:Float = _imageHeight / (_imageInfo.height / Toolkit.scaleY);
+		visual.scale(scaleX, scaleY);
 	}
 
 	override function dispose() {
