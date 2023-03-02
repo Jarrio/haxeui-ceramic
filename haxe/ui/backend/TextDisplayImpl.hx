@@ -1,7 +1,6 @@
 package haxe.ui.backend;
 
-import ceramic.Color;
-import ceramic.Quad;
+import haxe.ui.backend.ceramic.ItalicText;
 import ceramic.Text;
 
 class TextDisplayImpl extends TextBase {
@@ -10,6 +9,8 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Text();
+		visual.touchable = false;
+		visual.inheritAlpha = true;
 	}
 
 	private override function validateData() {
@@ -26,6 +27,16 @@ class TextDisplayImpl extends TextBase {
 		if (_textStyle != null) {
 			if (_textStyle.color != null) {
 				visual.color = _textStyle.color;
+			}
+			
+			if (_textStyle.fontItalic != null && visual.hasComponent('italic') != _textStyle.fontItalic) {
+					if (_textStyle.fontItalic) {
+						visual.component('italic', new ItalicText());
+						measureTextRequired = true;
+					} else {
+						visual.removeComponent('italic');
+					}
+					measureTextRequired = true;
 			}
 
 			if (_textStyle.fontSize != null) {
@@ -47,12 +58,8 @@ class TextDisplayImpl extends TextBase {
 				}
 				measureTextRequired = true;
 			}
-
-			// if (_textStyle.fontBold != null) {
-			// 	measureTextRequired = true;
-			// }
 		}
-		return true;
+		return measureTextRequired;
 	}
 
 	private override function validatePosition() {
@@ -64,8 +71,7 @@ class TextDisplayImpl extends TextBase {
 		} else {
 			visual.x = _left;
 		}
-		var parentWidth = @:privateAccess parentComponent._width;
-		visual.fitWidth = _width;
+
 		switch (visual.align) {
 			case LEFT:
 				visual.anchorX = 0;
@@ -84,26 +90,20 @@ class TextDisplayImpl extends TextBase {
 
 	private override function validateDisplay() {
 		if (visual.width != _width) {
-			visual.width = _width;
+			// if (_width == null) {
+			// 	var parentWidth = @:privateAccess parentComponent._width;
+			// 	visual.fitWidth = parentWidth;
+			// }
+			if (_width > 0) {
+				visual.fitWidth = _width;
+				visual.width = _width;
+			}
+			//visual.width = _width;
 		}
 
 		if (visual.height != _height) {
 			visual.height = _height;
 		}
-
-		// switch (visual.align) {
-		// 	case LEFT:
-		// 		visual.anchorX = 0;
-		// 		visual.x = _left;
-		// 	case CENTER:
-		// 		visual.anchorX = 0.5;
-		// 		visual.x = _left + (_width / 2);
-		// 	case RIGHT:
-		// 		visual.anchorX = 1;
-		// 		visual.x = _left;
-		// 	//case 'right': RIGHT;
-		// 	default:
-		// }
 	}
 
 	private override function measureText() {

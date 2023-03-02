@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.core.Component;
 import haxe.ui.backend.ceramic.MouseHelper;
 import ceramic.Entity;
 import ceramic.Key;
@@ -24,8 +25,20 @@ class ScreenImpl extends ScreenBase {
 		@:privateAccess component.recursiveReady();
 		var c = super.addComponent(component);
 		resizeComponent(c);
+		component.visual.active = true;
 		App.app.scenes.main.add(c.visual);
 		return c;
+	}
+	
+	public override function removeComponent(component:Component, dispose:Bool = true):Component {
+		rootComponents.remove(component);
+		if (dispose) {
+			component.visual.dispose();
+		} else {
+			component.visual.active = false;
+			App.app.scenes.main.remove(component.visual);
+		}
+		return component;
 	}
 
 	private function handleResize() {
@@ -44,17 +57,17 @@ class ScreenImpl extends ScreenBase {
 		switch (type) {
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
-					screen.onPointerMove(null, MouseHelper.onMouseMove.bind(type, listener));
+					screen.onPointerMove(null, MouseHelper.onMouseMove.bind(null, type, listener));
 					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(null, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(null, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case KeyboardEvent.KEY_UP:

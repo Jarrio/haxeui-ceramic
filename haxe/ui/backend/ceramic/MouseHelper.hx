@@ -13,7 +13,7 @@ class MouseHelper {
 	static var mouseClickTime:Float = 0;
 	static var mouseDownTime:Float = 0;
 
-	static public function onClick(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	static public function onClick(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
 		var screen = App.app.screen;
 		var now = Date.now().getTime();
 		var diff = now - mouseDownTime;
@@ -23,12 +23,14 @@ class MouseHelper {
 			event.screenY = screen.pointerY;
 			event.data = MouseButton.LEFT;
 			mouseClickTime = now;
+			component.parentComponent.checkRedispatch(type, event);
 			listener(event);
 		}
 		mouseDownTime = 0;
 	}
 
-	static public function onDoubleClick(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	static public function onDoubleClick(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
+
 		var screen = App.app.screen;
 		var now = Date.now().getTime();
 		var diff = now - mouseClickTime;
@@ -37,37 +39,44 @@ class MouseHelper {
 			event.screenX = screen.pointerX;
 			event.screenY = screen.pointerY;
 			event.data = MouseButton.LEFT;
+			component.parentComponent.checkRedispatch(type, event);
 			listener(event);
 			return;
 		}
 		mouseClickTime = now;
 	}
 
-	static public function onMouseMove(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	static public function onMouseMove(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
+		if (component != null) {
+			component.parentComponent.checkRedispatch(type, event);
+		}
+		listener(event);
+	}
+
+	static public function onMouseOver(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		component.dispatch(event);
+		component.parentComponent.checkRedispatch(type, event);
 
 		listener(event);
 	}
 
-	static public function onMouseOver(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	static public function onMouseOut(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
+		component.dispatch(event);
+		component.parentComponent.checkRedispatch(type, event);
 
 		listener(event);
 	}
 
-	static public function onMouseOut(type:String, listener:UIEvent->Void, info:TouchInfo) {
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-
-		listener(event);
-	}
-
-	static public function onMouseButton(type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
+	static public function onMouseButton(component:Component, type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
 		if (info.buttonId != button) {
 			return;
 		}
@@ -77,6 +86,10 @@ class MouseHelper {
 		event.data = info.buttonId;
 		var now = Date.now().getTime();
 		mouseDownTime = now;
+		if (component != null) {
+			component.parentComponent.checkRedispatch(type, event);
+		}
+		
 		listener(event);
 	}
 

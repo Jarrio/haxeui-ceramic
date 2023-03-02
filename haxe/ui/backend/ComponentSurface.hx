@@ -1,5 +1,9 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ceramic.CMesh;
+import ceramic.Visual;
+import haxe.ui.core.Component;
+import ceramic.MeshExtensions;
 import ceramic.Quad;
 import ceramic.AlphaColor;
 import ceramic.Line;
@@ -7,7 +11,7 @@ import ceramic.Mesh;
 import ceramic.Color;
 
 class ComponentSurface {
-	public var visual:Mesh;
+	public var visual:CMesh;
 
 	var x(get, set):Float;
 	var y(get, set):Float;
@@ -15,14 +19,39 @@ class ComponentSurface {
 	var clipX(get, set):Float;
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
-	var leftBorder(get, never):Line;
-	var rightBorder(get, never):Line;
-	var topBorder(get, never):Line;
-	var bottomBorder(get, never):Line;
-
+	var rightBorder:Line;
+	var topBorder:Line;
+	var bottomBorder:Line;
+	var leftBorder:Line;
+	var background:Mesh;
 	public function new() {
-		this.visual = new Mesh();
+
+		this.visual = new CMesh();
+		this.visual.inheritAlpha = true;
 		this.visual.colors = [AlphaColor.TRANSPARENT];
+
+		leftBorder = new Line();
+		leftBorder.inheritAlpha = true;
+		leftBorder.id = ('leftBorder');
+		rightBorder = new Line();
+		rightBorder.inheritAlpha = true;
+		rightBorder.id = ('rightBorder');
+		topBorder = new Line();
+		topBorder.inheritAlpha = true;
+		topBorder.id = ('topBorder');
+		bottomBorder = new Line();
+		bottomBorder.inheritAlpha = true;
+		bottomBorder.id = ('bottomBorder');
+
+		background = new Mesh();
+		background.id = ('background');
+		background.inheritAlpha = true;
+
+		this.visual.add(leftBorder);
+		this.visual.add(rightBorder);
+		this.visual.add(topBorder);
+		this.visual.add(bottomBorder);
+		this.visual.add(background);
 	}
 
 	inline function set_visible(value:Bool):Bool {
@@ -75,44 +104,13 @@ class ComponentSurface {
 		}
 		return this.visual.clip.asQuad;
 	}
-
-	inline function get_leftBorder():Line {
-		var id = 'left_border';
-		var line = this.visual.childWithId(id);
-		if (line == null) {
-			line = new Line();
-			line.id = id;
+	
+	function _getDepthIndex() {
+		var depth = 0.;
+		var children = visual.children;
+		if (children != null && children.length > 0) {
+			depth = children[children.length - 1].depth;
 		}
-		return cast line;
-	}
-
-	inline function get_rightBorder():Line {
-		var id = 'right_border';
-		var line = this.visual.childWithId(id);
-		if (line == null) {
-			line = new Line();
-			line.id = id;
-		}
-		return cast line;
-	}
-
-	inline function get_topBorder():Line {
-		var id = 'top_border';
-		var line = this.visual.childWithId(id);
-		if (line == null) {
-			line = new Line();
-			line.id = id;
-		}
-		return cast line;
-	}
-
-	inline function get_bottomBorder():Line {
-		var id = 'bottom_border';
-		var line = this.visual.childWithId(id);
-		if (line == null) {
-			line = new Line();
-			line.id = id;
-		}
-		return cast line;
+		return depth;
 	}
 }
