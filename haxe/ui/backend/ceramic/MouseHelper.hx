@@ -23,7 +23,9 @@ class MouseHelper {
 			event.screenY = screen.pointerY;
 			event.data = MouseButton.LEFT;
 			mouseClickTime = now;
-			component.parentComponent.checkRedispatch(type, event);
+			if (component.parentComponent != null) {
+				component.parentComponent.checkRedispatch(type, event);
+			}
 			listener(event);
 		}
 		mouseDownTime = 0;
@@ -39,7 +41,9 @@ class MouseHelper {
 			event.screenX = screen.pointerX;
 			event.screenY = screen.pointerY;
 			event.data = MouseButton.LEFT;
-			component.parentComponent.checkRedispatch(type, event);
+			if (component.parentComponent != null) {
+				component.parentComponent.checkRedispatch(type, event);
+			}
 			listener(event);
 			return;
 		}
@@ -51,7 +55,9 @@ class MouseHelper {
 		event.screenX = info.x;
 		event.screenY = info.y;
 		if (component != null) {
-			component.parentComponent.checkRedispatch(type, event);
+			if (component.parentComponent != null) {
+				component.parentComponent.checkRedispatch(type, event);
+			}
 		}
 		listener(event);
 	}
@@ -61,7 +67,9 @@ class MouseHelper {
 		event.screenX = info.x;
 		event.screenY = info.y;
 		component.dispatch(event);
-		component.parentComponent.checkRedispatch(type, event);
+		if (component.parentComponent != null) {
+			component.parentComponent.checkRedispatch(type, event);
+		}
 
 		listener(event);
 	}
@@ -71,7 +79,9 @@ class MouseHelper {
 		event.screenX = info.x;
 		event.screenY = info.y;
 		component.dispatch(event);
-		component.parentComponent.checkRedispatch(type, event);
+		if (component.parentComponent != null) {
+			component.parentComponent.checkRedispatch(type, event);
+		}
 
 		listener(event);
 	}
@@ -87,7 +97,9 @@ class MouseHelper {
 		var now = Date.now().getTime();
 		mouseDownTime = now;
 		if (component != null) {
-			component.parentComponent.checkRedispatch(type, event);
+			if (component.parentComponent != null) {
+				component.parentComponent.checkRedispatch(type, event);
+			}
 		}
 		
 		listener(event);

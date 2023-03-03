@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.Filter;
 import haxe.ui.backend.ceramic.CMesh;
 import ceramic.Visual;
 import haxe.ui.core.Component;
@@ -11,7 +12,8 @@ import ceramic.Mesh;
 import ceramic.Color;
 
 class ComponentSurface {
-	public var visual:CMesh;
+	public var visual:Mesh;
+	public var filter:Filter;
 
 	var x(get, set):Float;
 	var y(get, set):Float;
@@ -26,7 +28,7 @@ class ComponentSurface {
 	var background:Mesh;
 	public function new() {
 
-		this.visual = new CMesh();
+		this.visual = new Mesh();
 		this.visual.inheritAlpha = true;
 		this.visual.colors = [AlphaColor.TRANSPARENT];
 
@@ -52,6 +54,14 @@ class ComponentSurface {
 		this.visual.add(topBorder);
 		this.visual.add(bottomBorder);
 		this.visual.add(background);
+	}
+
+	public function add(visual:Visual) {
+		if (this.filter != null) {
+			this.filter.content.add(visual);
+		} else {
+			this.visual.add(visual);
+		}
 	}
 
 	inline function set_visible(value:Bool):Bool {

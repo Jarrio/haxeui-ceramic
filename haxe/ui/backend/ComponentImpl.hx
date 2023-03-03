@@ -36,21 +36,28 @@ class ComponentImpl extends ComponentBase {
 			child.recursiveReady();
 		}
 	}
-
+	public var isClipped:Bool = false;
 	private override function handlePosition(left:Null<Float>, top:Null<Float>, style:Style) {
-		// if (left != null) {
-		// 	this.visual.x = this.left = left;
-		// }
-		if (left == null || top == null || left < 0 || top < 0) {
+		if (left == null || top == null) {
 			return;
 		}
-		// if (top != null) {
-		// 	this.visual.y = this.top = top;
-		// }
-		if (this.x != left)
-			this.x = this.left = left;
-		if (this.y != top)
-			this.y = this.top = top;
+
+		if (this.x != left) {
+			this.x = left;
+			if (this.isClipped) {
+				this.filter.x = left;
+			}
+		}
+
+		if (this.y != top) {
+			this.y = top;
+			if (this.isClipped) {
+				this.filter.y = top;
+			}
+		}
+			
+		// if (this.y != top)
+		// 	this.y = this.top = top;
 
 		// if (clipQuad != null) {
 		// 	if (clipQuad.x != left) clipQuad.x = left;
@@ -91,28 +98,31 @@ class ComponentImpl extends ComponentBase {
 
 	override function handleClipRect(value:Rectangle):Void {
 		if (value == null) {
-			this.clipQuad = null;
+			this.isClipped = false;
+			this.filter = null;
 		} else {
-			if (this.clipQuad == null) {
-				this.clipQuad = new Quad();
-				this.clipQuad.depth = this.visual.depth;
-				this.clipQuad.visible = false;
-				if (this.parentComponent != null) {
-					this.parentComponent.visual.add(clipQuad);
+			if (this.filter == null) {
+				this.filter = new ceramic.Filter();
+				if (this.parentComponent.isClipped) {
+					this.parentComponent.filter.content.add(filter);
 				} else {
-					this.visual.add(clipQuad);
+					this.parentComponent.visual.add(filter);
 				}
+				this.isClipped = true;
+				//this.parentComponent.visual.remove(this.visual);
+				filter.content.add(this.visual);
 			}
-
-			// this.clipQuad.x = value.left + visual.x - parentComponent.visual.x;
-			// this.clipQuad.y = value.top;
+			//filter.color = Color.BLACK;
 			this.x = -value.left;
 			this.y = -value.top;
-			this.clipQuad.x = left;
-			this.clipQuad.y = top;
-			this.clipQuad.width = value.width;
-			this.clipQuad.height = value.height;
-			// trace('x: $x | y: $y | cx: $clipX | cy: $clipY |w: ${value.width} |h:${value.height}');
+			this.filter.x = left;
+			this.filter.y = top;
+			this.filter.width = value.width;
+			this.filter.height = value.height;
+			// filter.size(value.width, value.height);
+			// filter.pos(value.left, value.top + this.parentComponent.y);
+			
+			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
 	}
 
@@ -416,9 +426,9 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		Toolkit.callLater(function() {
-			trace(this.id, type, cast(this, Component).className);
-		});
+		// Toolkit.callLater(function() {
+		// 	trace(this.id, type, cast(this, Component).className);
+		// });
 //		trace('${pad(this.id)}: map event -> ${type}');
 	}
 
