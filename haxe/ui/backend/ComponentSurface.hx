@@ -29,6 +29,7 @@ class ComponentSurface {
 	public function new() {
 
 		this.visual = new Mesh();
+		this.visual.active = false;
 		this.visual.inheritAlpha = true;
 		this.visual.colors = [AlphaColor.TRANSPARENT];
 
@@ -49,11 +50,11 @@ class ComponentSurface {
 		background.id = ('background');
 		background.inheritAlpha = true;
 
-		this.visual.add(leftBorder);
-		this.visual.add(rightBorder);
-		this.visual.add(topBorder);
-		this.visual.add(bottomBorder);
-		this.visual.add(background);
+		this.add(leftBorder);
+		this.add(rightBorder);
+		this.add(topBorder);
+		this.add(bottomBorder);
+		this.add(background);
 	}
 
 	public function add(visual:Visual) {
@@ -61,6 +62,14 @@ class ComponentSurface {
 			this.filter.content.add(visual);
 		} else {
 			this.visual.add(visual);
+		}
+	}
+
+	public function remove(visual:Visual) {
+		if (this.filter != null) {
+			this.filter.content.remove(visual);
+		} else {
+			this.visual.remove(visual);
 		}
 	}
 

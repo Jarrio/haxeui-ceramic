@@ -97,11 +97,11 @@ class MouseHelper {
 		var now = Date.now().getTime();
 		mouseDownTime = now;
 		if (component != null) {
+			component.dispatch(event);
 			if (component.parentComponent != null) {
 				component.parentComponent.checkRedispatch(type, event);
 			}
 		}
-		
 		listener(event);
 	}
 

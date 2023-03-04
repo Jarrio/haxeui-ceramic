@@ -9,7 +9,7 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Text();
-		visual.touchable = false;
+		visual.active = false;
 		visual.inheritAlpha = true;
 	}
 
@@ -69,21 +69,29 @@ class TextDisplayImpl extends TextBase {
 		if (visual.align == CENTER) {
 			visual.x = _left + (_width / 2);
 		} else {
-			visual.x = _left;
+			
 		}
-
+		var w = this._width;
+		if (this._width == 0) {
+			if (this.parentComponent != null) {
+				w = this.parentComponent.width;
+			}
+		}
+		
 		switch (visual.align) {
 			case LEFT:
 				visual.anchorX = 0;
 				visual.x = _left;
 			case CENTER:
 				visual.anchorX = 0.5;
-				visual.x = _left + (_width / 2);
+				visual.x = (w / 2);
 			case RIGHT:
 				visual.anchorX = 1;
-				visual.x = _left + _width;
+				visual.x = _left + w;
 			// case 'right': RIGHT;
 			default:
+				visual.anchorX = 0;
+				visual.x = _left;
 		}
 		visual.y = _top;
 	}

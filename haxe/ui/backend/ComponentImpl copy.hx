@@ -1,5 +1,7 @@
 package haxe.ui.backend;
 
+import ceramic.Visual;
+import ceramic.Filter;
 import ceramic.MeshExtensions;
 import ceramic.AlphaColor;
 import ceramic.Mesh;
@@ -36,28 +38,36 @@ class ComponentImpl extends ComponentBase {
 			child.recursiveReady();
 		}
 	}
-	public var isClipped:Bool = false;
+
 	private override function handlePosition(left:Null<Float>, top:Null<Float>, style:Style) {
+		// if (left != null) {
+		// 	this.visual.x = this.left = left;
+		// }
 		if (left == null || top == null) {
 			return;
 		}
+		// if (top != null) {
+		// 	this.visual.y = this.top = top;
+		// }
 
 		if (this.x != left) {
 			this.x = left;
 			if (this.isClipped) {
 				this.filter.x = left;
+			} else {
+				
 			}
 		}
-
+			
 		if (this.y != top) {
 			this.y = top;
 			if (this.isClipped) {
 				this.filter.y = top;
+			} else {
+				
 			}
 		}
 			
-		// if (this.y != top)
-		// 	this.y = this.top = top;
 
 		// if (clipQuad != null) {
 		// 	if (clipQuad.x != left) clipQuad.x = left;
@@ -71,7 +81,7 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (width == null || height == null || width < 0 || height < 0) {
+		if (width == null || height == null) {
 			return;
 		}
 
@@ -96,13 +106,15 @@ class ComponentImpl extends ComponentBase {
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
+	public var isClipped:Bool = false;
+
 	override function handleClipRect(value:Rectangle):Void {
 		if (value == null) {
 			this.isClipped = false;
 			this.filter = null;
 		} else {
 			if (this.filter == null) {
-				this.filter = new ceramic.Filter();
+				this.filter = new Filter();
 				if (this.parentComponent.isClipped) {
 					this.parentComponent.filter.content.add(filter);
 				} else {
@@ -123,6 +135,31 @@ class ComponentImpl extends ComponentBase {
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 			
 			// filter.pos(value.left, value.top + this.parentComponent.y);
+		}
+		return;
+		if (value == null) {
+			this.clipQuad = null;
+		} else {
+			if (this.clipQuad == null) {
+				this.clipQuad = new Quad();
+				this.clipQuad.depth = this.visual.depth;
+				this.clipQuad.visible = false;
+				if (this.parentComponent != null) {
+					this.parentComponent.visual.add(clipQuad);
+				} else {
+					this.visual.add(clipQuad);
+				}
+			}
+
+			// this.clipQuad.x = value.left + visual.x - parentComponent.visual.x;
+			// this.clipQuad.y = value.top;
+			this.x = -value.left;
+			this.y = -value.top;
+			this.clipQuad.x = left;
+			this.clipQuad.y = top;
+			this.clipQuad.width = value.width;
+			this.clipQuad.height = value.height;
+			// trace('x: $x | y: $y | cx: $clipX | cy: $clipY |w: ${value.width} |h:${value.height}');
 		}
 	}
 
@@ -154,74 +191,87 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Display tree
 	//***********************************************************************************************************
-	var cdepth = 0;
+	var internal_depth = 1;
 	function getDepthIndex(child:Component) {
 		var depth = 0.;
-		var children = child.visual.children;
+		var visual:Visual = child.visual;
+		if (child.isClipped) {
+			visual = child.filter.content;
+		}
+
+		var children = visual.children;
 		if (children != null && children.length > 0) {
 			depth = children[children.length - 1].depth;
 		}
-		return cdepth++;
-	}
-
-	function mapChildren() {
-		for (k => c in this.childComponents) {
-			c.visual.depth = k;
-		}
+		return depth + 1;
 	}
 
 	private override function handleAddComponent(child:Component):Component {
+		// trace('${pad(this.id)}: add component -> ${child.id}');
+		var depth = getDepthIndex(cast this);
+		//child.depth = depth;
+		child.visual.depth = depth;
+		// child.visual.id = '$index';
+		//child.visual.touchable = false;
+		// trace(child.visual.depth);
+		// trace(Type.getClassName(Type.getClass(this)));
+		// trace(Type.getClassName(Type.getClass(child)));
 		child.visual.active = true;
-		this.visual.add(child.visual);
 		
-		this.mapChildren();
+		//this.visual.autoChildrenDepth();
+		if (this.parentComponent == null && !this.addedRoot) {
+			App.app.scenes.main.add(this.visual);
+			this.addedRoot = true;
+		} else {
+			if (this.filter != null) {
+				this.parentComponent.filter.content.add(child.visual);
+			} else {
+				this.visual.add(child.visual);
+			}
+		}
+		
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		trace('${pad(this.id)}: add component at index -> ${child.id}, ${index}');
+		// trace('${pad(this.id)}: add component at index -> ${child.id}, ${index}');
 		child.visual.active = true;
-		child.visual.depth = index;
-		//child.visual.depth = index
-		//this.childComponents.
-		
-		this.visual.add(child.visual);
-		this.mapChildren();
+		var depth = getDepthIndex(cast this);
+		trace('depth: $depth | index: $index');
+		child.visual.depth = depth;
+		child.visual.id = '$depth';
+		//child.depth = depth;
+		if (this.filter != null) {
+			this.parentComponent.filter.content.add(child.visual);
+		} else {
+			this.parentComponent.visual.add(child.visual);
+		}
+
 		return child;
 	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
+		if (child.visual.parent != null) {
+			child.visual.parent.remove(child.visual);
+		}
 		
-		this.visual.remove(child.visual);
 		child.visual.active = false;
 		if (dispose) {
 			child.visual.dispose();
 		}
-		this.mapChildren();
 		return child;
 	}
 
 	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
-		trace('${pad(this.id)}: remove component at index -> ${index}');
-		//var child = this.visual.children[index];
-
-		var child = null;
-		for (c in this.childComponents) {
-			if (c.visual.depth != index) {
-				continue;
-			}
-			child = c;
-			break;
-		}
-
+		// trace('${pad(this.id)}: remove component at index -> ${index}');
+		var child = this.visual.childWithId('$index');
 		if (child != null) {
-			child.visual.active = false;
+			child.active = false;
 			if (dispose) {
-				child.visual.dispose();
+				child.dispose();
 			}
 		}
-		this.mapChildren();
 		return null;
 	}
 
@@ -334,9 +384,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
-//1		trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
-	//		trace('$type');
 			dispatch(event);
 		}
 
@@ -352,60 +400,86 @@ class ComponentImpl extends ComponentBase {
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
-		var entity = new Entity();
-		entity.id = type;
-		this.eventCallbacks.set(type, entity);
-		//this.eventMap.set(type, listener);
-
+		
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (eventMap.exists(MouseEvent.CLICK) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.CLICK;
+					this.eventCallbacks.set(MouseEvent.CLICK, entity);
 					visual.onPointerUp(entity, MouseHelper.onClick.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.CLICK, listener);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.DBL_CLICK;
+					this.eventCallbacks.set(MouseEvent.DBL_CLICK, entity);
 					visual.onPointerUp(entity, MouseHelper.onDoubleClick.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.DBL_CLICK, listener);
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_MOVE;
+					this.eventCallbacks.set(MouseEvent.MOUSE_MOVE, entity);
 					screen.onPointerMove(entity, MouseHelper.onMouseMove.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_OVER;
+					this.eventCallbacks.set(MouseEvent.MOUSE_OVER, entity);
 					visual.onPointerOver(entity, MouseHelper.onMouseOver.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.MOUSE_OVER, listener);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_OUT;
+					this.eventCallbacks.set(MouseEvent.MOUSE_OUT, entity);
 					visual.onPointerOut(entity, MouseHelper.onMouseOut.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.MOUSE_OUT, listener);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_UP;
+					this.eventCallbacks.set(MouseEvent.MOUSE_UP, entity);
 					visual.onPointerUp(entity, MouseHelper.onMouseButton.bind(cast this, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_DOWN;
+					this.eventCallbacks.set(MouseEvent.MOUSE_DOWN, entity);
 					visual.onPointerDown(entity, MouseHelper.onMouseButton.bind(cast this, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.RIGHT_MOUSE_UP;
+					this.eventCallbacks.set(MouseEvent.RIGHT_MOUSE_UP, entity);
 					visual.onPointerUp(entity, MouseHelper.onMouseButton.bind(cast this, type, RIGHT, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_UP, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.RIGHT_MOUSE_DOWN;
+					this.eventCallbacks.set(MouseEvent.RIGHT_MOUSE_DOWN, entity);
 					visual.onPointerDown(entity, MouseHelper.onMouseButton.bind(cast this, type, RIGHT, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_DOWN, listener);
 				}
 			case MouseEvent.MOUSE_WHEEL:
 				if (eventMap.exists(MouseEvent.MOUSE_WHEEL) == false) {
+					var entity = new Entity();
+					entity.id = MouseEvent.MOUSE_WHEEL;
 					screen.onMouseWheel(visual, MouseHelper.onMouseWheel.bind(cast this, type, listener));
+					this.eventCallbacks.set(MouseEvent.MOUSE_WHEEL, entity);
 					eventMap.set(MouseEvent.MOUSE_WHEEL, listener);
 				}
 			default:
@@ -484,9 +558,8 @@ class ComponentImpl extends ComponentBase {
 	public override function createTextDisplay(text:String = null):TextDisplay {
 		if (_textDisplay == null) {
 			super.createTextDisplay(text);
-			//_textDisplay.visual.touchable = false;
-			_textDisplay.visual.active = true;
-			this.add(_textDisplay.visual);
+			_textDisplay.visual.touchable = false;
+			this.visual.add(_textDisplay.visual);
 			//trace('${pad(this.id)}: create text diplay');
 		}
 		return _textDisplay;
@@ -495,7 +568,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createTextInput(text:String = null):TextInput {
 		if (_textInput == null) {
 			super.createTextInput(text);
-			this.add(_textInput.visual);
+			visual.add(_textInput.visual);
 		}
 		return _textInput;
 	}

@@ -20,6 +20,11 @@ class ScreenImpl extends ScreenBase {
 		App.app.screen.onResize(null, this.handleResize);
 	}
 
+	function mapComponents() {
+		for (k => c in this.rootComponents) {
+			c.visual.depth = k;
+		}
+	}
 	// TODO: shouldnt be neded
 	public override function addComponent(component:haxe.ui.core.Component):haxe.ui.core.Component {
 		@:privateAccess component.recursiveReady();
@@ -27,6 +32,8 @@ class ScreenImpl extends ScreenBase {
 		resizeComponent(c);
 		component.visual.active = true;
 		App.app.scenes.main.add(c.visual);
+
+		this.mapComponents();
 		return c;
 	}
 	
@@ -38,6 +45,7 @@ class ScreenImpl extends ScreenBase {
 			component.visual.active = false;
 			App.app.scenes.main.remove(component.visual);
 		}
+		this.mapComponents();
 		return component;
 	}
 
