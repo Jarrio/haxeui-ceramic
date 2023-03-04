@@ -22,7 +22,7 @@ class ScreenImpl extends ScreenBase {
 
 	function mapComponents() {
 		for (k => c in this.rootComponents) {
-			c.visual.depth = k;
+			c.visual.depth = k + 1;
 		}
 	}
 	// TODO: shouldnt be neded
@@ -30,7 +30,9 @@ class ScreenImpl extends ScreenBase {
 		@:privateAccess component.recursiveReady();
 		var c = super.addComponent(component);
 		resizeComponent(c);
+		rootComponents.push(component);
 		component.visual.active = true;
+		//component.visual.depth = this.rootComponents.length;
 		App.app.scenes.main.add(c.visual);
 
 		this.mapComponents();

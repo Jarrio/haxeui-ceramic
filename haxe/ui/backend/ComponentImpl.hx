@@ -166,12 +166,13 @@ class ComponentImpl extends ComponentBase {
 
 	function mapChildren() {
 		for (k => c in this.childComponents) {
-			c.visual.depth = k;
+			c.visual.depth = k + 1;
 		}
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		child.visual.active = true;
+		
 		this.visual.add(child.visual);
 		
 		this.mapChildren();
@@ -205,7 +206,7 @@ class ComponentImpl extends ComponentBase {
 	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
 		trace('${pad(this.id)}: remove component at index -> ${index}');
 		//var child = this.visual.children[index];
-
+		return this.handleRemoveComponent(this.childComponents[index], dispose);
 		var child = null;
 		for (c in this.childComponents) {
 			if (c.visual.depth != index) {
