@@ -32,21 +32,27 @@ class ScreenImpl extends ScreenBase {
 		resizeComponent(c);
 		rootComponents.push(component);
 		component.visual.active = true;
-		//component.visual.depth = this.rootComponents.length;
 		App.app.scenes.main.add(c.visual);
 
 		this.mapComponents();
 		return c;
 	}
 	
+	private override function handleSetComponentIndex(component:Component, index:Int) {
+		component.visual.depth = index;
+		resizeComponent(component);
+		this.mapComponents();
+	}
+
 	public override function removeComponent(component:Component, dispose:Bool = true):Component {
-		rootComponents.remove(component);
+		
 		if (dispose) {
 			component.visual.dispose();
 		} else {
 			component.visual.active = false;
 			App.app.scenes.main.remove(component.visual);
 		}
+		rootComponents.remove(component);
 		this.mapComponents();
 		return component;
 	}
@@ -72,12 +78,12 @@ class ScreenImpl extends ScreenBase {
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(null, type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onMouseUp.bind(null, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseButton.bind(null, type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onMouseDown.bind(null, type, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case KeyboardEvent.KEY_UP:

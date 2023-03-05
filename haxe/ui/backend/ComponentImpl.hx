@@ -32,6 +32,7 @@ class ComponentImpl extends ComponentBase {
 	private function recursiveReady() {
 		var component:Component = cast(this, Component);
 		component.ready();
+		
 		for (child in component.childComponents) {
 			child.recursiveReady();
 		}
@@ -55,7 +56,7 @@ class ComponentImpl extends ComponentBase {
 				this.filter.y = top;
 			}
 		}
-			
+
 		// if (this.y != top)
 		// 	this.y = this.top = top;
 
@@ -67,11 +68,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
-		if (visual == null) {
-			return;
-		}
-
-		if (width == null || height == null || width < 0 || height < 0) {
+		if (width == null || height == null || visual == null) {
 			return;
 		}
 
@@ -97,6 +94,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	override function handleClipRect(value:Rectangle):Void {
+		//return;
 		if (value == null) {
 			this.isClipped = false;
 			this.filter = null;
@@ -121,7 +119,7 @@ class ComponentImpl extends ComponentBase {
 			this.filter.height = value.height;
 			// filter.size(value.width, value.height);
 			// filter.pos(value.left, value.top + this.parentComponent.y);
-			
+
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
 	}
@@ -145,8 +143,8 @@ class ComponentImpl extends ComponentBase {
 
 	public override function removeImageDisplay():Void {
 		if (_imageDisplay != null) {
-			visual.remove(_imageDisplay.visual);
-			_imageDisplay.visual.destroy();
+			this.visual.remove(_imageDisplay.visual);
+			_imageDisplay.visual.dispose();
 			_imageDisplay = null;
 		}
 	}
@@ -154,27 +152,32 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Display tree
 	//***********************************************************************************************************
-	var cdepth = 0;
-	function getDepthIndex(child:Component) {
-		var depth = 0.;
-		var children = child.visual.children;
-		if (children != null && children.length > 0) {
-			depth = children[children.length - 1].depth;
-		}
-		return cdepth++;
-	}
 
 	function mapChildren() {
 		for (k => c in this.childComponents) {
-			c.visual.depth = k + 1;
+			c.visual.depth = k;
+			// if (c.hasTextDisplay()) {
+			// 	var l = c.visual.children.length;
+			// 	c.visual.depth = l + 2;
+			// }
+
+			// if (c.hasImageDisplay()) {
+			// 	var l = c.visual.children.length;
+			// 	c.visual.depth = l + 1;
+			// }
 		}
+	}
+
+	private override function handleSetComponentIndex(child:Component, index:Int) {
+		child.visual.depth = index;
+		this.mapChildren();
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		child.visual.active = true;
-		
+
 		this.visual.add(child.visual);
-		
+
 		this.mapChildren();
 		return child;
 	}
@@ -185,7 +188,7 @@ class ComponentImpl extends ComponentBase {
 		child.visual.depth = index;
 		//child.visual.depth = index
 		//this.childComponents.
-		
+
 		this.visual.add(child.visual);
 		this.mapChildren();
 		return child;
@@ -193,12 +196,15 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
+
 		
-		this.visual.remove(child.visual);
 		child.visual.active = false;
 		if (dispose) {
 			child.visual.dispose();
 		}
+		
+		this.visual.remove(child.visual);
+		
 		this.mapChildren();
 		return child;
 	}
@@ -206,24 +212,8 @@ class ComponentImpl extends ComponentBase {
 	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
 		trace('${pad(this.id)}: remove component at index -> ${index}');
 		//var child = this.visual.children[index];
+		//this.mapChildren();
 		return this.handleRemoveComponent(this.childComponents[index], dispose);
-		var child = null;
-		for (c in this.childComponents) {
-			if (c.visual.depth != index) {
-				continue;
-			}
-			child = c;
-			break;
-		}
-
-		if (child != null) {
-			child.visual.active = false;
-			if (dispose) {
-				child.visual.dispose();
-			}
-		}
-		this.mapChildren();
-		return null;
 	}
 
 	//***********************************************************************************************************
@@ -239,7 +229,7 @@ class ComponentImpl extends ComponentBase {
 			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
 			background.color = style.backgroundColor;
 			var alpha:Int = 0xFF000000;
-			
+
 			if (style.backgroundColorEnd != null) {
 				background.colorMapping = VERTICES;
 
@@ -263,7 +253,7 @@ class ComponentImpl extends ComponentBase {
 			if (style.backgroundOpacity != null) {
 				background.alpha = style.backgroundOpacity;
 			}
-			
+
 			//this.visual.add(this.background);
 		}
 
@@ -320,7 +310,7 @@ class ComponentImpl extends ComponentBase {
 			if (style.borderOpacity != null) {
 				line.alpha = style.borderOpacity;
 			}
-			
+
 			line.color = style.borderBottomColor;
 			line.thickness = style.borderBottomSize;
 
@@ -335,9 +325,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
-//1		trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
-	//		trace('$type');
 			dispatch(event);
 		}
 
@@ -386,22 +374,22 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onMouseButton.bind(cast this, type, LEFT, listener));
+					visual.onPointerUp(entity, MouseHelper.onMouseUp.bind(cast this, MouseEvent.MOUSE_UP, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onMouseButton.bind(cast this, type, LEFT, listener));
+					visual.onPointerDown(entity, MouseHelper.onMouseDown.bind(cast this, MouseEvent.MOUSE_DOWN, LEFT, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onMouseButton.bind(cast this, type, RIGHT, listener));
+					visual.onPointerUp(entity, MouseHelper.onMouseUp.bind(cast this, type, RIGHT, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_UP, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onMouseButton.bind(cast this, type, RIGHT, listener));
+					visual.onPointerDown(entity, MouseHelper.onMouseDown.bind(cast this, type, RIGHT, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_DOWN, listener);
 				}
 			case MouseEvent.MOUSE_WHEEL:
@@ -411,9 +399,9 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		// Toolkit.callLater(function() {
-		// 	trace(this.id, type, cast(this, Component).className);
-		// });
+		Toolkit.callLater(function() {
+			trace(this.id, type, cast(this, Component).className);
+		});
 //		trace('${pad(this.id)}: map event -> ${type}');
 	}
 
@@ -504,6 +492,7 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Util
 	//***********************************************************************************************************
+
 	public static inline function pad(s:String, len:Int = 20):String {
 		return StringTools.rpad(s, " ", len);
 	}
