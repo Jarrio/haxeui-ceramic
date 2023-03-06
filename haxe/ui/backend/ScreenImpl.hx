@@ -22,7 +22,10 @@ class ScreenImpl extends ScreenBase {
 
 	function mapComponents() {
 		for (k => c in this.rootComponents) {
-			c.visual.depth = k + 1;
+			c.visual.depth = k;
+			if (c.visual.children != null) {
+				c.visual.sortChildrenByDepth();
+			}
 		}
 	}
 	// TODO: shouldnt be neded
@@ -33,7 +36,6 @@ class ScreenImpl extends ScreenBase {
 		rootComponents.push(component);
 		component.visual.active = true;
 		App.app.scenes.main.add(c.visual);
-
 		this.mapComponents();
 		return c;
 	}
@@ -73,17 +75,20 @@ class ScreenImpl extends ScreenBase {
 		switch (type) {
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
-					screen.onPointerMove(null, MouseHelper.onMouseMove.bind(null, type, listener));
+					var entity = new Entity();
+					screen.onPointerMove(entity, MouseHelper.onMouseMove.bind(null, type, listener));
 					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					screen.onPointerUp(null, MouseHelper.onLeftMouseUp.bind(null, listener));
+					var entity = new Entity();
+					screen.onPointerUp(entity, MouseHelper.onLeftMouseUp.bind(null, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					screen.onPointerUp(null, MouseHelper.onLeftMouseDown.bind(null, listener));
+					var entity = new Entity();
+					screen.onPointerUp(entity, MouseHelper.onLeftMouseDown.bind(null, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case KeyboardEvent.KEY_UP:

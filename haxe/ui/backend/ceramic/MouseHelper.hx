@@ -23,10 +23,11 @@ class MouseHelper {
 		event.data = type;
 
 		clickTime = Date.now().getTime();
-		
+		//component.checkRedispatch(type, event);
 		if (component.parentComponent != null) {
 			component.parentComponent.checkRedispatch(type, event);
 		}
+		
 		listener(event);
 	}
 
@@ -39,6 +40,7 @@ class MouseHelper {
 			event.screenX = screen.pointerX;
 			event.screenY = screen.pointerY;
 			event.data = MouseButton.LEFT;
+			//component.checkRedispatch(type, event);
 			if (component.parentComponent != null) {
 				component.parentComponent.checkRedispatch(type, event);
 			}
@@ -64,7 +66,7 @@ class MouseHelper {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
-		component.dispatch(event);
+		
 		if (component.parentComponent != null) {
 			component.parentComponent.checkRedispatch(type, event);
 		}
@@ -76,7 +78,7 @@ class MouseHelper {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
-		component.dispatch(event);
+		
 		if (component.parentComponent != null) {
 			component.parentComponent.checkRedispatch(type, event);
 		}
@@ -85,17 +87,12 @@ class MouseHelper {
 	}
 
 	static public function onLeftMouseDown(component:Component, listener:UIEvent->Void, info:TouchInfo) {
-		if (info.buttonId != MouseButton.LEFT) {
-			return;
-		}
+
 		mouseLeftDownTime = Date.now().getTime();
 		onMouseButton(component, MouseEvent.MOUSE_DOWN, MouseButton.LEFT, listener, info);
 	}
 
 	static public function onLeftMouseUp(component:Component, listener:UIEvent->Void, info:TouchInfo) {
-		if (info.buttonId != MouseButton.LEFT) {
-			return;
-		}
 		var now = Date.now().getTime();
 		mouseLeftUpTime = now;
 		onMouseButton(component, MouseEvent.MOUSE_UP, MouseButton.LEFT, listener, info);
@@ -130,11 +127,12 @@ class MouseHelper {
 		}
 
 		if (component != null) {
-			component.dispatch(event);
+			//component.checkRedispatch(type, event);
 			if (component.parentComponent != null) {
 				component.parentComponent.checkRedispatch(type, event);
 			}
 		}
+
 		listener(event);
 	}
 

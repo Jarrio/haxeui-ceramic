@@ -26,7 +26,7 @@ class ComponentImpl extends ComponentBase {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
-		// recursiveReady();
+		//recursiveReady();
 	}
 
 	private function recursiveReady() {
@@ -162,10 +162,6 @@ class ComponentImpl extends ComponentBase {
 	function mapChildren() {
 		for (k => c in this.childComponents) {
 			c.visual.depth = k;
-			
-			if (c.visual.children != null) {
-				c.visual.sortChildrenByDepth();
-			}
 		}
 	}
 
@@ -311,7 +307,7 @@ class ComponentImpl extends ComponentBase {
 	public function checkRedispatch(type:String, event:MouseEvent) {
 		//trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
-			dispatch(event);
+			this.eventMap[type](event);
 		}
 
 		if (parentComponent != null) {
@@ -323,7 +319,7 @@ class ComponentImpl extends ComponentBase {
 	// Events
 	//***********************************************************************************************************
 	var eventCallbacks:Map<String, Entity> = [];
-
+	
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
 		var entity = new Entity();
@@ -389,9 +385,9 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		Toolkit.callLater(function() {
-			trace(this.id, type, cast(this, Component).className);
-		});
+			// Toolkit.callLater(function() {
+			// 	trace(this.id, type, cast(this, Component).className);
+			// });
 //		trace('${pad(this.id)}: map event -> ${type}');
 	}
 
