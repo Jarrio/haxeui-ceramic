@@ -85,7 +85,6 @@ class ComponentImpl extends ComponentBase {
 				0, 1, 3,
 				0, 2, 3
 			];
-
 			visual.width = width;
 			visual.height = height;
 			applyStyle(style);
@@ -167,15 +166,6 @@ class ComponentImpl extends ComponentBase {
 			if (c.visual.children != null) {
 				c.visual.sortChildrenByDepth();
 			}
-			// if (c.hasTextDisplay()) {
-			// 	var l = c.visual.children.length;
-			// 	c.visual.depth = l + 2;
-			// }
-
-			// if (c.hasImageDisplay()) {
-			// 	var l = c.visual.children.length;
-			// 	c.visual.depth = l + 1;
-			// }
 		}
 	}
 
@@ -186,20 +176,14 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleAddComponent(child:Component):Component {
 		child.visual.active = true;
-
 		this.visual.add(child.visual);
-
 		this.mapChildren();
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		trace('${pad(this.id)}: add component at index -> ${child.id}, ${index}');
 		child.visual.active = true;
 		child.visual.depth = index;
-		//child.visual.depth = index
-		//this.childComponents.
-
 		this.visual.add(child.visual);
 		this.mapChildren();
 		return child;
@@ -207,23 +191,17 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
-
-		
 		child.visual.active = false;
 		if (dispose) {
 			child.visual.dispose();
 		}
-		
 		this.visual.remove(child.visual);
-		
 		this.mapChildren();
 		return child;
 	}
 
 	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
 		trace('${pad(this.id)}: remove component at index -> ${index}');
-		//var child = this.visual.children[index];
-		//this.mapChildren();
 		return this.handleRemoveComponent(this.childComponents[index], dispose);
 	}
 
@@ -236,7 +214,7 @@ class ComponentImpl extends ComponentBase {
 			visual.alpha = style.opacity;
 		}
 
-		trace(style.backgroundColor);
+//		trace(style.backgroundColor);
 		background.color = (style.backgroundColor == null) ? Color.NONE : style.backgroundColor;
 		if (style.backgroundColor != null) {
 			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
@@ -359,6 +337,11 @@ class ComponentImpl extends ComponentBase {
 					visual.onPointerUp(entity, MouseHelper.onClick.bind(cast this, type, listener));
 					eventMap.set(MouseEvent.CLICK, listener);
 				}
+			case MouseEvent.RIGHT_CLICK:
+				if (eventMap.exists(MouseEvent.RIGHT_CLICK) == false) {
+					visual.onPointerUp(entity, MouseHelper.onClick.bind(cast this, type, listener));
+					eventMap.set(MouseEvent.RIGHT_CLICK, listener);
+				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK) == false) {
 					visual.onPointerUp(entity, MouseHelper.onDoubleClick.bind(cast this, type, listener));
@@ -381,22 +364,22 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onMouseUp.bind(cast this, MouseEvent.MOUSE_UP, LEFT, listener));
+					visual.onPointerUp(entity, MouseHelper.onLeftMouseUp.bind(cast this, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onMouseDown.bind(cast this, MouseEvent.MOUSE_DOWN, LEFT, listener));
+					visual.onPointerDown(entity, MouseHelper.onLeftMouseDown.bind(cast this, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onMouseUp.bind(cast this, type, RIGHT, listener));
+					visual.onPointerUp(entity, MouseHelper.onRightMouseUp.bind(cast this, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_UP, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onMouseDown.bind(cast this, type, RIGHT, listener));
+					visual.onPointerDown(entity, MouseHelper.onRightMouseDown.bind(cast this, listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_DOWN, listener);
 				}
 			case MouseEvent.MOUSE_WHEEL:
@@ -406,9 +389,9 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		// Toolkit.callLater(function() {
-		// 	trace(this.id, type, cast(this, Component).className);
-		// });
+		Toolkit.callLater(function() {
+			trace(this.id, type, cast(this, Component).className);
+		});
 //		trace('${pad(this.id)}: map event -> ${type}');
 	}
 

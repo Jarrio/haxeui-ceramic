@@ -10,39 +10,30 @@ import haxe.ui.core.Component;
 class MouseHelper {
 	static public final clickTimeMs:Float = 40;
 	static public final clickMaxLatency:Float = 220;
-	static var mouseClickTime:Float = 0;
-	static public var mouseUpTime:Float = 0;
-	static public var mouseDownTime:Float = 0;
+	static var clickTime:Float = 0;
+	static var mouseLeftUpTime:Float = 0;
+	static var mouseLeftDownTime:Float = 0;
+	static var mouseRightUpTime:Float = 0;
+	static var mouseRightDownTime:Float = 0;
 
 	static public function onClick(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
-		var screen = App.app.screen;
-		var now = Date.now().getTime();
-		var diff = now - mouseDownTime;
-		if (diff > clickTimeMs && diff <= clickMaxLatency) {
-			var event = new MouseEvent(type);
-			event.screenX = screen.pointerX;
-			event.screenY = screen.pointerY;
-			event.data = switch (info.buttonId) {
-				case ceramic.MouseButton.LEFT: MouseButton.LEFT;
-				case ceramic.MouseButton.RIGHT: MouseButton.RIGHT;
-				default: null;
-			};
-			mouseClickTime = now;
-			
-			if (component.parentComponent != null) {
-				component.parentComponent.checkRedispatch(type, event);
-			}
-			listener(event);
-		}
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		event.data = type;
+
+		clickTime = Date.now().getTime();
 		
-		mouseDownTime = 0;
+		if (component.parentComponent != null) {
+			component.parentComponent.checkRedispatch(type, event);
+		}
+		listener(event);
 	}
 
 	static public function onDoubleClick(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
-
 		var screen = App.app.screen;
 		var now = Date.now().getTime();
-		var diff = now - mouseClickTime;
+		var diff = now - clickTime;
 		if (diff > clickTimeMs && diff <= clickMaxLatency) {
 			var event = new MouseEvent(type);
 			event.screenX = screen.pointerX;
@@ -54,7 +45,7 @@ class MouseHelper {
 			listener(event);
 			return;
 		}
-		mouseClickTime = now;
+		clickTime = now;
 	}
 
 	static public function onMouseMove(component:Component, type:String, listener:UIEvent->Void, info:TouchInfo) {
@@ -93,32 +84,51 @@ class MouseHelper {
 		listener(event);
 	}
 
-	static public function onMouseDown(component:Component, type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
-		if (info.buttonId != button) {
+	static public function onLeftMouseDown(component:Component, listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
 			return;
 		}
-		var now = Date.now().getTime();
-		mouseDownTime = now;
-		onMouseButton(component, type, button, listener, info);
+		mouseLeftDownTime = Date.now().getTime();
+		onMouseButton(component, MouseEvent.MOUSE_DOWN, MouseButton.LEFT, listener, info);
 	}
 
-	static public function onMouseUp(component:Component, type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
-		if (info.buttonId != button) {
+	static public function onLeftMouseUp(component:Component, listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
 			return;
 		}
 		var now = Date.now().getTime();
-		mouseUpTime = now;
-		MouseHelper.onMouseButton(component, type, button, listener, info);
+		mouseLeftUpTime = now;
+		onMouseButton(component, MouseEvent.MOUSE_UP, MouseButton.LEFT, listener, info);
+	}
+
+	static public function onRightMouseDown(component:Component, listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		mouseRightDownTime = Date.now().getTime();
+		onMouseButton(component, MouseEvent.RIGHT_MOUSE_DOWN, MouseButton.RIGHT, listener, info);
+	}
+
+	static public function onRightMouseUp(component:Component, listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		var now = Date.now().getTime();
+		mouseRightUpTime = now;
+		onMouseButton(component, MouseEvent.RIGHT_MOUSE_UP, MouseButton.RIGHT, listener, info);
 	}
 
 	static function onMouseButton(component:Component, type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
-		if (info.buttonId != button) {
-			return;
-		}
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
 		event.data = info.buttonId;
+		switch (type) {
+			case MouseEvent.MOUSE_DOWN | MouseEvent.RIGHT_MOUSE_DOWN:
+				event.buttonDown = true;
+			default:
+		}
+
 		if (component != null) {
 			component.dispatch(event);
 			if (component.parentComponent != null) {

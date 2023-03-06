@@ -78,12 +78,12 @@ class ScreenImpl extends ScreenBase {
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseUp.bind(null, type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onLeftMouseUp.bind(null, listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					screen.onPointerUp(null, MouseHelper.onMouseDown.bind(null, type, LEFT, listener));
+					screen.onPointerUp(null, MouseHelper.onLeftMouseDown.bind(null, listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case KeyboardEvent.KEY_UP:

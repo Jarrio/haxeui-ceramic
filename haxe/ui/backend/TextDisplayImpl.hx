@@ -66,16 +66,10 @@ class TextDisplayImpl extends TextBase {
 		// trace('${ComponentImpl.pad(parentComponent.id)}: validate text pos -> ${_left}, ${_top}');
 
 		// visual.x = _left;
-		if (visual.align == CENTER) {
-			visual.x = _left + (_width / 2);
-		} else {
-			
-		}
-		var w = this._width;
+
+		var w = _width;
 		if (this._width == 0) {
-			if (this.parentComponent != null) {
-				w = this.parentComponent.width;
-			}
+			w = _textWidth;
 		}
 		
 		switch (visual.align) {
