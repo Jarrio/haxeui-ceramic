@@ -319,7 +319,62 @@ class ComponentImpl extends ComponentBase {
 	// Events
 	//***********************************************************************************************************
 	var eventCallbacks:Map<String, Entity> = [];
-	
+
+	public function onMouseClick(type:String, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		event.data = type;
+
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+		
+		listener(event);
+	}
+
+	public function onLeftMouseDown(listener:UIEvent->Void, info:TouchInfo) {
+		onMouseButton(MouseEvent.MOUSE_DOWN, MouseButton.LEFT, listener, info);
+	}
+
+	public function onLeftMouseUp(listener:UIEvent->Void, info:TouchInfo) {
+		var now = Date.now().getTime();
+		onMouseButton(MouseEvent.MOUSE_UP, MouseButton.LEFT, listener, info);
+	}
+
+	public function onRightMouseDown(listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		onMouseButton(MouseEvent.RIGHT_MOUSE_DOWN, MouseButton.RIGHT, listener, info);
+	}
+
+	public function onRightMouseUp(listener:UIEvent->Void, info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		onMouseButton(MouseEvent.RIGHT_MOUSE_UP, MouseButton.RIGHT, listener, info);
+	}
+
+	function onMouseButton(type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		event.data = info.buttonId;
+		switch (type) {
+			case MouseEvent.MOUSE_DOWN | MouseEvent.RIGHT_MOUSE_DOWN:
+				event.buttonDown = true;
+			default:
+		}
+
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+		
+
+		listener(event);
+	}
+
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
 		var entity = new Entity();
@@ -330,17 +385,17 @@ class ComponentImpl extends ComponentBase {
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (eventMap.exists(MouseEvent.CLICK) == false) {
-					visual.onPointerUp(entity, MouseHelper.onClick.bind(cast this, type, listener));
+					visual.onPointerUp(entity, onMouseClick.bind(type, listener));
 					eventMap.set(MouseEvent.CLICK, listener);
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK) == false) {
-					visual.onPointerUp(entity, MouseHelper.onClick.bind(cast this, type, listener));
+					//visual.onPointerUp(entity, MouseHelper.onClick.bind(type, listener));
 					eventMap.set(MouseEvent.RIGHT_CLICK, listener);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK) == false) {
-					visual.onPointerUp(entity, MouseHelper.onDoubleClick.bind(cast this, type, listener));
+					//visual.onPointerUp(entity, MouseHelper.onDoubleClick.bind(type, listener));
 					eventMap.set(MouseEvent.DBL_CLICK, listener);
 				}
 			case MouseEvent.MOUSE_MOVE:
@@ -360,12 +415,12 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onLeftMouseUp.bind(cast this, listener));
+					visual.onPointerUp(entity, onLeftMouseUp.bind(listener));
 					eventMap.set(MouseEvent.MOUSE_UP, listener);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onLeftMouseDown.bind(cast this, listener));
+					visual.onPointerDown(entity, onLeftMouseDown.bind(listener));
 					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
