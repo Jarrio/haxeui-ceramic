@@ -96,8 +96,14 @@ class ComponentImpl extends ComponentBase {
 	override function handleClipRect(value:Rectangle):Void {
 		//return;
 		if (value == null) {
-			this.isClipped = false;
-			this.filter = null;
+				if (this.parentComponent.isClipped) {
+					this.parentComponent.filter.content.remove(filter);
+				} else {
+					this.parentComponent.visual.remove(filter);
+				}
+				filter.dispose();
+				this.isClipped = false;
+				this.filter = null;
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
@@ -125,8 +131,9 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleVisibility(show:Bool):Void {
-		if (show != this.visible) {
-			this.visible = show;
+		if (show != this.visual.visible) {
+			this.visual.visible = show;
+			this.visual.touchable = show;
 		}
 	}
 
@@ -156,6 +163,10 @@ class ComponentImpl extends ComponentBase {
 	function mapChildren() {
 		for (k => c in this.childComponents) {
 			c.visual.depth = k;
+			
+			if (c.visual.children != null) {
+				c.visual.sortChildrenByDepth();
+			}
 			// if (c.hasTextDisplay()) {
 			// 	var l = c.visual.children.length;
 			// 	c.visual.depth = l + 2;
@@ -225,9 +236,11 @@ class ComponentImpl extends ComponentBase {
 			visual.alpha = style.opacity;
 		}
 
+		trace(style.backgroundColor);
+		background.color = (style.backgroundColor == null) ? Color.NONE : style.backgroundColor;
 		if (style.backgroundColor != null) {
 			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
-			background.color = style.backgroundColor;
+			
 			var alpha:Int = 0xFF000000;
 
 			if (style.backgroundColorEnd != null) {
@@ -253,11 +266,9 @@ class ComponentImpl extends ComponentBase {
 			if (style.backgroundOpacity != null) {
 				background.alpha = style.backgroundOpacity;
 			}
-
-			//this.visual.add(this.background);
 		}
 
-		if (style.borderLeftSize != null && style.borderLeftSize != 0) {
+		if (style.borderLeftSize != null) {
 			var line = this.leftBorder;
 			if (style.borderOpacity != null) {
 				line.alpha = style.borderOpacity;
@@ -271,10 +282,9 @@ class ComponentImpl extends ComponentBase {
 				x, 0,
 				x, visual.height
 			];
-			//this.visual.add(line);
 		}
 
-		if (style.borderRightSize != null && style.borderRightSize != 0) {
+		if (style.borderRightSize != null) {
 			var line = this.rightBorder;
 			if (style.borderOpacity != null) {
 				line.alpha = style.borderOpacity;
@@ -286,10 +296,9 @@ class ComponentImpl extends ComponentBase {
 				visual.width - x, 0,
 				visual.width - x, visual.height
 			];
-			this.visual.add(line);
 		}
 
-		if (style.borderTopSize != null && style.borderTopSize != 0) {
+		if (style.borderTopSize != null) {
 			var line = this.topBorder;
 			if (style.borderOpacity != null) {
 				line.alpha = style.borderOpacity;
@@ -302,10 +311,9 @@ class ComponentImpl extends ComponentBase {
 				line.thickness, y,
 				visual.width - line.thickness, y
 			];
-			this.visual.add(line);
 		}
 
-		if (style.borderBottomSize != null && style.borderBottomSize != 0) {
+		if (style.borderBottomSize != null) {
 			var line = this.bottomBorder;
 			if (style.borderOpacity != null) {
 				line.alpha = style.borderOpacity;
@@ -319,12 +327,11 @@ class ComponentImpl extends ComponentBase {
 				line.thickness, visual.height - y,
 				visual.width - line.thickness, visual.height - y
 			];
-
-			this.visual.add(line);
 		}
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
+		//trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
 			dispatch(event);
 		}
@@ -399,9 +406,9 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		Toolkit.callLater(function() {
-			trace(this.id, type, cast(this, Component).className);
-		});
+		// Toolkit.callLater(function() {
+		// 	trace(this.id, type, cast(this, Component).className);
+		// });
 //		trace('${pad(this.id)}: map event -> ${type}');
 	}
 
@@ -474,8 +481,7 @@ class ComponentImpl extends ComponentBase {
 		if (_textDisplay == null) {
 			super.createTextDisplay(text);
 			//_textDisplay.visual.touchable = false;
-			_textDisplay.visual.active = true;
-			this.add(_textDisplay.visual);
+			this.visual.add(_textDisplay.visual);
 			//trace('${pad(this.id)}: create text diplay');
 		}
 		return _textDisplay;
@@ -484,7 +490,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createTextInput(text:String = null):TextInput {
 		if (_textInput == null) {
 			super.createTextInput(text);
-			this.add(_textInput.visual);
+			this.visual.add(_textInput.visual);
 		}
 		return _textInput;
 	}

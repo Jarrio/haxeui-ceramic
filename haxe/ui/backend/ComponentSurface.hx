@@ -29,7 +29,7 @@ class ComponentSurface {
 	public function new() {
 
 		this.visual = new Mesh();
-		this.visual.active = false;
+		this.visual.active = true;
 		this.visual.inheritAlpha = true;
 		this.visual.colors = [AlphaColor.TRANSPARENT];
 
@@ -50,27 +50,32 @@ class ComponentSurface {
 		background.id = ('background');
 		background.inheritAlpha = true;
 
-		this.add(leftBorder);
-		this.add(rightBorder);
-		this.add(topBorder);
-		this.add(bottomBorder);
-		this.add(background);
+		
+		leftBorder.depth = 1;
+		rightBorder.depth = 1;
+		topBorder.depth = 1;
+		bottomBorder.depth = 1;
+		background.depth = 0;
+
+		this.visual.add(leftBorder);
+		this.visual.add(rightBorder);
+		this.visual.add(topBorder);
+		this.visual.add(bottomBorder);
+		this.visual.add(background);
+	}
+
+	public function size(width:Float, height:Float) {
+		this.visual.size(width, height);
+		MeshExtensions.createQuad(background, width, height);	
 	}
 
 	public function add(visual:Visual) {
-		if (this.filter != null) {
-			this.filter.content.add(visual);
-		} else {
-			this.visual.add(visual);
-		}
+		this.visual.add(visual);
 	}
 
 	public function remove(visual:Visual) {
-		if (this.filter != null) {
-			this.filter.content.remove(visual);
-		} else {
-			this.visual.remove(visual);
-		}
+		this.visual.remove(visual);
+
 	}
 
 	inline function set_visible(value:Bool):Bool {
@@ -122,14 +127,5 @@ class ComponentSurface {
 			return null;
 		}
 		return this.visual.clip.asQuad;
-	}
-	
-	function _getDepthIndex() {
-		var depth = 0.;
-		var children = visual.children;
-		if (children != null && children.length > 0) {
-			depth = children[children.length - 1].depth;
-		}
-		return depth;
 	}
 }

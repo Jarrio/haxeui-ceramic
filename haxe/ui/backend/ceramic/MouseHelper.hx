@@ -22,13 +22,19 @@ class MouseHelper {
 			var event = new MouseEvent(type);
 			event.screenX = screen.pointerX;
 			event.screenY = screen.pointerY;
-			event.data = MouseButton.LEFT;
+			event.data = switch (info.buttonId) {
+				case ceramic.MouseButton.LEFT: MouseButton.LEFT;
+				case ceramic.MouseButton.RIGHT: MouseButton.RIGHT;
+				default: null;
+			};
 			mouseClickTime = now;
+			
 			if (component.parentComponent != null) {
 				component.parentComponent.checkRedispatch(type, event);
 			}
 			listener(event);
 		}
+		
 		mouseDownTime = 0;
 	}
 

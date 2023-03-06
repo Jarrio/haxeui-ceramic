@@ -9,7 +9,7 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Text();
-		visual.active = false;
+		visual.active = true;
 		visual.inheritAlpha = true;
 	}
 
