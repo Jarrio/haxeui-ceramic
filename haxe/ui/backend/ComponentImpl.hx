@@ -375,6 +375,49 @@ class ComponentImpl extends ComponentBase {
 		listener(event);
 	}
 
+	public function onMouseMove(type:String, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+		listener(event);
+	}
+
+	public function _onMouseOver(type:String, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+
+		listener(event);
+	}
+
+	public function _onMouseOut(type:String, listener:UIEvent->Void, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+
+		listener(event);
+	}
+
+	public function onMouseWheel(type:String, listener:UIEvent->Void, x:Float, y:Float) {
+		if (!this.hitTest(App.app.screen.pointerX, App.app.screen.pointerY)) {
+    	return;
+		}
+		var event = new MouseEvent(type);
+		event.delta = y * -1;
+		listener(event);
+	}
+
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
 		var entity = new Entity();
@@ -400,17 +443,17 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
-					screen.onPointerMove(entity, MouseHelper.onMouseMove.bind(cast this, type, listener));
+					screen.onPointerMove(entity, onMouseMove.bind(type, listener));
 					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER) == false) {
-					visual.onPointerOver(entity, MouseHelper.onMouseOver.bind(cast this, type, listener));
+					visual.onPointerOver(entity, _onMouseOver.bind(type, listener));
 					eventMap.set(MouseEvent.MOUSE_OVER, listener);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT) == false) {
-					visual.onPointerOut(entity, MouseHelper.onMouseOut.bind(cast this, type, listener));
+					visual.onPointerOut(entity, _onMouseOut.bind(type, listener));
 					eventMap.set(MouseEvent.MOUSE_OUT, listener);
 				}
 			case MouseEvent.MOUSE_UP:
@@ -425,17 +468,17 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP) == false) {
-					visual.onPointerUp(entity, MouseHelper.onRightMouseUp.bind(cast this, listener));
+					visual.onPointerUp(entity, onRightMouseUp.bind(listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_UP, listener);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, MouseHelper.onRightMouseDown.bind(cast this, listener));
+					visual.onPointerDown(entity, onRightMouseDown.bind(listener));
 					eventMap.set(MouseEvent.RIGHT_MOUSE_DOWN, listener);
 				}
 			case MouseEvent.MOUSE_WHEEL:
 				if (eventMap.exists(MouseEvent.MOUSE_WHEEL) == false) {
-					screen.onMouseWheel(visual, MouseHelper.onMouseWheel.bind(cast this, type, listener));
+					screen.onMouseWheel(visual, onMouseWheel.bind(type, listener));
 					eventMap.set(MouseEvent.MOUSE_WHEEL, listener);
 				}
 			default:
