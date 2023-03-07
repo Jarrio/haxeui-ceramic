@@ -88,9 +88,9 @@ class ComponentImpl extends ComponentBase {
 			];
 			visual.width = width;
 			visual.height = height;
-
+			applyStyle(style);
 		}
-		applyStyle(style);
+		
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
@@ -213,8 +213,9 @@ class ComponentImpl extends ComponentBase {
 		}
 
 //		trace(style.backgroundColor);
-		background.color = (style.backgroundColor == null) ? Color.NONE : style.backgroundColor;
+
 		if (style.backgroundColor != null) {
+			background.color = style.backgroundColor;
 			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
 			
 			var alpha:Int = 0xFF000000;

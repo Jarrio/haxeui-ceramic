@@ -1,15 +1,12 @@
 package haxe.ui.backend;
 
 import ceramic.Filter;
-import haxe.ui.backend.ceramic.CMesh;
 import ceramic.Visual;
-import haxe.ui.core.Component;
 import ceramic.MeshExtensions;
 import ceramic.Quad;
 import ceramic.AlphaColor;
 import ceramic.Line;
 import ceramic.Mesh;
-import ceramic.Color;
 
 class ComponentSurface {
 	public var visual:Mesh;
@@ -56,7 +53,7 @@ class ComponentSurface {
 		topBorder.depth = 1;
 		bottomBorder.depth = 1;
 		background.depth = 0;
-
+		
 		this.visual.add(leftBorder);
 		this.visual.add(rightBorder);
 		this.visual.add(topBorder);
