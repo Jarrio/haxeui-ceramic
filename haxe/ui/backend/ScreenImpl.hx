@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.TouchInfo;
 import haxe.ui.core.Component;
 import haxe.ui.backend.ceramic.MouseHelper;
 import ceramic.Entity;
@@ -19,6 +20,7 @@ class ScreenImpl extends ScreenBase {
 		eventMap = new Map<String, UIEvent->Void>();
 		App.app.screen.onResize(null, this.handleResize);
 	}
+
 
 	function mapComponents() {
 		for (k => c in this.rootComponents) {
@@ -70,43 +72,105 @@ class ScreenImpl extends ScreenBase {
 		}
 	}
 
-	private override function mapEvent(type:String, listener:UIEvent->Void) {
-		var screen = App.app.screen;
+	private override function unmapEvent(type:String, listener:UIEvent->Void) {
 		switch (type) {
 			case MouseEvent.MOUSE_MOVE:
-				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
-					var entity = new Entity();
-					screen.onPointerMove(entity, MouseHelper.onMouseMove.bind(null, type, listener));
-					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
+				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+					this.eventCallbacks.get(MouseEvent.MOUSE_MOVE).dispose();
+					this.eventCallbacks.remove(MouseEvent.MOUSE_MOVE);
+					eventMap.remove(MouseEvent.MOUSE_MOVE);
 				}
 			case MouseEvent.MOUSE_UP:
-				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					var entity = new Entity();
-					screen.onPointerUp(entity, MouseHelper.onLeftMouseUp.bind(null, listener));
-					eventMap.set(MouseEvent.MOUSE_UP, listener);
+				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
+					this.eventCallbacks.get(MouseEvent.MOUSE_UP).dispose();
+					this.eventCallbacks.remove(MouseEvent.MOUSE_UP);
+					eventMap.remove(MouseEvent.MOUSE_UP);
 				}
 			case MouseEvent.MOUSE_DOWN:
-				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					var entity = new Entity();
-					screen.onPointerUp(entity, MouseHelper.onLeftMouseDown.bind(null, listener));
-					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
+				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+					this.eventCallbacks.get(MouseEvent.MOUSE_DOWN).dispose();
+					this.eventCallbacks.remove(MouseEvent.MOUSE_DOWN);
+					eventMap.remove(MouseEvent.MOUSE_DOWN);
+				}
+			default:
+		}
+	}
+
+	private override function mapEvent(type:String, listener:UIEvent->Void) {
+		var screen = App.app.screen;
+		var entity = new Entity();
+		entity.id = type;
+		switch (type) {
+			case MouseEvent.MOUSE_MOVE:
+				if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+					this.eventCallbacks.set(type, entity);
+					eventMap.set(type, listener);
+					screen.onPointerMove(entity, onMouseMove.bind(type, listener));
+				}
+			case MouseEvent.MOUSE_UP:
+				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
+					this.eventCallbacks.set(type, entity);
+					eventMap.set(type, listener);
+					screen.onPointerUp(entity, onLeftMouseUp);
+				}
+			case MouseEvent.MOUSE_DOWN:
+				if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+					this.eventCallbacks.set(type, entity);
+					eventMap.set(type, listener);
+					screen.onPointerDown(entity, onLeftMouseDown);
 				}
 			case KeyboardEvent.KEY_UP:
-				if (eventMap.exists(KeyboardEvent.KEY_UP) == false) {
-					var entity = new Entity();
-					entity.id = KeyboardEvent.KEY_UP;
-					this.eventCallbacks.set(KeyboardEvent.KEY_UP, entity);
+				if (!eventMap.exists(KeyboardEvent.KEY_UP)) {
+					this.eventCallbacks.set(type, entity);
+					eventMap.set(type, listener);
 					App.app.input.onKeyUp(entity, onKey.bind(type, listener));
 				}
 			case KeyboardEvent.KEY_DOWN:
-				if (eventMap.exists(KeyboardEvent.KEY_DOWN) == false) {
-					var entity = new Entity();
-					entity.id = KeyboardEvent.KEY_DOWN;
-					this.eventCallbacks.set(KeyboardEvent.KEY_DOWN, entity);
+				if (!eventMap.exists(KeyboardEvent.KEY_DOWN)) {
+					this.eventCallbacks.set(type, entity);
+					eventMap.set(type, listener);
 					App.app.input.onKeyDown(entity, onKey.bind(type, listener));
 				}
 			default:
 		}
+	}
+
+	public function onMouseMove(type:String, listener:UIEvent->Void, info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+			return;
+		}
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+
+		listener(event);
+	}
+
+	public function onLeftMouseDown(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+			return;
+		}
+		onMouseButton(MouseEvent.MOUSE_DOWN, info);
+	}
+
+	public function onLeftMouseUp(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
+			return;
+		}
+		onMouseButton(MouseEvent.MOUSE_UP, info);
+	}
+
+	function onMouseButton(type:String, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		event.data = info.buttonId;
+		switch (type) {
+			case MouseEvent.MOUSE_DOWN | MouseEvent.RIGHT_MOUSE_DOWN:
+				event.buttonDown = true;
+			default:
+		}
+		this.eventMap[type](event);
 	}
 
 	function onKey(type:String, listener:KeyboardEvent->Void, key:Key) {

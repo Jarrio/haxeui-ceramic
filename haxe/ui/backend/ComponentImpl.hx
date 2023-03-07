@@ -37,6 +37,7 @@ class ComponentImpl extends ComponentBase {
 			child.recursiveReady();
 		}
 	}
+
 	public var isClipped:Bool = false;
 	private override function handlePosition(left:Null<Float>, top:Null<Float>, style:Style) {
 		if (left == null || top == null) {
@@ -87,8 +88,9 @@ class ComponentImpl extends ComponentBase {
 			];
 			visual.width = width;
 			visual.height = height;
-			applyStyle(style);
+
 		}
+		applyStyle(style);
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
@@ -320,11 +322,30 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	var eventCallbacks:Map<String, Entity> = [];
 
-	public function onMouseClick(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	function onLeftMouseClick(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.CLICK)) {
+			return;
+		}
+		this.onMouseClick(MouseEvent.CLICK, info);
+	}
+
+	function onRightMouseClick(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
+			return;
+		}
+		this.onMouseClick(MouseEvent.RIGHT_CLICK, info);
+	}
+
+	function onMouseClick(type, info:TouchInfo) {
+		if (!this.eventMap.exists(type)) {
+			return;
+		}
+		var listener = this.eventMap[type];
+		var type = MouseEvent.CLICK;
 		var event = new MouseEvent(type);
+		event.type = type;
 		event.screenX = info.x;
 		event.screenY = info.y;
-		event.data = type;
 
 		if (this.parentComponent != null) {
 			this.parentComponent.checkRedispatch(type, event);
@@ -333,30 +354,38 @@ class ComponentImpl extends ComponentBase {
 		listener(event);
 	}
 
-	public function onLeftMouseDown(listener:UIEvent->Void, info:TouchInfo) {
-		onMouseButton(MouseEvent.MOUSE_DOWN, MouseButton.LEFT, listener, info);
+	function onLeftMouseDown(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+			return;
+		}
+		onMouseButton(MouseEvent.MOUSE_DOWN, info);
 	}
 
-	public function onLeftMouseUp(listener:UIEvent->Void, info:TouchInfo) {
-		var now = Date.now().getTime();
-		onMouseButton(MouseEvent.MOUSE_UP, MouseButton.LEFT, listener, info);
+	function onLeftMouseUp(info:TouchInfo) {
+		if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
+			return;
+		}
+		onMouseButton(MouseEvent.MOUSE_UP, info);
 	}
 
-	public function onRightMouseDown(listener:UIEvent->Void, info:TouchInfo) {
+	function onRightMouseDown(info:TouchInfo) {
 		if (info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
-		onMouseButton(MouseEvent.RIGHT_MOUSE_DOWN, MouseButton.RIGHT, listener, info);
+		onMouseButton(MouseEvent.RIGHT_MOUSE_DOWN, info);
 	}
 
-	public function onRightMouseUp(listener:UIEvent->Void, info:TouchInfo) {
+	function onRightMouseUp(info:TouchInfo) {
 		if (info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
-		onMouseButton(MouseEvent.RIGHT_MOUSE_UP, MouseButton.RIGHT, listener, info);
+		onMouseButton(MouseEvent.RIGHT_MOUSE_UP, info);
 	}
 
-	function onMouseButton(type:String, button:MouseButton, listener:UIEvent->Void, info:TouchInfo) {
+	function onMouseButton(type:String, info:TouchInfo) {
+		if (!this.eventMap.exists(type)) {
+			return;
+		}
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
@@ -371,33 +400,28 @@ class ComponentImpl extends ComponentBase {
 			this.parentComponent.checkRedispatch(type, event);
 		}
 		
-
-		listener(event);
+		this.eventMap[type](event);
 	}
 
-	public function onMouseMove(type:String, listener:UIEvent->Void, info:TouchInfo) {
+	function onMouseMove(info:TouchInfo) {
+		var type = MouseEvent.MOUSE_MOVE;
+		if (!this.eventMap.exists(type)) {
+			return;
+		}
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
 		if (this.parentComponent != null) {
 			this.parentComponent.checkRedispatch(type, event);
 		}
-		listener(event);
+		this.eventMap[type](event);
 	}
 
-	public function _onMouseOver(type:String, listener:UIEvent->Void, info:TouchInfo) {
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-		
-		if (this.parentComponent != null) {
-			this.parentComponent.checkRedispatch(type, event);
+	function _onMouseOver(info:TouchInfo) {
+		var type = MouseEvent.MOUSE_OVER;
+		if (!this.eventMap.exists(type)) {
+			return;
 		}
-
-		listener(event);
-	}
-
-	public function _onMouseOut(type:String, listener:UIEvent->Void, info:TouchInfo) {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
@@ -406,80 +430,105 @@ class ComponentImpl extends ComponentBase {
 			this.parentComponent.checkRedispatch(type, event);
 		}
 
-		listener(event);
+		this.eventMap[type](event);
 	}
 
-	public function onMouseWheel(type:String, listener:UIEvent->Void, x:Float, y:Float) {
+	function _onMouseOut(info:TouchInfo) {
+		var type = MouseEvent.MOUSE_OUT;
+		if (!this.eventMap.exists(type)) {
+			return;
+		}
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+		
+		if (this.parentComponent != null) {
+			this.parentComponent.checkRedispatch(type, event);
+		}
+
+		this.eventMap[type](event);
+	}
+
+	function onMouseWheel(x:Float, y:Float) {
 		if (!this.hitTest(App.app.screen.pointerX, App.app.screen.pointerY)) {
     	return;
 		}
+		var type = MouseEvent.MOUSE_WHEEL;
 		var event = new MouseEvent(type);
 		event.delta = y * -1;
-		listener(event);
+		this.eventMap[type](event);
 	}
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
 		var entity = new Entity();
-		entity.id = type;
-		this.eventCallbacks.set(type, entity);
-		//this.eventMap.set(type, listener);
 
 		switch (type) {
 			case MouseEvent.CLICK:
-				if (eventMap.exists(MouseEvent.CLICK) == false) {
-					visual.onPointerUp(entity, onMouseClick.bind(type, listener));
-					eventMap.set(MouseEvent.CLICK, listener);
+				if (!eventMap.exists(MouseEvent.CLICK)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerUp(entity, this.onLeftMouseClick);
 				}
 			case MouseEvent.RIGHT_CLICK:
-				if (eventMap.exists(MouseEvent.RIGHT_CLICK) == false) {
-					//visual.onPointerUp(entity, MouseHelper.onClick.bind(type, listener));
-					eventMap.set(MouseEvent.RIGHT_CLICK, listener);
+				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerUp(entity, this.onRightMouseClick);
 				}
 			case MouseEvent.DBL_CLICK:
-				if (eventMap.exists(MouseEvent.DBL_CLICK) == false) {
+				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
 					//visual.onPointerUp(entity, MouseHelper.onDoubleClick.bind(type, listener));
-					eventMap.set(MouseEvent.DBL_CLICK, listener);
 				}
 			case MouseEvent.MOUSE_MOVE:
-				if (eventMap.exists(MouseEvent.MOUSE_MOVE) == false) {
-					screen.onPointerMove(entity, onMouseMove.bind(type, listener));
-					eventMap.set(MouseEvent.MOUSE_MOVE, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					screen.onPointerMove(entity, this.onMouseMove);
 				}
 			case MouseEvent.MOUSE_OVER:
-				if (eventMap.exists(MouseEvent.MOUSE_OVER) == false) {
-					visual.onPointerOver(entity, _onMouseOver.bind(type, listener));
-					eventMap.set(MouseEvent.MOUSE_OVER, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_OVER)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerOver(entity, this._onMouseOver);
 				}
 			case MouseEvent.MOUSE_OUT:
-				if (eventMap.exists(MouseEvent.MOUSE_OUT) == false) {
-					visual.onPointerOut(entity, _onMouseOut.bind(type, listener));
-					eventMap.set(MouseEvent.MOUSE_OUT, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerOut(entity, this._onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
-				if (eventMap.exists(MouseEvent.MOUSE_UP) == false) {
-					visual.onPointerUp(entity, onLeftMouseUp.bind(listener));
-					eventMap.set(MouseEvent.MOUSE_UP, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerUp(entity, this.onLeftMouseUp);
 				}
 			case MouseEvent.MOUSE_DOWN:
-				if (eventMap.exists(MouseEvent.MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, onLeftMouseDown.bind(listener));
-					eventMap.set(MouseEvent.MOUSE_DOWN, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerDown(entity, this.onLeftMouseDown);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
-				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP) == false) {
-					visual.onPointerUp(entity, onRightMouseUp.bind(listener));
-					eventMap.set(MouseEvent.RIGHT_MOUSE_UP, listener);
+				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerUp(entity, this.onRightMouseUp);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
-				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN) == false) {
-					visual.onPointerDown(entity, onRightMouseDown.bind(listener));
-					eventMap.set(MouseEvent.RIGHT_MOUSE_DOWN, listener);
+				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					visual.onPointerDown(entity, this.onRightMouseDown);
 				}
 			case MouseEvent.MOUSE_WHEEL:
-				if (eventMap.exists(MouseEvent.MOUSE_WHEEL) == false) {
-					screen.onMouseWheel(visual, onMouseWheel.bind(type, listener));
-					eventMap.set(MouseEvent.MOUSE_WHEEL, listener);
+				if (!eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
+					this.eventCallbacks.set(type, entity);
+					this.eventMap.set(type, listener);
+					screen.onMouseWheel(visual, this.onMouseWheel);
 				}
 			default:
 		}
@@ -493,55 +542,55 @@ class ComponentImpl extends ComponentBase {
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (eventMap.exists(MouseEvent.CLICK)) {
-					this.eventCallbacks.get(MouseEvent.CLICK).destroy();
+					this.eventCallbacks.get(MouseEvent.CLICK).dispose();
 					this.eventCallbacks.remove(MouseEvent.CLICK);
 					eventMap.remove(MouseEvent.CLICK);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK)) {
-					this.eventCallbacks.get(MouseEvent.DBL_CLICK).destroy();
+					this.eventCallbacks.get(MouseEvent.DBL_CLICK).dispose();
 					this.eventCallbacks.remove(MouseEvent.DBL_CLICK);
 					eventMap.remove(MouseEvent.DBL_CLICK);
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_MOVE).destroy();
+					this.eventCallbacks.get(MouseEvent.MOUSE_MOVE).dispose();
 					this.eventCallbacks.remove(MouseEvent.MOUSE_MOVE);
 					eventMap.remove(MouseEvent.MOUSE_MOVE);
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_OVER).destroy();
+					this.eventCallbacks.get(MouseEvent.MOUSE_OVER).dispose();
 					this.eventCallbacks.remove(MouseEvent.MOUSE_OVER);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_OUT).destroy();
+					this.eventCallbacks.get(MouseEvent.MOUSE_OUT).dispose();
 					this.eventCallbacks.remove(MouseEvent.MOUSE_OUT);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_UP).destroy();
+					this.eventCallbacks.get(MouseEvent.MOUSE_UP).dispose();
 					this.eventCallbacks.remove(MouseEvent.MOUSE_UP);
 					eventMap.remove(MouseEvent.MOUSE_UP);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_DOWN).destroy();
+					this.eventCallbacks.get(MouseEvent.MOUSE_DOWN).dispose();
 					this.eventCallbacks.remove(MouseEvent.MOUSE_DOWN);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
-					this.eventCallbacks.get(MouseEvent.RIGHT_MOUSE_UP).destroy();
+					this.eventCallbacks.get(MouseEvent.RIGHT_MOUSE_UP).dispose();
 					this.eventCallbacks.remove(MouseEvent.RIGHT_MOUSE_UP);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_UP);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
-					this.eventCallbacks.get(MouseEvent.RIGHT_MOUSE_DOWN).destroy();
+					this.eventCallbacks.get(MouseEvent.RIGHT_MOUSE_DOWN).dispose();
 					this.eventCallbacks.remove(MouseEvent.RIGHT_MOUSE_DOWN);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
 				}
