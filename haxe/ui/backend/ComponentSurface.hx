@@ -61,18 +61,16 @@ class ComponentSurface {
 		this.visual.add(background);
 	}
 
-	public function size(width:Float, height:Float) {
+	public inline function size(width:Float, height:Float) {
 		this.visual.size(width, height);
-		MeshExtensions.createQuad(background, width, height);	
 	}
 
-	public function add(visual:Visual) {
+	public inline function add(visual:Visual) {
 		this.visual.add(visual);
 	}
 
-	public function remove(visual:Visual) {
+	public inline function remove(visual:Visual) {
 		this.visual.remove(visual);
-
 	}
 
 	inline function set_visible(value:Bool):Bool {

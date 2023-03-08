@@ -88,9 +88,9 @@ class ComponentImpl extends ComponentBase {
 			];
 			visual.width = width;
 			visual.height = height;
-			applyStyle(style);
+
 		}
-		
+		applyStyle(style);
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
@@ -338,9 +338,6 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	function onMouseClick(type, info:TouchInfo) {
-		if (!this.eventMap.exists(type)) {
-			return;
-		}
 		var listener = this.eventMap[type];
 		var type = MouseEvent.CLICK;
 		var event = new MouseEvent(type);
@@ -446,7 +443,7 @@ class ComponentImpl extends ComponentBase {
 		if (this.parentComponent != null) {
 			this.parentComponent.checkRedispatch(type, event);
 		}
-
+		
 		this.eventMap[type](event);
 	}
 
@@ -469,7 +466,7 @@ class ComponentImpl extends ComponentBase {
 				if (!eventMap.exists(MouseEvent.CLICK)) {
 					this.eventCallbacks.set(type, entity);
 					this.eventMap.set(type, listener);
-					visual.onPointerUp(entity, this.onLeftMouseClick);
+					this.visual.onPointerUp(entity, this.onLeftMouseClick);
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
