@@ -1,5 +1,5 @@
 # HaxeUI Ceramic backend
-- The cwd for `resources` and `@:build` xmls is `2` levels deep from project root. Add `../../` to your filepaths.
+- The cwd for `resources` and `@:build` xmls is `2` levels deep from project root. Add `../../` to your haxeui filepaths 
 
 Working:
 
@@ -14,10 +14,9 @@ basic
 - classic scroll bars
 - calendars
 - labels
+- drop down 
 - dropdown
-
-- images
-
+- switches
 
 containers
 - tabs
@@ -25,13 +24,10 @@ containers
 - scroll views
 - table views
 - accordian
-- splitter
-- card
-- dialogs
-- property grid
-- list view
+- cards
 - menus
-- windows
+- list view
+- tables
 
 layouts
 - absolute
@@ -39,14 +35,18 @@ layouts
 - horizontal
 - vertial
 - grid
+- splitter
+- spliter
 
 misc
 - tooltips
 - drag
 - animations
+- clipping
+- images
 
 Not working/Bugged:
 
 - canvas
-- number stepper
-- tree view
+- number stepper (text alignment)
+- tree view (hover)
