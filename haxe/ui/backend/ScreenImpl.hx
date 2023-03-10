@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ToolkitOptions.root;
 import ceramic.TouchInfo;
 import haxe.ui.core.Component;
 import haxe.ui.backend.ceramic.MouseHelper;
@@ -14,9 +15,11 @@ import ceramic.App;
 @:access(haxe.ui.backend.ComponentImpl)
 class ScreenImpl extends ScreenBase {
 	var eventCallbacks:Map<String, Entity> = [];
+	private var screenEntity:Entity;
 	private var eventMap:Map<String, UIEvent->Void>;
 
 	public function new() {
+		screenEntity = new Entity();
 		eventMap = new Map<String, UIEvent->Void>();
 		App.app.screen.onResize(null, this.handleResize);
 	}
@@ -37,7 +40,7 @@ class ScreenImpl extends ScreenBase {
 		resizeComponent(c);
 		rootComponents.push(component);
 		component.visual.active = true;
-		App.app.scenes.main.add(c.visual);
+		root().add(c.visual);
 		this.mapComponents();
 		return c;
 	}
@@ -54,7 +57,7 @@ class ScreenImpl extends ScreenBase {
 			component.visual.dispose();
 		} else {
 			component.visual.active = false;
-			App.app.scenes.main.remove(component.visual);
+			root().remove(component.visual);
 		}
 		rootComponents.remove(component);
 		this.mapComponents();
@@ -73,23 +76,21 @@ class ScreenImpl extends ScreenBase {
 	}
 
 	private override function unmapEvent(type:String, listener:UIEvent->Void) {
+		var screen = App.app.screen;
 		switch (type) {
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_MOVE).dispose();
-					this.eventCallbacks.remove(MouseEvent.MOUSE_MOVE);
+					screen.offPointerMove(onMouseMove);
 					eventMap.remove(MouseEvent.MOUSE_MOVE);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_UP).dispose();
-					this.eventCallbacks.remove(MouseEvent.MOUSE_UP);
+					screen.offPointerUp(onLeftMouseUp);
 					eventMap.remove(MouseEvent.MOUSE_UP);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					this.eventCallbacks.get(MouseEvent.MOUSE_DOWN).dispose();
-					this.eventCallbacks.remove(MouseEvent.MOUSE_DOWN);
+					screen.offPointerDown(onLeftMouseDown);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
 			default:
@@ -98,52 +99,46 @@ class ScreenImpl extends ScreenBase {
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
-		var entity = new Entity();
-		entity.id = type;
 		switch (type) {
 			case MouseEvent.MOUSE_MOVE:
 				if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
-					this.eventCallbacks.set(type, entity);
 					eventMap.set(type, listener);
-					screen.onPointerMove(entity, onMouseMove.bind(type, listener));
+					screen.onPointerMove(screenEntity, onMouseMove);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
-					this.eventCallbacks.set(type, entity);
 					eventMap.set(type, listener);
-					screen.onPointerUp(entity, onLeftMouseUp);
+					screen.onPointerUp(screenEntity, onLeftMouseUp);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					this.eventCallbacks.set(type, entity);
 					eventMap.set(type, listener);
-					screen.onPointerDown(entity, onLeftMouseDown);
+					screen.onPointerDown(screenEntity, onLeftMouseDown);
 				}
 			case KeyboardEvent.KEY_UP:
 				if (!eventMap.exists(KeyboardEvent.KEY_UP)) {
-					this.eventCallbacks.set(type, entity);
 					eventMap.set(type, listener);
-					App.app.input.onKeyUp(entity, onKey.bind(type, listener));
+					App.app.input.onKeyUp(screenEntity, onKey.bind(type, listener));
 				}
 			case KeyboardEvent.KEY_DOWN:
 				if (!eventMap.exists(KeyboardEvent.KEY_DOWN)) {
-					this.eventCallbacks.set(type, entity);
 					eventMap.set(type, listener);
-					App.app.input.onKeyDown(entity, onKey.bind(type, listener));
+					App.app.input.onKeyDown(screenEntity, onKey.bind(type, listener));
 				}
 			default:
 		}
 	}
 
-	public function onMouseMove(type:String, listener:UIEvent->Void, info:TouchInfo) {
-		if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+	public function onMouseMove(info:TouchInfo) {
+		var type = MouseEvent.MOUSE_MOVE;
+		if (!eventMap.exists(type)) {
 			return;
 		}
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
 
-		listener(event);
+		this.eventMap[type](event);
 	}
 
 	public function onLeftMouseDown(info:TouchInfo) {
