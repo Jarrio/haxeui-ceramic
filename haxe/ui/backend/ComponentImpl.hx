@@ -543,9 +543,21 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	function onCeramicUp(info:TouchInfo) {
-		var type = MouseEvent.MOUSE_UP;
+	function onCeramicLeftUp(info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
+			return;
+		}
+		onCeramicUp(MouseEvent.MOUSE_UP, info);
+	}
+	
+	function onCeramicRightUp(info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		onCeramicUp(MouseEvent.RIGHT_MOUSE_UP, info);
+	}
 
+	function onCeramicUp(type:String, info:TouchInfo) {
 		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, info.x, info.y)) {
 			return;
 		}
@@ -560,8 +572,21 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	function onCeramicDown(info:TouchInfo) {
-		var type = MouseEvent.MOUSE_DOWN;
+	function onCeramicLeftDown(info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
+			return;
+		}
+		onCeramicDown(MouseEvent.MOUSE_DOWN, info);
+	}
+
+	function onCeramicRightDown(info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
+			return;
+		}
+		onCeramicDown(MouseEvent.RIGHT_MOUSE_DOWN, info);
+	}
+
+	function onCeramicDown(type:String, info:TouchInfo) {
 		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, info.x, info.y)) {
 			return;
 		}
@@ -576,42 +601,21 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	function _onMouseOver(info:TouchInfo) {
-		var type = MouseEvent.MOUSE_OVER;
-		if (!this.eventMap.exists(type)) {
+	function onCeramicLeftClick(info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
 			return;
 		}
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-		
-		this.eventMap[type](event);
+		onCeramicClick(MouseEvent.CLICK, info);
 	}
 
-	function _onMouseOut(info:TouchInfo) {
-		var type = MouseEvent.MOUSE_OUT;
-		if (!this.eventMap.exists(type)) {
+	function onCeramicRightClick(info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-
-		this.eventMap[type](event);
-		
+		onCeramicClick(MouseEvent.RIGHT_CLICK, info);
 	}
 
-	function onMouseWheel(x:Float, y:Float) {
-		if (!this.hitTest(App.app.screen.pointerX, App.app.screen.pointerY)) {
-    	return;
-		}
-		var type = MouseEvent.MOUSE_WHEEL;
-		var event = new MouseEvent(type);
-		event.delta = y * -1;
-		this.eventMap[type](event);
-	}
-
-	function onCeramicClick(info:TouchInfo) {
+	function onCeramicClick(type:String, info:TouchInfo) {
 		var type = MouseEvent.CLICK;
 		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, info.x, info.y)) {
 			return;
@@ -632,12 +636,12 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.CLICK:
 				if (!eventMap.exists(MouseEvent.CLICK)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, this.onCeramicClick);
+					screen.onPointerUp(visual, this.onCeramicLeftClick);
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
 					this.eventMap.set(type, listener);
-					visual.onPointerUp(visual, this.onRightMouseClick);
+					screen.onPointerUp(visual, this.onCeramicRightClick);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
@@ -665,29 +669,29 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, this.onCeramicUp);
+					screen.onPointerUp(visual, this.onCeramicLeftUp);
 					//visual.onPointerUp(visual, this.onLeftMouseUp);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerDown(visual, this.onCeramicDown);
+					screen.onPointerDown(visual, this.onCeramicLeftDown);
 					//visual.onPointerDown(visual, this.onLeftMouseDown);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
 					this.eventMap.set(type, listener);
-					visual.onPointerUp(visual, this.onRightMouseUp);
+					screen.onPointerUp(visual, this.onCeramicRightUp);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
 					this.eventMap.set(type, listener);
-					visual.onPointerDown(visual, this.onRightMouseDown);
+					screen.onPointerDown(visual, this.onCeramicRightDown);
 				}
 			case MouseEvent.MOUSE_WHEEL:
 				if (!eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
 					this.eventMap.set(type, listener);
-					screen.onMouseWheel(visual, this.onMouseWheel);
+					//screen.onMouseWheel(visual, this.onMouseWheel);
 				}
 			default:
 		}
@@ -702,8 +706,13 @@ class ComponentImpl extends ComponentBase {
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (eventMap.exists(MouseEvent.CLICK)) {
-					screen.offPointerUp(onCeramicClick);
+					screen.offPointerUp(onCeramicLeftClick);
 					eventMap.remove(MouseEvent.CLICK);
+				}
+			case MouseEvent.RIGHT_CLICK:
+				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
+					screen.offPointerUp(onCeramicRightClick);
+					eventMap.remove(MouseEvent.RIGHT_CLICK);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK)) {
@@ -716,33 +725,33 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
-					//visual.offPointerOver(_onMouseOver);
-					//screen.offPointerMove(onCeramicOver);
 					screen.offPointerMove(onMouseMove);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
-					//visual.offPointerOut(_onMouseOut);
+					//visual.offPointerOut(onCeramicOut);
 					//screen.offPointerMove(onCeramicOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
-					screen.offPointerUp(onCeramicUp);
+					screen.offPointerUp(onCeramicLeftUp);
 					eventMap.remove(MouseEvent.MOUSE_UP);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					screen.offPointerUp(onCeramicDown);
+					screen.offPointerUp(onCeramicLeftDown);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
+					screen.offPointerUp(onCeramicRightUp);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_UP);
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
+					screen.offPointerUp(onCeramicRightDown);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
 				}
 			default:
