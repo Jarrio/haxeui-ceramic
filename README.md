@@ -1,4 +1,5 @@
-# Haxeui ceramic
+# HaxeUI Ceramic backend
+- The cwd for `resources` and `@:build` xmls is `2` levels deep from project root. Add `../../` to your filepaths.
 
 Working:
 
@@ -13,13 +14,24 @@ basic
 - classic scroll bars
 - calendars
 - labels
+- dropdown
+
+- images
+
 
 containers
-- tabs (glitchy tho)
+- tabs
 - frames
 - scroll views
 - table views
 - accordian
+- splitter
+- card
+- dialogs
+- property grid
+- list view
+- menus
+- windows
 
 layouts
 - absolute
@@ -33,20 +45,8 @@ misc
 - drag
 - animations
 
-not working/bugged
-
-- collision
-- clipping
-- images
+Not working/Bugged:
 
 - canvas
-- right arrow on classic scroll bar disappears
 - number stepper
-- dropdown
-- menubars
-- list view
 - tree view
-- property grid
-- dialogs
-- card (bg doesn't render?)
-- splitter

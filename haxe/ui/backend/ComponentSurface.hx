@@ -29,7 +29,7 @@ class ComponentSurface {
 		this.visual.active = true;
 		this.visual.inheritAlpha = true;
 		this.visual.colors = [AlphaColor.TRANSPARENT];
-
+		
 		leftBorder = new Line();
 		leftBorder.inheritAlpha = true;
 		leftBorder.id = ('leftBorder');
