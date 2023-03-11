@@ -27,6 +27,11 @@ Screen.instance.addComponent(haxeui_component);
 ```
 
 ----
+Not working/Bugged:
+
+- canvas
+- number stepper (text alignment)
+- tree view (hover)
 
 Working:
 basic 
@@ -71,8 +76,3 @@ misc
 - clipping
 - images
 
-Not working/Bugged:
-
-- canvas
-- number stepper (text alignment)
-- tree view (hover)
