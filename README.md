@@ -5,8 +5,8 @@
 1) [Install ceramic](https://ceramic-engine.com/guides/install-ceramic/#install-ceramic)
 2) Open an empty directory and run `ceramic init --name myproject` to create a blank project
 3) Open the project in vscode
-  a) Install the [ceramic vscode extension](https://marketplace.visualstudio.com/items?itemName=jeremyfa.ceramic) if you haven't got it already
-4) Run in the **same** project directory: 
+    - Install the [ceramic vscode extension](https://marketplace.visualstudio.com/items?itemName=jeremyfa.ceramic) if you haven't got it already
+5) Run in the **same** project directory: 
 ```
 haxelib git haxeui-core https://github.com/haxeui/haxeui-core
 haxelib git haxeui-ceramic https://github.com/Jarrio/haxeui-ceramic
@@ -27,6 +27,11 @@ Screen.instance.addComponent(haxeui_component);
 ```
 
 ----
+Not working/Bugged:
+
+- canvas
+- number stepper (text alignment)
+- tree view (hover)
 
 Working:
 basic 
@@ -71,8 +76,3 @@ misc
 - clipping
 - images
 
-Not working/Bugged:
-
-- canvas
-- number stepper (text alignment)
-- tree view (hover)
