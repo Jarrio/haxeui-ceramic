@@ -33,7 +33,7 @@ class ComponentImpl extends ComponentBase {
 	private function recursiveReady() {
 		var component:Component = cast(this, Component);
 		component.ready();
-		
+
 		for (child in component.childComponents) {
 			child.recursiveReady();
 		}
@@ -219,7 +219,7 @@ class ComponentImpl extends ComponentBase {
 		if (style.backgroundColor != null) {
 			background.color = style.backgroundColor;
 			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
-			
+
 			var alpha:Int = 0xFF000000;
 
 			if (style.backgroundColorEnd != null) {
@@ -365,7 +365,7 @@ class ComponentImpl extends ComponentBase {
 		if (this.parentComponent != null) {
 			this.parentComponent.checkRedispatch(type, event);
 		}
-		
+
 		listener(event);
 	}
 
@@ -379,7 +379,7 @@ class ComponentImpl extends ComponentBase {
 	function onLeftMouseUp(info:TouchInfo) {
 		if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
 			return;
-		}	
+		}
 		onMouseButton(MouseEvent.MOUSE_UP, info);
 	}
 
@@ -414,12 +414,12 @@ class ComponentImpl extends ComponentBase {
 		if (this.parentComponent != null) {
 			this.parentComponent.checkRedispatch(type, event);
 		}
-		
+
 		this.eventMap[type](event);
 	}
 
-	    private function hasComponentOver(ref:Component, x:Float, y:Float):Bool {
-        var array:Array<Component> = getComponentsAtPoint(x, y);
+	    private function hasComponentOver(ref:Component, x:Float, y:Float, reverse:Bool = false):Bool {
+        var array:Array<Component> = getComponentsAtPoint(x, y, reverse);
         if (array.length == 0) {
             return false;
         }
@@ -427,11 +427,16 @@ class ComponentImpl extends ComponentBase {
         return !hasChildRecursive(cast ref, cast array[array.length - 1]);
     }
 
-    private function getComponentsAtPoint(x:Float, y:Float):Array<Component> {
+    private function getComponentsAtPoint(x:Float, y:Float, reverse:Bool = false):Array<Component> {
         var array:Array<Component> = new Array<Component>();
         for (r in Screen.instance.rootComponents) {
             findChildrenAtPoint(r, x, y, array);
         }
+        
+        if (reverse == true) {
+            array.reverse();
+        }
+        
         return array;
     }
 
@@ -468,24 +473,23 @@ class ComponentImpl extends ComponentBase {
 		/**
 		 * mouse move
 		 */
-		
-		var type = MouseEvent.MOUSE_MOVE;
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		var hittest = this.hitTest(info.x, info.y);
+		var listener = eventMap.get(MouseEvent.MOUSE_MOVE);
 
-		if (eventMap.exists(type)) {
-			//eventMap[type](event);	
+		if (hittest && listener != null) {
+			var event = new MouseEvent(MouseEvent.MOUSE_MOVE);
+			event.screenX = info.x;
+			event.screenY = info.y;
+			listener(event);
 		}
-		
+
 		/**
 		 * mouse over
 		 */
-		var listener = null;
-		if (this.hitTest(info.x, info.y) && !over) {
-			if (this.hasComponentOver(cast this, info.x, info.y)) {
-				return;
-			}
+		if (hittest && !over) {
+			// if (this.hasComponentOver(cast this, info.x, info.y)) {
+			// 	return;
+			// }
 			over = true;
 			var event = new MouseEvent(MouseEvent.MOUSE_OVER);
 			event.screenX = info.x;
@@ -493,17 +497,16 @@ class ComponentImpl extends ComponentBase {
 
 			listener = eventMap.get(MouseEvent.MOUSE_OVER);
 			if (listener != null) {
-				listener(event);	
+				listener(event);
 			}
-		} else if (!this.hitTest(info.x, info.y) && over) {
+		} else if (!hittest && over) {
 			over = false;
 			var event = new MouseEvent(MouseEvent.MOUSE_OUT);
 			event.screenX = info.x;
 			event.screenY = info.y;
-			
 			listener = eventMap.get(MouseEvent.MOUSE_OUT);
 			if (listener != null) {
-				listener(event);	
+				listener(event);
 			}
 		}
 	}
@@ -513,13 +516,13 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type)) {
 			return;
 		}
-		
+
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
 
 		var listener = this.eventMap[type];
-		
+
 		if (over && !this.hitTest(info.x, info.y)) {
 			listener(event);
 			over = false;
@@ -531,7 +534,7 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type)) {
 			return;
 		}
-		
+
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
@@ -549,7 +552,7 @@ class ComponentImpl extends ComponentBase {
 		}
 		onCeramicUp(MouseEvent.MOUSE_UP, info);
 	}
-	
+
 	function onCeramicRightUp(info:TouchInfo) {
 		if (info.buttonId != MouseButton.RIGHT) {
 			return;
@@ -561,7 +564,7 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, info.x, info.y)) {
 			return;
 		}
-		
+
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
@@ -601,6 +604,17 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	public function onMouseWheel(x:Float, y:Float) {
+		var type = MouseEvent.MOUSE_WHEEL;
+		var screen = App.app.screen;
+		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, screen.pointerX, screen.pointerY)) {
+			return;
+		}
+		var event = new MouseEvent(type);
+		event.delta = y * -1;
+		this.eventMap[type](event);
+	}
+
 	function onCeramicLeftClick(info:TouchInfo) {
 		if (info.buttonId != MouseButton.LEFT) {
 			return;
@@ -617,7 +631,7 @@ class ComponentImpl extends ComponentBase {
 
 	function onCeramicClick(type:String, info:TouchInfo) {
 		var type = MouseEvent.CLICK;
-		if (!this.eventMap.exists(type) || this.hasComponentOver(cast this, info.x, info.y)) {
+		if (!this.eventMap.exists(type)) {
 			return;
 		}
 
@@ -662,7 +676,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
-					this.eventMap.set(type, listener);
+					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
 					//screen.onPointerMove(visual, this.onCeramicOut);
 					//visual.onPointerOut(visual, this._onMouseOut);
 				}
@@ -691,7 +705,7 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_WHEEL:
 				if (!eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
 					this.eventMap.set(type, listener);
-					//screen.onMouseWheel(visual, this.onMouseWheel);
+					screen.onMouseWheel(visual, this.onMouseWheel);
 				}
 			default:
 		}
@@ -754,9 +768,13 @@ class ComponentImpl extends ComponentBase {
 					screen.offPointerUp(onCeramicRightDown);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
 				}
+			case MouseEvent.MOUSE_WHEEL:
+				if (eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
+					screen.offMouseWheel(onMouseWheel);
+					eventMap.remove(MouseEvent.MOUSE_WHEEL);
+				}
 			default:
 		}
-
 		// trace('${pad(this.id)}: unmap event -> ${type}');
 	}
 
