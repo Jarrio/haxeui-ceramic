@@ -76,19 +76,20 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			visual.vertices = [
+			visual.vertices = background.vertices = [
 				    0,      0,
 				width,      0,
 				    0, height,
 				width, height
 			];
 
-			visual.indices = [
+			visual.indices = background.indices = [
 				0, 1, 3,
 				0, 2, 3
 			];
-			visual.width = width;
-			visual.height = height;
+
+			visual.width = background.width = width;
+			visual.height = background.height = height;
 
 		}
 		applyStyle(style);
@@ -218,7 +219,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (style.backgroundColor != null) {
 			background.color = style.backgroundColor;
-			MeshExtensions.createQuad(background, this.visual.width, this.visual.height);
+			
 
 			var alpha:Int = 0xFF000000;
 
