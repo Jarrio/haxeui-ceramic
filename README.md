@@ -31,7 +31,6 @@ Not working/Bugged:
 
 - canvas
 - number stepper (text alignment)
-- tree view (hover)
 
 Working:
 basic 
@@ -59,6 +58,7 @@ containers
 - menus
 - list view
 - tables
+- tree view
 
 layouts
 - absolute
