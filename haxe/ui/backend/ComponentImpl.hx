@@ -530,7 +530,7 @@ class ComponentImpl extends ComponentBase {
 		_onClick(MouseEvent.CLICK, info);
 	}
 
-	function onMouseRightClick(info:TouchInfo) {
+	function onMouseRightClick(info:TouchInfo) {	
 		if (info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
