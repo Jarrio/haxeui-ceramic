@@ -20,7 +20,7 @@ haxelib git haxeui-ceramic https://github.com/Jarrio/haxeui-ceramic
 6) In your `Project.hx` `ready()` function initialise your haxeui things
 ```
 //put the following code AFTER you call app.scenes.main = new MainScene()
-Toolkit.init(); // there are some optional config options in the first param
+Toolkit.init(); // some optional config can be passed to init
 //Toolkit.theme = 'dark';
 var haxeui_component = new MyComponent();
 Screen.instance.addComponent(haxeui_component);
