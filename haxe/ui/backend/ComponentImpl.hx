@@ -225,7 +225,11 @@ class ComponentImpl extends ComponentBase {
 			background.alpha = 1;
 		}
 
+		//trace(Color.fromInt(style.backgroundColor).toHexString());
+
 		if (style.backgroundColor != null) {
+			background.alpha = 1;
+			background.color = style.backgroundColor;
 			var alpha:Int = 0xFF000000;
 
 			if (style.backgroundColorEnd != null) {
@@ -423,7 +427,6 @@ class ComponentImpl extends ComponentBase {
 		var event = new MouseEvent(type);
 		event.screenX = info.x;
 		event.screenY = info.y;
-
 		var listener = this.eventMap[type];
 
 		if (over) {
@@ -462,6 +465,13 @@ class ComponentImpl extends ComponentBase {
 		onMouseUp(MouseEvent.RIGHT_MOUSE_UP, info);
 	}
 
+	function onMouseMiddleUp(info:TouchInfo) {
+		if (info.buttonId != MouseButton.MIDDLE) {
+			return;
+		}
+		onMouseUp(MouseEvent.MIDDLE_MOUSE_UP, info);
+	}
+
 	function onMouseUp(type:String, info:TouchInfo) {
 		if (!this.eventMap.exists(type)) {
 			return;
@@ -489,6 +499,13 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 		onMouseDown(MouseEvent.RIGHT_MOUSE_DOWN, info);
+	}
+
+	function onMouseMiddleDown(info:TouchInfo) {
+		if (info.buttonId != MouseButton.MIDDLE) {
+			return;
+		}
+		onMouseDown(MouseEvent.MIDDLE_MOUSE_DOWN, info);
 	}
 
 	function onMouseDown(type:String, info:TouchInfo) {
@@ -521,6 +538,7 @@ class ComponentImpl extends ComponentBase {
 		event.delta = y * -1;
 		this.eventMap[type](event);
 	}
+
 	var left_click_time:Float;
 	function onMouseLeftClick(info:TouchInfo) {
 		if (info.buttonId != MouseButton.LEFT) {
@@ -535,6 +553,13 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 		_onClick(MouseEvent.RIGHT_CLICK, info);
+	}
+
+	function onMouseMiddleClick(info:TouchInfo) {	
+		if (info.buttonId != MouseButton.MIDDLE) {
+			return;
+		}
+		_onClick(MouseEvent.MIDDLE_CLICK, info);
 	}
 
 	function _onClick(type:String, info:TouchInfo) {
@@ -626,6 +651,16 @@ class ComponentImpl extends ComponentBase {
 					this.eventMap.set(type, listener);
 					screen.onPointerDown(visual, this.onMouseRightDown);
 				}
+			case MouseEvent.MIDDLE_MOUSE_UP:
+				if (!eventMap.exists(MouseEvent.MIDDLE_MOUSE_UP)) {
+					this.eventMap.set(type, listener);
+					screen.onPointerUp(visual, this.onMouseMiddleUp);
+				}
+			case MouseEvent.MIDDLE_MOUSE_DOWN:
+				if (!eventMap.exists(MouseEvent.MIDDLE_MOUSE_DOWN)) {
+					this.eventMap.set(type, listener);
+					screen.onPointerDown(visual, this.onMouseMiddleDown);
+				}
 			case MouseEvent.MOUSE_WHEEL:
 				if (!eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
 					this.eventMap.set(type, listener);
@@ -646,6 +681,11 @@ class ComponentImpl extends ComponentBase {
 				if (eventMap.exists(MouseEvent.CLICK)) {
 					screen.offPointerUp(onMouseLeftClick);
 					eventMap.remove(MouseEvent.CLICK);
+				}
+			case MouseEvent.MIDDLE_CLICK:
+				if (eventMap.exists(MouseEvent.MIDDLE_CLICK)) {
+					screen.offPointerUp(onMouseMiddleClick);
+					eventMap.remove(MouseEvent.MIDDLE_CLICK);
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
@@ -690,6 +730,16 @@ class ComponentImpl extends ComponentBase {
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
 					screen.offPointerUp(onMouseRightDown);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
+				}
+			case MouseEvent.MIDDLE_MOUSE_UP:
+				if (eventMap.exists(MouseEvent.MIDDLE_MOUSE_UP)) {
+					screen.offPointerUp(onMouseMiddleUp);
+					eventMap.remove(MouseEvent.MIDDLE_MOUSE_UP);
+				}
+			case MouseEvent.MIDDLE_MOUSE_DOWN:
+				if (eventMap.exists(MouseEvent.MIDDLE_MOUSE_DOWN)) {
+					screen.offPointerUp(onMouseMiddleDown);
+					eventMap.remove(MouseEvent.MIDDLE_MOUSE_DOWN);
 				}
 			case MouseEvent.MOUSE_WHEEL:
 				if (eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
