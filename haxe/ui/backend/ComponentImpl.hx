@@ -550,10 +550,9 @@ class ComponentImpl extends ComponentBase {
 		if (diff < 250) {
 			type = MouseEvent.DBL_CLICK;
 			//trace('double clicked');
-		} else {
-			left_click_time = Date.now().getTime();
-		}
-		
+		} 
+
+		left_click_time = now;
 		_onClick(type, info);
 	}
 
