@@ -544,8 +544,17 @@ class ComponentImpl extends ComponentBase {
 		if (info.buttonId != MouseButton.LEFT) {
 			return;
 		}
-		left_click_time = Date.now().getTime();
-		_onClick(MouseEvent.CLICK, info);
+		var now = Date.now().getTime();
+		var diff = now - this.left_click_time;
+		var type = MouseEvent.CLICK;
+		if (diff < 250) {
+			type = MouseEvent.DBL_CLICK;
+			//trace('double clicked');
+		} else {
+			left_click_time = Date.now().getTime();
+		}
+		
+		_onClick(type, info);
 	}
 
 	function onMouseRightClick(info:TouchInfo) {	
@@ -563,8 +572,8 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	function _onClick(type:String, info:TouchInfo) {
-		var type = MouseEvent.CLICK;
 		if (!this.eventMap.exists(type)) {
+			//trace(type);
 			return;
 		}
 
@@ -576,26 +585,6 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	function onDoubleClick(info:TouchInfo) {
-		var type = MouseEvent.DBL_CLICK;
-		if (!this.eventMap.exists(type)) {
-			return;
-		}
-
-		var now = Date.now().getTime();
-		var diff = now - this.left_click_time;
-
-		if (diff > 60) {
-			return;
-		}
-
-		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-		if (this.hitTest(info.x, info.y) && !this.hasComponentOver(cast this, info.x, info.y)) {
-			this.eventMap[type](event);
-		}
-	}
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
@@ -613,8 +602,10 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.DBL_CLICK:
 				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
+					//trace('registered');
+					//trace(type);
 					this.eventMap.set(type, listener);
-					visual.onPointerUp(visual, onDoubleClick);
+					//visual.onPointerUp(visual, onDoubleClick);
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
@@ -682,6 +673,11 @@ class ComponentImpl extends ComponentBase {
 					screen.offPointerUp(onMouseLeftClick);
 					eventMap.remove(MouseEvent.CLICK);
 				}
+			case MouseEvent.DBL_CLICK:
+				if (eventMap.exists(MouseEvent.DBL_CLICK)) {
+					//screen.offPointerUp(onDoubleClick);
+					eventMap.remove(MouseEvent.DBL_CLICK);
+				}
 			case MouseEvent.MIDDLE_CLICK:
 				if (eventMap.exists(MouseEvent.MIDDLE_CLICK)) {
 					screen.offPointerUp(onMouseMiddleClick);
@@ -691,10 +687,6 @@ class ComponentImpl extends ComponentBase {
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
 					screen.offPointerUp(onMouseRightClick);
 					eventMap.remove(MouseEvent.RIGHT_CLICK);
-				}
-			case MouseEvent.DBL_CLICK:
-				if (eventMap.exists(MouseEvent.DBL_CLICK)) {
-					eventMap.remove(MouseEvent.DBL_CLICK);
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
