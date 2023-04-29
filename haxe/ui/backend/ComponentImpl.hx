@@ -540,20 +540,29 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	var left_click_time:Float;
-	function onMouseLeftClick(info:TouchInfo) {
+	function onDoubleClick(info:TouchInfo) {
 		if (info.buttonId != MouseButton.LEFT) {
 			return;
 		}
 		var now = Date.now().getTime();
 		var diff = now - this.left_click_time;
-		var type = MouseEvent.CLICK;
-		if (diff < 250) {
-			type = MouseEvent.DBL_CLICK;
-			//trace('double clicked');
+		var type = MouseEvent.DBL_CLICK;		
+		click_increment++;
+		if (diff < 250 && click_increment >= 2) {
+			click_increment = 0;
+			_onClick(type, info);
+			return;
 		} 
-
 		left_click_time = now;
-		_onClick(type, info);
+	}
+
+	var click_increment:Int = 0;
+	function onMouseLeftClick(info:TouchInfo) {
+		if (info.buttonId != MouseButton.LEFT) {
+			return;
+		}
+
+		_onClick(MouseEvent.CLICK, info);
 	}
 
 	function onMouseRightClick(info:TouchInfo) {	
@@ -572,7 +581,6 @@ class ComponentImpl extends ComponentBase {
 
 	function _onClick(type:String, info:TouchInfo) {
 		if (!this.eventMap.exists(type)) {
-			//trace(type);
 			return;
 		}
 
@@ -604,7 +612,7 @@ class ComponentImpl extends ComponentBase {
 					//trace('registered');
 					//trace(type);
 					this.eventMap.set(type, listener);
-					//visual.onPointerUp(visual, onDoubleClick);
+					screen.onPointerUp(visual, onDoubleClick);
 				}
 			case MouseEvent.MOUSE_MOVE:
 				if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
@@ -674,7 +682,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.DBL_CLICK:
 				if (eventMap.exists(MouseEvent.DBL_CLICK)) {
-					//screen.offPointerUp(onDoubleClick);
+					screen.offPointerUp(onDoubleClick);
 					eventMap.remove(MouseEvent.DBL_CLICK);
 				}
 			case MouseEvent.MIDDLE_CLICK:
