@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ceramic.RoundRect.RoundedRect;
 import haxe.ui.core.Screen;
 import ceramic.MeshExtensions;
 import ceramic.AlphaColor;
@@ -48,15 +49,15 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (this.x != left) {
-			this.x = left;
+		if (this.visual.x != left) {
+			this.visual.x = left;
 			if (this.isClipped) {
 				this.filter.x = left;
 			}
 		}
 
-		if (this.y != top) {
-			this.y = top;
+		if (this.visual.y != top) {
+			this.visual.y = top;
 			if (this.isClipped) {
 				this.filter.y = top;
 			}
@@ -79,20 +80,20 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			visual.vertices = background.vertices = [
-				0, 0,
-				width, 0,
-				0, height,
-				width, height
-			];
+				visual.vertices = background.vertices = [
+					0, 0,
+					width, 0,
+					0, height,
+					width, height
+				];
 
-			visual.indices = background.indices = [
-				0, 1, 3,
-				0, 2, 3
-			];
+				visual.indices = background.indices = [
+					0, 1, 3,
+					0, 2, 3
+				];
 
-			visual.width = background.width = width;
-			visual.height = background.height = height;
+				visual.width = background.width = width;
+				visual.height = background.height = height;
 		}
 		applyStyle(style);
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
@@ -112,6 +113,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
+				this.filter.textureFilter = NEAREST;
 				filter.antialiasing = aliasing();
 				if (this.parentComponent.isClipped) {
 					this.parentComponent.filter.content.add(filter);
@@ -123,8 +125,8 @@ class ComponentImpl extends ComponentBase {
 				filter.content.add(this.visual);
 			}
 			// filter.color = Color.BLACK;
-			this.x = -value.left;
-			this.y = -value.top;
+			this.visual.x = -value.left;
+			this.visual.y = -value.top;
 			this.filter.x = left;
 			this.filter.y = top;
 			this.filter.width = value.width;
@@ -226,97 +228,97 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		//trace(Color.fromInt(style.backgroundColor).toHexString());
+			if (style.backgroundColor != null) {
+				background.alpha = 1;
+				background.color = style.backgroundColor;
+				var alpha:Int = 0xFF000000;
 
-		if (style.backgroundColor != null) {
-			background.alpha = 1;
-			background.color = style.backgroundColor;
-			var alpha:Int = 0xFF000000;
+				if (style.backgroundColorEnd != null) {
+					background.colorMapping = VERTICES;
 
-			if (style.backgroundColorEnd != null) {
-				background.colorMapping = VERTICES;
+					var start = (style.backgroundColor | alpha);
+					var end = (style.backgroundColorEnd | alpha);
+					var type = "vertical";
+					if (style.backgroundGradientStyle != null) {
+						type = style.backgroundGradientStyle;
+					}
 
-				var start = (style.backgroundColor | alpha);
-				var end = (style.backgroundColorEnd | alpha);
-				var type = "vertical";
-				if (style.backgroundGradientStyle != null) {
-					type = style.backgroundGradientStyle;
+					switch (type) {
+						case "horizontal":
+							background.colors = [start, end, start, end];
+						case "vertical" | _:
+							background.colors = [start, start, end, end];
+					}
+				} else {
+					background.colorMapping = MESH;
 				}
 
-				switch (type) {
-					case "horizontal":
-						background.colors = [start, end, start, end];
-					case "vertical" | _:
-						background.colors = [start, start, end, end];
+				if (style.backgroundOpacity != null) {
+					background.alpha = style.backgroundOpacity;
 				}
-			} else {
-				background.colorMapping = MESH;
 			}
 
-			if (style.backgroundOpacity != null) {
-				background.alpha = style.backgroundOpacity;
-			}
-		}
+			if (style.borderLeftSize != null) {
+				var line = this.leftBorder;
+				if (style.borderOpacity != null) {
+					line.alpha = style.borderOpacity;
+				}
 
-		if (style.borderLeftSize != null) {
-			var line = this.leftBorder;
-			if (style.borderOpacity != null) {
-				line.alpha = style.borderOpacity;
-			}
+				line.color = style.borderLeftColor;
+				line.thickness = style.borderLeftSize;
 
-			line.color = style.borderLeftColor;
-			line.thickness = style.borderLeftSize;
-
-			var x = (line.thickness / 2);
-			line.points = [
-				x, 0,
-				x, visual.height
-			];
-		}
-
-		if (style.borderRightSize != null) {
-			var line = this.rightBorder;
-			if (style.borderOpacity != null) {
-				line.alpha = style.borderOpacity;
-			}
-			line.color = style.borderRightColor;
-			line.thickness = style.borderRightSize;
-			var x = (line.thickness / 2);
-			line.points = [
-				visual.width - x, 0,
-				visual.width - x, visual.height
-			];
-		}
-
-		if (style.borderTopSize != null) {
-			var line = this.topBorder;
-			if (style.borderOpacity != null) {
-				line.alpha = style.borderOpacity;
-			}
-			line.color = style.borderTopColor;
-			line.thickness = style.borderTopSize;
-
-			var y = (line.thickness / 2);
-			line.points = [
-				line.thickness, y,
-				visual.width - line.thickness, y
-			];
-		}
-
-		if (style.borderBottomSize != null) {
-			var line = this.bottomBorder;
-			if (style.borderOpacity != null) {
-				line.alpha = style.borderOpacity;
+				var x = (line.thickness / 2);
+				line.points = [
+					x, 0,
+					x, visual.height
+				];
 			}
 
-			line.color = style.borderBottomColor;
-			line.thickness = style.borderBottomSize;
+			if (style.borderRightSize != null) {
+				var line = this.rightBorder;
+				if (style.borderOpacity != null) {
+					line.alpha = style.borderOpacity;
+				}
+				line.color = style.borderRightColor;
+				line.thickness = style.borderRightSize;
+				var x = (line.thickness / 2);
+				line.points = [
+					visual.width - x, 0,
+					visual.width - x, visual.height
+				];
+			}
 
-			var y = (line.thickness / 2);
-			line.points = [
-				line.thickness, visual.height - y,
-				visual.width - line.thickness, visual.height - y
-			];
-		}
+			if (style.borderTopSize != null) {
+				var line = this.topBorder;
+				if (style.borderOpacity != null) {
+					line.alpha = style.borderOpacity;
+				}
+				line.color = style.borderTopColor;
+				line.thickness = style.borderTopSize;
+
+				var y = (line.thickness / 2);
+				line.points = [
+					line.thickness, y,
+					visual.width - line.thickness, y
+				];
+			}
+
+			if (style.borderBottomSize != null) {
+				var line = this.bottomBorder;
+				if (style.borderOpacity != null) {
+					line.alpha = style.borderOpacity;
+				}
+
+				line.color = style.borderBottomColor;
+				line.thickness = style.borderBottomSize;
+
+				var y = (line.thickness / 2);
+				line.points = [
+					line.thickness, visual.height - y,
+					visual.width - line.thickness, visual.height - y
+				];
+			}
+
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {

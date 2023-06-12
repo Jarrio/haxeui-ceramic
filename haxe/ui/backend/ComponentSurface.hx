@@ -12,8 +12,6 @@ class ComponentSurface {
 	public var visual:Mesh;
 	public var filter:Filter;
 
-	var x(get, set):Float;
-	var y(get, set):Float;
 	var visible(get, set):Bool;
 	var clipX(get, set):Float;
 	var clipY(get, set):Float;
@@ -79,14 +77,6 @@ class ComponentSurface {
 
 	inline function get_visible():Bool {
 		return this.visual.visible;
-	}
-
-	inline function set_x(value:Float):Float {
-		return this.visual.x = value;
-	}
-
-	inline function get_x():Float {
-		return this.visual.x;
 	}
 
 	inline function set_y(value:Float):Float {
