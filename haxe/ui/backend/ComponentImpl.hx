@@ -112,6 +112,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
+				filter.textureFilter = NEAREST;
 				filter.antialiasing = aliasing();
 				if (this.parentComponent.isClipped) {
 					this.parentComponent.filter.content.add(filter);
