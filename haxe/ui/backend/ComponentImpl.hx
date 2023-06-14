@@ -99,6 +99,8 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	override function handleClipRect(value:Rectangle):Void {
+		//@TODO fix clipping with absolute/box
+		if (parentComponent == null) { return; }
 		// return;
 		if (value == null) {
 			if (this.parentComponent.isClipped) {
