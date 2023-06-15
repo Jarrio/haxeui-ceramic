@@ -100,6 +100,8 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	override function handleClipRect(value:Rectangle):Void {
+		//@TODO fix clipping with absolute/box
+		if (parentComponent == null) { return; }
 		// return;
 		if (value == null) {
 			if (this.parentComponent.isClipped) {
@@ -113,7 +115,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
-				this.filter.textureFilter = NEAREST;
+				filter.textureFilter = NEAREST;
 				filter.antialiasing = aliasing();
 				if (this.parentComponent.isClipped) {
 					this.parentComponent.filter.content.add(filter);
