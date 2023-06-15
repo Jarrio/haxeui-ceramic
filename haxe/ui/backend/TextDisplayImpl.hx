@@ -99,7 +99,7 @@ class TextDisplayImpl extends TextBase {
 
 	private override function measureText() {
 		visual.computeContent();
-		_textWidth = visual.width;
-		_textHeight = visual.height;
+		_textWidth = Std.int(visual.width);
+		_textHeight = Std.int(visual.height);
 	}
 }
