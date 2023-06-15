@@ -70,12 +70,12 @@ class TextDisplayImpl extends TextBase {
 		//if (parentComponent.id == 'intProp') {
 		if (visual.align == CENTER) {
 			visual.anchorX = 0.5;
-			visual.x = _left + (_width / 2);
+			visual.x = Std.int(_left + (_width / 2));
 		} else {
-			visual.x = _left;
+			visual.x = Std.int(_left);
 		}
 		
-		visual.y = _top;
+		visual.y = Std.int(_top);
 	}
 
 	private override function validateDisplay() {
