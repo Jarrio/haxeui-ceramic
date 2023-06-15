@@ -21,6 +21,7 @@ import ceramic.App;
 import haxe.ui.events.MouseEvent;
 import ceramic.MouseButton;
 import haxe.ui.backend.ToolkitOptions;
+import ceramic.Visual;
 
 class ComponentImpl extends ComponentBase {
 	private var eventMap:Map<String, UIEvent->Void>;
@@ -103,12 +104,14 @@ class ComponentImpl extends ComponentBase {
 	override function handleClipRect(value:Rectangle):Void {
 		
 		//@TODO fix clipping with absolute/box
-		 
+		if (parentContainer == null) return;
+		
 		var parent = this.parentComponent;
 		// return;
 		if (value == null) {
 			if (parent == null) {
-				root().remove(filter);
+				
+				visual.parent.remove(filter);
 			} else if (parent.isClipped) {
 				parent.filter.content.remove(filter);
 			} else {
@@ -124,12 +127,7 @@ class ComponentImpl extends ComponentBase {
 				filter.textureFilter = NEAREST;
 				filter.antialiasing = aliasing();
 				if (parent == null) {
-					root().add(filter);
-					if (!v) {
-						v = true;
-						trace('haxeui_backend depth: ${root().computedDepth}');
-						trace('haxeui_backend rt: ${root().computedRenderTarget}');
-					}
+					visual.parent.add(filter);
 					//filter.depthRange = 0;
 					trace('here');
 				} else if (parent.isClipped) {

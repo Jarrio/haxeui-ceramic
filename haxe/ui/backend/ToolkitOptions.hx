@@ -26,14 +26,13 @@ function root() {
 		return options.root;
 	}
 
-	var scene = App.app.scenes.get('haxeui_backend');
-	if (scene == null) {
-		scene = new Scene();
-		scene.depth = 1000;
-		App.app.scenes.set('haxeui_backend', scene);
+	if (options.root == null) {
+		var parent = new Visual();
+		parent.depth = 1000;
+		options.root = parent;
 	}
 	
-	return scene;
+	return options.root;
 }
 
 function aliasing() {
