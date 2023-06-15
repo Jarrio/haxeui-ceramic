@@ -44,7 +44,7 @@ class TextDisplayImpl extends TextBase {
 			}
 
 			if (_textStyle.fontSize != null) {
-				visual.pointSize = Std.int(_textStyle.fontSize);
+				visual.pointSize = Math.round(_textStyle.fontSize);
 				measureTextRequired = true;
 			}
 
@@ -70,12 +70,12 @@ class TextDisplayImpl extends TextBase {
 		//if (parentComponent.id == 'intProp') {
 		if (visual.align == CENTER) {
 			visual.anchorX = 0.5;
-			visual.x = Std.int(_left + (_width / 2));
+			visual.x = Math.round(_left + (_width / 2));
 		} else {
-			visual.x = Std.int(_left);
+			visual.x = Math.round(_left);
 		}
 		
-		visual.y = Std.int(_top);
+		visual.y = Math.round(_top);
 	}
 
 	private override function validateDisplay() {
@@ -99,7 +99,7 @@ class TextDisplayImpl extends TextBase {
 
 	private override function measureText() {
 		visual.computeContent();
-		_textWidth = Std.int(visual.width);
-		_textHeight = Std.int(visual.height);
+		_textWidth = Math.round(visual.width);
+		_textHeight = Math.round(visual.height);
 	}
 }
