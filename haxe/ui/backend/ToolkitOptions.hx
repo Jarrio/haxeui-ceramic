@@ -29,7 +29,7 @@ function root() {
 	var scene = App.app.scenes.get('haxeui_backend');
 	if (scene == null) {
 		scene = new Scene();
-		scene.depth = 10;
+		scene.depth = 1000;
 		App.app.scenes.set('haxeui_backend', scene);
 	}
 	

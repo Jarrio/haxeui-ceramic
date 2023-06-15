@@ -99,16 +99,22 @@ class ComponentImpl extends ComponentBase {
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
+	var v = false;
 	override function handleClipRect(value:Rectangle):Void {
+		
 		//@TODO fix clipping with absolute/box
-		if (parentComponent == null) { return; }
+		 
+		var parent = this.parentComponent;
 		// return;
 		if (value == null) {
-			if (this.parentComponent.isClipped) {
-				this.parentComponent.filter.content.remove(filter);
+			if (parent == null) {
+				root().remove(filter);
+			} else if (parent.isClipped) {
+				parent.filter.content.remove(filter);
 			} else {
-				this.parentComponent.visual.remove(filter);
+				parent.visual.remove(filter);
 			}
+
 			filter.dispose();
 			this.isClipped = false;
 			this.filter = null;
@@ -117,10 +123,19 @@ class ComponentImpl extends ComponentBase {
 				this.filter = new ceramic.Filter();
 				filter.textureFilter = NEAREST;
 				filter.antialiasing = aliasing();
-				if (this.parentComponent.isClipped) {
-					this.parentComponent.filter.content.add(filter);
+				if (parent == null) {
+					root().add(filter);
+					if (!v) {
+						v = true;
+						trace('haxeui_backend depth: ${root().computedDepth}');
+						trace('haxeui_backend rt: ${root().computedRenderTarget}');
+					}
+					//filter.depthRange = 0;
+					trace('here');
+				} else if (parent.isClipped) {
+					parent.filter.content.add(filter);
 				} else {
-					this.parentComponent.visual.add(filter);
+					parent.visual.add(filter);
 				}
 				this.isClipped = true;
 				// this.parentComponent.visual.remove(this.visual);
