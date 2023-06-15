@@ -4,6 +4,7 @@ import ceramic.Visual;
 import ceramic.Assets;
 import haxe.ui.Toolkit;
 import ceramic.App;
+import ceramic.Scene;
 
 typedef ToolkitOptions = {
 	@:optional var root:Visual;
@@ -24,7 +25,15 @@ function root() {
 	if (options != null && options.root != null) {
 		return options.root;
 	}
-	return App.app.scenes.main;
+
+	var scene = App.app.scenes.get('haxeui_backend');
+	if (scene == null) {
+		scene = new Scene();
+		scene.depth = 10;
+		App.app.scenes.set('haxeui_backend', scene);
+	}
+	
+	return scene;
 }
 
 function aliasing() {
