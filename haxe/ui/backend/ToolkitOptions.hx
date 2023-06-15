@@ -26,6 +26,12 @@ function root() {
 		return options.root;
 	}
 
+	if (options == null) {
+		options = Toolkit.screen.options = {
+			root: null
+		}
+	}
+
 	if (options.root == null) {
 		var parent = new Visual();
 		parent.depth = 1000;
