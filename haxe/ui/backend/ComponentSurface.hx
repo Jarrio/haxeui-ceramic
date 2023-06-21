@@ -31,19 +31,27 @@ class ComponentSurface {
 		leftBorder = new Line();
 		leftBorder.inheritAlpha = true;
 		leftBorder.id = ('leftBorder');
+		leftBorder.colors = [AlphaColor.TRANSPARENT];
+
 		rightBorder = new Line();
 		rightBorder.inheritAlpha = true;
 		rightBorder.id = ('rightBorder');
+		rightBorder.colors = [AlphaColor.TRANSPARENT];
+
 		topBorder = new Line();
 		topBorder.inheritAlpha = true;
 		topBorder.id = ('topBorder');
+		topBorder.colors = [AlphaColor.TRANSPARENT];
+
 		bottomBorder = new Line();
 		bottomBorder.inheritAlpha = true;
 		bottomBorder.id = ('bottomBorder');
+		bottomBorder.colors = [AlphaColor.TRANSPARENT];
 
 		background = new Mesh();
 		background.id = ('background');
 		background.inheritAlpha = true;
+		background.colors = [AlphaColor.TRANSPARENT];
 
 		
 		leftBorder.depth = 1;
