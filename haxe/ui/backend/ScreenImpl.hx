@@ -171,6 +171,7 @@ class ScreenImpl extends ScreenBase {
 	function onKey(type:String, listener:KeyboardEvent->Void, key:Key) {
 		var event = new KeyboardEvent(type);
 		event.keyCode = key.keyCode;
+		event.data = key;
 		listener(event);
 	}
 

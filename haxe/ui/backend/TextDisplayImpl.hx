@@ -18,12 +18,15 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validateData() {
-		// trace('${ComponentImpl.pad(parentComponent.id)}: validate text data -> ${_text}');
 		if (_text != null) {
-			if (_dataSource == null) {
-				visual.content = (_text);
-			}
+			visual.content = _text;
 		}
+		// trace('${ComponentImpl.pad(parentComponent.id)}: validate text data -> ${_text}');
+		// if (_text != null) {
+		// 	if (_dataSource == null) {
+		// 		visual.content = (_text);
+		// 	}
+		// }
 	}
 
 	private override function validateStyle():Bool {
@@ -86,14 +89,14 @@ class TextDisplayImpl extends TextBase {
 			// }
 
 			if (_width > 0) {
-				visual.fitWidth = _width;
+				visual.fitWidth = Std.int(_width);
 				//visual.width = _width;
 			}
 			//visual.width = _width;
 		//}
 
 		if (visual.height != _height) {
-			visual.height = _height;
+			visual.height = Std.int(_height);
 		}
 	}
 

@@ -575,8 +575,15 @@ class ComponentImpl extends ComponentBase {
 
 	var click_increment:Int = 0;
 	function onMouseLeftClick(info:TouchInfo) {
-		if (info.buttonId != MouseButton.LEFT) {
-			return;
+		trace('here');
+		if (info.buttonId == -1) {
+			if (info.touchIndex != 0) {
+				return;
+			}
+		} else {
+			if (info.buttonId != MouseButton.LEFT) {
+				return;
+			}
 		}
 
 		_onClick(MouseEvent.CLICK, info);
@@ -764,7 +771,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		// trace('${pad(this.id)}: unmap event -> ${type}');
+		trace('${pad(this.id)}: unmap event -> ${type}');
 	}
 
 	//***********************************************************************************************************
