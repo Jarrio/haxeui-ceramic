@@ -171,6 +171,18 @@ class ScreenImpl extends ScreenBase {
 	function onKey(type:String, listener:KeyboardEvent->Void, key:Key) {
 		var event = new KeyboardEvent(type);
 		event.keyCode = key.keyCode;
+		if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
+			event.altKey = true;
+		}
+
+		if (key.keyCode == KeyCode.LCTRL || key.keyCode == KeyCode.RCTRL) {
+			event.ctrlKey = true;
+		}
+
+		if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
+			event.shiftKey = true;
+		}
+
 		event.data = key;
 		listener(event);
 	}
