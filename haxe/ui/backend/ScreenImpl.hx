@@ -93,6 +93,16 @@ class ScreenImpl extends ScreenBase {
 					screen.offPointerDown(onLeftMouseDown);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
+			case KeyboardEvent.KEY_DOWN:
+				if (eventMap.exists(KeyboardEvent.KEY_DOWN)) {
+					App.app.input.offKeyDown(onKeyDown);
+					eventMap.remove(KeyboardEvent.KEY_DOWN);
+				}
+			case KeyboardEvent.KEY_UP:
+				if (eventMap.exists(KeyboardEvent.KEY_UP)) {
+					App.app.input.offKeyUp(onKeyUp);
+					eventMap.remove(KeyboardEvent.KEY_UP);
+				}
 			default:
 		}
 	}
@@ -118,12 +128,12 @@ class ScreenImpl extends ScreenBase {
 			case KeyboardEvent.KEY_UP:
 				if (!eventMap.exists(KeyboardEvent.KEY_UP)) {
 					eventMap.set(type, listener);
-					App.app.input.onKeyUp(screenEntity, onKey.bind(type, listener));
+					App.app.input.onKeyUp(screenEntity, onKeyUp);
 				}
 			case KeyboardEvent.KEY_DOWN:
 				if (!eventMap.exists(KeyboardEvent.KEY_DOWN)) {
 					eventMap.set(type, listener);
-					App.app.input.onKeyDown(screenEntity, onKey.bind(type, listener));
+					App.app.input.onKeyDown(screenEntity, onKeyDown);
 				}
 			default:
 		}
@@ -168,7 +178,22 @@ class ScreenImpl extends ScreenBase {
 		this.eventMap[type](event);
 	}
 
-	function onKey(type:String, listener:KeyboardEvent->Void, key:Key) {
+	public function onKeyUp(key:Key) {
+		if (!eventMap.exists(KeyboardEvent.KEY_UP)) {
+			return;
+		}
+		onKey(KeyboardEvent.KEY_UP, key);
+	}
+
+	public function onKeyDown(key:Key) {
+		if (!eventMap.exists(KeyboardEvent.KEY_DOWN)) {
+			return;
+		}
+		onKey(KeyboardEvent.KEY_DOWN, key);
+	}
+
+	function onKey(type:String, key:Key) {
+		var listener = this.eventMap[type];
 		var event = new KeyboardEvent(type);
 		event.keyCode = key.keyCode;
 		if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
@@ -182,7 +207,7 @@ class ScreenImpl extends ScreenBase {
 		if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
 			event.shiftKey = true;
 		}
-
+		
 		event.data = key;
 		listener(event);
 	}
