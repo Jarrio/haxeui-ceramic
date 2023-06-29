@@ -67,10 +67,10 @@ class ScreenImpl extends ScreenBase {
 	private function handleResize() {
 		for (c in rootComponents) {
 			if (c.percentWidth > 0) {
-				c.width = (this.width * c.percentWidth) / 100;
+				c.width = Std.int((this.width * c.percentWidth) / 100);
 			}
 			if (c.percentHeight > 0) {
-				c.height = (this.height * c.percentHeight) / 100;
+				c.height = Std.int((this.height * c.percentHeight) / 100);
 			}
 		}
 	}
