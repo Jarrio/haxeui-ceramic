@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import sys.io.File;
 import ceramic.Files;
 import ceramic.Texture;
 import haxe.io.Bytes;
@@ -33,6 +34,21 @@ class AssetsImpl extends AssetsBase {
 		if (asset == null) {
 			asset = app.assets.imageAsset(resourceId);
 		}
+
+		//final check
+		if (asset == null) {
+			for (scene in app.scenes.rootScenes) {
+				var img = scene.assets.imageAsset(resourceId);
+				if (img != null) {
+					asset = img;
+					break;
+				}
+			}
+		}
+
+		if (asset == null) {
+			trace("ERROR - CANNOT FIND IMAGE RESOURCE");
+		}
 		
 		if (asset != null) {
 			if (asset.texture != null) {
@@ -61,6 +77,12 @@ class AssetsImpl extends AssetsBase {
 
 	override function imageFromFile(filename:String, callback:ImageInfo->Void) {
 		var bytes = Files.getBytes(filename);
+		if (bytes == null) {
+			#if (sys || nodejs)
+			bytes = File.getBytes(filename);
+			#end
+		}
+
 		Texture.fromBytes(bytes, (texture) -> {
 			if (texture != null) {
 				callback({
