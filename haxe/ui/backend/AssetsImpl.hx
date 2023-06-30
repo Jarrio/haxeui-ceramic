@@ -47,7 +47,7 @@ class AssetsImpl extends AssetsBase {
 		}
 
 		if (asset == null) {
-			trace("ERROR - CANNOT FIND IMAGE RESOURCE");
+			//trace('ERROR - CANNOT FIND IMAGE RESOURCE $resourceId');
 		}
 		
 		if (asset != null) {
