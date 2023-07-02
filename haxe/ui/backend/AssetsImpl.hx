@@ -26,7 +26,7 @@ class AssetsImpl extends AssetsBase {
 		}
 
 		//if asset still null check if it's in the scene
-		if (asset == null) {
+		if (asset == null && app.scenes.main != null) {
 			asset = app.scenes.main.assets.imageAsset(resourceId);
 		}
 

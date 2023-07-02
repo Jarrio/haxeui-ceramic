@@ -96,7 +96,11 @@ class ComponentImpl extends ComponentBase {
 				visual.width = background.width = width;
 				visual.height = background.height = height;
 		}
-		applyStyle(style);
+
+		if (style != null) {
+			applyStyle(style);
+		}
+		
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
 
@@ -230,6 +234,9 @@ class ComponentImpl extends ComponentBase {
 	// Style
 	//***********************************************************************************************************
 	private override function applyStyle(style:Style) {
+		if (style == null) {
+			return;
+		}
 		// trace('${pad(this.id)}: apply style ->');
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
