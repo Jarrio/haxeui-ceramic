@@ -1,6 +1,8 @@
 package haxe.ui.backend;
 
+#if (sys || nodejs)
 import sys.io.File;
+#end
 import ceramic.Files;
 import ceramic.Texture;
 import haxe.io.Bytes;
