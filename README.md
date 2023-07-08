@@ -2,6 +2,8 @@
 - The cwd for `resources` and `@:build` xmls is `2` levels deep from project root. Add `../../` to your haxeui filepaths 
 - Images can be loaded from your main scene asset object, the one you pass to toolkit.init or a `file://` path
 	- If you want to use from an asset object, pass the file name to the haxeui prop
+   		- <image resource="ceramic" /> at `assets` root (no file extension!)
+     		- <image resource="icons/ceramic" /> where `icons` is a sub directory in the `assets` folder
 
 ## How to use
 1) [Install ceramic](https://ceramic-engine.com/guides/install-ceramic/#install-ceramic)
