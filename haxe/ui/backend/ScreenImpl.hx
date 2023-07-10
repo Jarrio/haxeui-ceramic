@@ -192,25 +192,28 @@ class ScreenImpl extends ScreenBase {
 		onKey(KeyboardEvent.KEY_DOWN, key);
 	}
 
-	function onKey(type:String, key:Key) {
-		var listener = this.eventMap[type];
-		var event = new KeyboardEvent(type);
-		event.keyCode = key.keyCode;
-		if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
-			event.altKey = true;
-		}
-
-		if (key.keyCode == KeyCode.LCTRL || key.keyCode == KeyCode.RCTRL) {
-			event.ctrlKey = true;
-		}
-
-		if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
-			event.shiftKey = true;
-		}
-		
-		event.data = key;
-		listener(event);
+function onKey(type:String, key:Key) {
+	var listener = this.eventMap[type];
+	if (listener == null) {
+		return;
 	}
+	var event = new KeyboardEvent(type);
+	event.keyCode = key.keyCode;
+	if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
+		event.altKey = true;
+	}
+
+	if (key.keyCode == KeyCode.LCTRL || key.keyCode == KeyCode.RCTRL) {
+		event.ctrlKey = true;
+	}
+
+	if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
+		event.shiftKey = true;
+	}
+
+	event.data = key;
+	listener(event);
+}
 
 	private override function supportsEvent(type:String):Bool {
 		if (type == UIEvent.RESIZE) {
