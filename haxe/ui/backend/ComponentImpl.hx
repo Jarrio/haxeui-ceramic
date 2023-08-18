@@ -95,11 +95,11 @@ class ComponentImpl extends ComponentBase {
 
 				visual.width = background.width = width;
 				visual.height = background.height = height;
+				if (style != null) {
+					applyStyle(style);
+				}
 		}
 
-		if (style != null) {
-			applyStyle(style);
-		}
 		
 		// trace('${pad(this.id)}: size -> ${width}x${height}');
 	}
