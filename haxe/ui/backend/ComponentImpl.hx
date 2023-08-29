@@ -374,13 +374,17 @@ class ComponentImpl extends ComponentBase {
 
 
 	private function hasComponentOver(ref:Component, x:Float, y:Float, reverse:Bool = false):Bool {
-		var array:Array<Component> = getComponentsAtPoint(x, y, reverse);
+		var array:Array<Component> = getVisibleComponentsAtPoint(x, y, reverse);
 		if (array.length == 0) {
-			return false;
+      return false;
 		}
 
 		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
 	}
+
+  private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
+		return getComponentsAtPoint(x, y, reverse).filter(c -> c.hidden == false);
+  }
 
 	private function getComponentsAtPoint(x:Float, y:Float,
 			reverse:Bool = false):Array<Component> {
