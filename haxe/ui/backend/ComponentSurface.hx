@@ -7,63 +7,37 @@ import ceramic.Quad;
 import ceramic.AlphaColor;
 import ceramic.Line;
 import ceramic.Mesh;
+import ceramic.Border;
 
 class ComponentSurface {
-	public var visual:Mesh;
+	public var visual:Visual;
 	public var filter:Filter;
 
 	var visible(get, set):Bool;
 	var clipX(get, set):Float;
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
-	var rightBorder:Line;
-	var topBorder:Line;
-	var bottomBorder:Line;
-	var leftBorder:Line;
+	var border:Border;
 	var background:Mesh;
+
 	public function new() {
 
-		this.visual = new Mesh();
+		this.visual = new Visual();
 		this.visual.active = true;
 		this.visual.inheritAlpha = true;
-		this.visual.colors = [AlphaColor.TRANSPARENT];
-		
-		leftBorder = new Line();
-		leftBorder.inheritAlpha = true;
-		leftBorder.id = ('leftBorder');
-		leftBorder.colors = [AlphaColor.TRANSPARENT];
-
-		rightBorder = new Line();
-		rightBorder.inheritAlpha = true;
-		rightBorder.id = ('rightBorder');
-		rightBorder.colors = [AlphaColor.TRANSPARENT];
-
-		topBorder = new Line();
-		topBorder.inheritAlpha = true;
-		topBorder.id = ('topBorder');
-		topBorder.colors = [AlphaColor.TRANSPARENT];
-
-		bottomBorder = new Line();
-		bottomBorder.inheritAlpha = true;
-		bottomBorder.id = ('bottomBorder');
-		bottomBorder.colors = [AlphaColor.TRANSPARENT];
+		//this.visual.alpha = 0;
+		// this.visual.colors = [AlphaColor.TRANSPARENT];
 
 		background = new Mesh();
 		background.id = ('background');
 		background.inheritAlpha = true;
 		background.colors = [AlphaColor.TRANSPARENT];
-
-		
-		leftBorder.depth = 1;
-		rightBorder.depth = 1;
-		topBorder.depth = 1;
-		bottomBorder.depth = 1;
 		background.depth = 0;
+
+		border = new Border();
+		border.depth = 1;
 		
-		this.visual.add(leftBorder);
-		this.visual.add(rightBorder);
-		this.visual.add(topBorder);
-		this.visual.add(bottomBorder);
+		this.visual.add(border);
 		this.visual.add(background);
 	}
 
