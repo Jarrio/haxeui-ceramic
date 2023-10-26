@@ -18,31 +18,52 @@ class ComponentSurface {
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
 	var border:Border;
-	var background:Mesh;
+	
 
+	var indices:Array<Int> = [];
+	var vertices:Array<Float> = [];
+	
 	public function new() {
+		this.indices = [
+			0, 1, 3,
+			0, 2, 3
+		];
 
 		this.visual = new Visual();
-		this.visual.active = true;
 		this.visual.inheritAlpha = true;
 		//this.visual.alpha = 0;
 		// this.visual.colors = [AlphaColor.TRANSPARENT];
-
-		background = new Mesh();
-		background.id = ('background');
-		background.inheritAlpha = true;
-		background.colors = [AlphaColor.TRANSPARENT];
-		background.depth = 0;
-
-		border = new Border();
-		border.depth = 1;
 		
-		this.visual.add(border);
-		this.visual.add(background);
+		//background = new Visual();
+		//background.inheritAlpha = true;
+		//background.colors = [AlphaColor.TRANSPARENT];
+		//background.depth = 0;
+
+
+		
+		//this.visual.add(border);
+		//this.visual.add(background);
 	}
 
 	public inline function size(width:Float, height:Float) {
+		this.vertices = [
+			    0,      0,
+			width,      0,
+			    0, height,
+			width, height
+		];
 		this.visual.size(width, height);
+
+		if (this.isMesh || this.isQuad) {
+			this.background.size(width, height);
+			if (this.isMesh) {
+				background.asMesh.vertices = this.vertices;
+			}
+		}
+
+		if (this.border != null) {
+			this.border.size(width, height);
+		}
 	}
 
 	public inline function add(visual:Visual) {
@@ -53,6 +74,37 @@ class ComponentSurface {
 		this.visual.remove(visual);
 	}
 
+	@:isVar var background(get, set):Visual;
+
+	function set_background(background:Visual) {
+		if (this.background != null) {
+			this.visual.remove(background);
+			this.background.destroy();
+		}
+		return this.background = background;
+	}
+
+	function get_background() {
+		return this.background;
+	}
+
+	public var isQuad(get, never):Bool;
+	function get_isQuad() {
+		if (this.background == null) {
+			return false;
+		}
+
+		return this.background.asQuad != null;
+	}
+
+	public var isMesh(get, never):Bool;
+	function get_isMesh() {
+		if (this.background == null) {
+			return false;
+		}
+
+		return this.background.asMesh != null;
+	}
 	inline function set_visible(value:Bool):Bool {
 		return this.visual.visible = value;
 	}

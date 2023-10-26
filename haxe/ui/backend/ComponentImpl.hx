@@ -1,5 +1,8 @@
 package haxe.ui.backend;
 
+import ceramic.Border;
+import ceramic.Mesh;
+import ceramic.Quad;
 import haxe.ui.core.Screen;
 import haxe.ui.geom.Rectangle;
 import ceramic.TouchInfo;
@@ -72,28 +75,8 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			if (border.width != null) {
-				border.width = width;
-			}
+			this.size(width, height);
 
-			if (border.height != null) {
-				border.height = height;
-			}
-
-			background.vertices = [
-				    0,      0,
-				width,      0,
-				    0, height,
-				width, height
-			];
-
-			background.indices = [
-				0, 1, 3,
-				0, 2, 3
-			];
-
-			visual.width = background.width = width;
-			visual.height = background.height = height;
 			if (style != null) {
 				applyStyle(style);
 			}
@@ -236,42 +219,73 @@ class ComponentImpl extends ComponentBase {
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
 		}
-
-		background.color = style.backgroundColor;
-		if (style.backgroundColor == null) {
-			background.alpha = 0;
-		} else {
-			background.alpha = 1;
-		}
-
+		
 		// trace(Color.fromInt(style.backgroundColor).toHexString());
 		if (style.backgroundColor != null) {
-			background.alpha = 1;
-			background.color = style.backgroundColor;
-			var alpha:Int = 0xFF000000;
-
 			if (style.backgroundColorEnd != null) {
-				background.colorMapping = VERTICES;
-
-				var start = (style.backgroundColor | alpha);
-				var end = (style.backgroundColorEnd | alpha);
-				var type = "vertical";
-				if (style.backgroundGradientStyle != null) {
-					type = style.backgroundGradientStyle;
-				}
-
-				switch (type) {
-					case "horizontal":
-						background.colors = [start, end, start, end];
-					case "vertical" | _:
-						background.colors = [start, start, end, end];
+				// component has a gradient so we need to use a mesh
+				if (!isMesh && this.background == null) {
+					this.background = new Mesh();
+					background.depth = 0;
+					background.asMesh.indices = this.indices;
+					background.asMesh.vertices = this.vertices;
+					background.inheritAlpha = true;
+					visual.add(background);
 				}
 			} else {
-				background.colorMapping = MESH;
+				// component needs a background color so we need to change to a quad
+				if (!isQuad && this.background == null) {
+					this.background = new Quad();
+					background.asQuad.color = style.backgroundColor;
+					background.inheritAlpha = true;
+					background.depth = 0;
+					background.asQuad.size(visual.width, visual.height);
+					visual.add(background);
+				}
 			}
 
-			if (style.backgroundOpacity != null) {
+			if (isQuad) {
+				background.asQuad.color = style.backgroundColor;
+			}
+
+			if (isMesh) {
+				var alpha:Int = 0xFF000000;
+
+				if (style.backgroundColorEnd != null) {
+					background.asMesh.colorMapping = VERTICES;
+
+					var start = (style.backgroundColor | alpha);
+					var end = (style.backgroundColorEnd | alpha);
+					var type = "vertical";
+					if (style.backgroundGradientStyle != null) {
+						type = style.backgroundGradientStyle;
+					}
+
+					switch (type) {
+						case "horizontal":
+							background.asMesh.colors = [start, end, start, end];
+						case "vertical" | _:
+							background.asMesh.colors = [start, start, end, end];
+					}
+				}
+			}
+
+			if (style.backgroundOpacity != null && background != null) {
 				background.alpha = style.backgroundOpacity;
+			}
+		}
+
+		var left = style.borderLeftSize != null;
+		var right = style.borderRightSize != null;
+		var top = style.borderTopSize != null;
+		var bot = style.borderBottomSize != null;
+
+		if (style.borderColor != null || left || right || top || bot) {
+			if (this.border == null) {
+				border = new Border();
+				border.inheritAlpha = true;
+				border.depth = 1;
+				this.visual.add(border);
 			}
 		}
 
@@ -290,7 +304,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (style.borderRightSize != null) {
 			if (style.borderOpacity != null) {
-				//line.alpha = style.borderOpacity;
+				// line.alpha = style.borderOpacity;
 			}
 			border.borderRightColor = style.borderRightColor;
 			border.borderRightSize = style.borderRightSize;
@@ -298,7 +312,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (style.borderTopSize != null) {
 			if (style.borderOpacity != null) {
-				//line.alpha = style.borderOpacity;
+				// line.alpha = style.borderOpacity;
 			}
 			border.borderTopColor = style.borderTopColor;
 			border.borderTopSize = style.borderTopSize;
@@ -306,7 +320,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (style.borderBottomSize != null) {
 			if (style.borderOpacity != null) {
-				//line.alpha = style.borderOpacity;
+				// line.alpha = style.borderOpacity;
 			}
 			border.borderBottomColor = style.borderBottomColor;
 			border.borderBottomSize = style.borderBottomSize;
