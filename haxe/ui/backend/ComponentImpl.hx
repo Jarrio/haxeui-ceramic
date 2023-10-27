@@ -273,6 +273,15 @@ class ComponentImpl extends ComponentBase {
 				background.alpha = style.backgroundOpacity;
 			}
 		}
+		
+		if (this.background != null) {
+			if (style.backgroundColor == null) {
+				background.alpha = 0;
+			} else {
+				background.alpha = 1;
+			}
+		}
+
 
 		var left = style.borderLeftColor != null;
 		var right = style.borderRightColor != null;
