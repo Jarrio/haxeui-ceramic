@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.Color;
 import ceramic.Border;
 import ceramic.Mesh;
 import ceramic.Quad;
@@ -219,7 +220,7 @@ class ComponentImpl extends ComponentBase {
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
 		}
-		
+		var alpha:Int = 0xFF000000;
 		// trace(Color.fromInt(style.backgroundColor).toHexString());
 		if (style.backgroundColor != null) {
 			if (style.backgroundColorEnd != null) {
@@ -249,8 +250,6 @@ class ComponentImpl extends ComponentBase {
 			}
 
 			if (isMesh) {
-				var alpha:Int = 0xFF000000;
-
 				if (style.backgroundColorEnd != null) {
 					background.asMesh.colorMapping = VERTICES;
 
@@ -275,55 +274,51 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		var left = style.borderLeftSize != null;
-		var right = style.borderRightSize != null;
-		var top = style.borderTopSize != null;
-		var bot = style.borderBottomSize != null;
+		var left = style.borderLeftColor != null;
+		var right = style.borderRightColor != null;
+		var top = style.borderTopColor != null;
+		var bot = style.borderBottomColor != null;
 
+		//trace('${style.borderColor} | $left | $right | $top | $bot');
 		if (style.borderColor != null || left || right || top || bot) {
 			if (this.border == null) {
 				border = new Border();
+				border.color = Color.NONE;
 				border.inheritAlpha = true;
 				border.depth = 1;
 				this.visual.add(border);
 			}
 		}
 
-		if (style.borderColor != null) {
-			border.borderColor = style.borderColor;
-		}
-
-		if (style.borderLeftSize != null) {
+		if (border != null) {
 			if (style.borderOpacity != null) {
-				// line.alpha = style.borderOpacity;
+				border.alpha = style.borderOpacity;
 			}
 
-			border.borderLeftColor = style.borderLeftColor;
-			border.borderLeftSize = style.borderLeftSize;
-		}
-
-		if (style.borderRightSize != null) {
-			if (style.borderOpacity != null) {
-				// line.alpha = style.borderOpacity;
+			if (style.borderColor != null) {
+				border.borderColor = style.borderColor;
 			}
-			border.borderRightColor = style.borderRightColor;
-			border.borderRightSize = style.borderRightSize;
-		}
 
-		if (style.borderTopSize != null) {
-			if (style.borderOpacity != null) {
-				// line.alpha = style.borderOpacity;
-			}
-			border.borderTopColor = style.borderTopColor;
-			border.borderTopSize = style.borderTopSize;
-		}
+			border.borderLeftSize = (style.borderLeftSize == null) ? 0 : style.borderLeftSize;
+			border.borderRightSize = (style.borderRightSize == null) ? 0 : style.borderRightSize;
+			border.borderTopSize = (style.borderTopSize == null) ? 0 : style.borderTopSize;
+			border.borderBottomSize = (style.borderBottomSize == null) ? 0 : style.borderBottomSize;
 
-		if (style.borderBottomSize != null) {
-			if (style.borderOpacity != null) {
-				// line.alpha = style.borderOpacity;
+			if (style.borderLeftColor != null) {
+				border.borderLeftColor = style.borderLeftColor;
 			}
-			border.borderBottomColor = style.borderBottomColor;
-			border.borderBottomSize = style.borderBottomSize;
+
+			if (style.borderRightColor != null) {
+				border.borderRightColor = style.borderRightColor;
+			}
+
+			if (style.borderTopColor != null) {
+				border.borderTopColor = style.borderTopColor;
+			}
+
+			if (style.borderBottomColor != null) {
+				border.borderBottomColor = style.borderBottomColor;
+			}
 		}
 	}
 

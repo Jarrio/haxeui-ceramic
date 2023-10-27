@@ -2,11 +2,7 @@ package haxe.ui.backend;
 
 import ceramic.Filter;
 import ceramic.Visual;
-import ceramic.MeshExtensions;
 import ceramic.Quad;
-import ceramic.AlphaColor;
-import ceramic.Line;
-import ceramic.Mesh;
 import ceramic.Border;
 
 class ComponentSurface {
@@ -18,7 +14,6 @@ class ComponentSurface {
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
 	var border:Border;
-	
 
 	var indices:Array<Int> = [];
 	var vertices:Array<Float> = [];
@@ -31,18 +26,6 @@ class ComponentSurface {
 
 		this.visual = new Visual();
 		this.visual.inheritAlpha = true;
-		//this.visual.alpha = 0;
-		// this.visual.colors = [AlphaColor.TRANSPARENT];
-		
-		//background = new Visual();
-		//background.inheritAlpha = true;
-		//background.colors = [AlphaColor.TRANSPARENT];
-		//background.depth = 0;
-
-
-		
-		//this.visual.add(border);
-		//this.visual.add(background);
 	}
 
 	public inline function size(width:Float, height:Float) {
@@ -62,7 +45,8 @@ class ComponentSurface {
 		}
 
 		if (this.border != null) {
-			this.border.size(width, height);
+			this.border.width = width;
+			this.border.height = height;
 		}
 	}
 
@@ -78,7 +62,6 @@ class ComponentSurface {
 
 	function set_background(background:Visual) {
 		if (this.background != null) {
-			this.visual.remove(background);
 			this.background.destroy();
 		}
 		return this.background = background;
