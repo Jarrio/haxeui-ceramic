@@ -270,6 +270,10 @@ class ComponentImpl extends ComponentBase {
 				}
 			}
 
+			if (isQuad) {
+				background.asQuad.color = style.backgroundColor;
+			}
+
 			if (style.backgroundOpacity != null && background != null) {
 				background.alpha = style.backgroundOpacity;
 			}
