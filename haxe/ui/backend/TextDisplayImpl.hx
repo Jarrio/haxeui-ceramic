@@ -47,7 +47,7 @@ class TextDisplayImpl extends TextBase {
 			}
 
 			if (_textStyle.fontSize != null) {
-				visual.preRenderedSize = Std.int(_textStyle.fontSize) + 6;
+				visual.preRenderedSize = Std.int(_textStyle.fontSize) + 4;
 				visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}

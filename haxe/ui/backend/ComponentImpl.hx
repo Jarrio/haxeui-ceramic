@@ -109,6 +109,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
 				filter.textureFilter = NEAREST;
+				filter.density = App.app.screen.nativeDensity;
 				filter.antialiasing = aliasing();
 				if (parent == null) {
 					visual.parent.add(filter);
@@ -220,6 +221,7 @@ class ComponentImpl extends ComponentBase {
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
 		}
+
 		var alpha:Int = 0xFF000000;
 		// trace(Color.fromInt(style.backgroundColor).toHexString());
 		if (style.backgroundColor != null) {
@@ -227,7 +229,7 @@ class ComponentImpl extends ComponentBase {
 				// component has a gradient so we need to use a mesh
 				if (!isMesh && this.background == null) {
 					this.background = new Mesh();
-					background.depth = 0;
+					//background.depth = 0;
 					background.asMesh.indices = this.indices;
 					background.asMesh.vertices = this.vertices;
 					background.inheritAlpha = true;
@@ -239,15 +241,15 @@ class ComponentImpl extends ComponentBase {
 					this.background = new Quad();
 					background.asQuad.color = style.backgroundColor;
 					background.inheritAlpha = true;
-					background.depth = 0;
+					//background.depth = 0;
 					background.asQuad.size(visual.width, visual.height);
 					visual.add(background);
 				}
 			}
 
-			if (isQuad) {
-				background.asQuad.color = style.backgroundColor;
-			}
+			
+			
+
 
 			if (isMesh) {
 				if (style.backgroundColorEnd != null) {
@@ -281,6 +283,7 @@ class ComponentImpl extends ComponentBase {
 				background.alpha = 1;
 			}
 		}
+		trace('$isQuad | $isMesh | ${style.backgroundColor}');
 
 
 		var left = style.borderLeftColor != null;
