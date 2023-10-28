@@ -17,8 +17,10 @@ import ceramic.App;
 import haxe.ui.events.MouseEvent;
 import ceramic.MouseButton;
 import haxe.ui.backend.ToolkitOptions;
+import ceramic.Point;
 
 class ComponentImpl extends ComponentBase {
+	static var point = new Point(0, 0);
 	private var eventMap:Map<String, UIEvent->Void>;
 	private var addedRoot:Bool = false;
 
@@ -229,9 +231,10 @@ class ComponentImpl extends ComponentBase {
 				// component has a gradient so we need to use a mesh
 				if (!isMesh && this.background == null) {
 					this.background = new Mesh();
-					//background.depth = 0;
+					background.depth = 0;
 					background.asMesh.indices = this.indices;
 					background.asMesh.vertices = this.vertices;
+					background.asMesh.size(visual.width, visual.height);
 					background.inheritAlpha = true;
 					visual.add(background);
 				}
@@ -241,15 +244,11 @@ class ComponentImpl extends ComponentBase {
 					this.background = new Quad();
 					background.asQuad.color = style.backgroundColor;
 					background.inheritAlpha = true;
-					//background.depth = 0;
+					background.depth = 0;
 					background.asQuad.size(visual.width, visual.height);
 					visual.add(background);
 				}
 			}
-
-			
-			
-
 
 			if (isMesh) {
 				if (style.backgroundColorEnd != null) {
@@ -283,7 +282,7 @@ class ComponentImpl extends ComponentBase {
 				background.alpha = 1;
 			}
 		}
-		trace('$isQuad | $isMesh | ${style.backgroundColor}');
+//		trace('$isQuad | $isMesh | ${style.backgroundColor}');
 
 
 		var left = style.borderLeftColor != null;
@@ -422,12 +421,17 @@ class ComponentImpl extends ComponentBase {
 		if (!eventMap.exists(MouseEvent.MOUSE_MOVE)) {
 			return;
 		}
+
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
+
 		var listener = eventMap.get(MouseEvent.MOUSE_MOVE);
-		var hittest = this.hitTest(info.x, info.y);
+		var hittest = this.hitTest(x, y);
 		if (hittest) {
 			var event = new MouseEvent(MouseEvent.MOUSE_MOVE);
-			event.screenX = info.x;
-			event.screenY = info.y;
+			event.screenX = x;
+			event.screenY = y;
 			listener(event);
 		}
 	}
@@ -440,9 +444,12 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		event.screenX = x;
+		event.screenY = y;
 		var listener = this.eventMap[type];
 
 		if (over) {
@@ -457,9 +464,14 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
+
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		event.screenX = x;
+		event.screenY = y;
+		
 		var listener = this.eventMap[type];
 		if (!over) {
 			this.over = true;
@@ -493,12 +505,16 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
+
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		event.screenX = x;
+		event.screenY = y;
 
 		var listener = this.eventMap[type];
-		if (this.hitTest(info.x, info.y) && !this.hasComponentOver(cast this, info.x, info.y)) {
+		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 		}
 	}
@@ -528,13 +544,16 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type)) {
 			return;
 		}
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
 
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		event.screenX = x;
+		event.screenY = y;
 
 		var listener = this.eventMap[type];
-		if (this.hitTest(info.x, info.y) && !this.hasComponentOver(cast this, info.x, info.y)) {
+		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 		}
 	}
@@ -608,11 +627,14 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type)) {
 			return;
 		}
+		root().screenToVisual(info.x, info.y, point);
+		var x = point.x;
+		var y = point.y;
 
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-		if (this.hitTest(info.x, info.y) && !this.hasComponentOver(cast this, info.x, info.y)) {
+		event.screenX = x;
+		event.screenY = y;
+		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			this.eventMap[type](event);
 		}
 	}

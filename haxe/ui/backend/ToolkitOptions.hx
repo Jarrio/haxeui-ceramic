@@ -38,6 +38,7 @@ function root() {
 		options.root = parent;
 	}
 	
+	options.root.bindToNativeScreenSize();
 	return options.root;
 }
 
