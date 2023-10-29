@@ -21,6 +21,7 @@ import ceramic.Point;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
+
 	private var eventMap:Map<String, UIEvent->Void>;
 	private var addedRoot:Bool = false;
 
@@ -225,7 +226,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		var alpha:Int = 0xFF000000;
-		// trace(Color.fromInt(style.backgroundColor).toHexString());
+
 		if (style.backgroundColor != null) {
 			if (style.backgroundColorEnd != null) {
 				// component has a gradient so we need to use a mesh
@@ -278,7 +279,7 @@ class ComponentImpl extends ComponentBase {
 				background.alpha = style.backgroundOpacity;
 			}
 		}
-		
+
 		if (this.background != null) {
 			if (style.backgroundColor == null) {
 				background.alpha = 0;
@@ -286,15 +287,14 @@ class ComponentImpl extends ComponentBase {
 				background.alpha = 1;
 			}
 		}
-//		trace('$isQuad | $isMesh | ${style.backgroundColor}');
-
+		//		trace('$isQuad | $isMesh | ${style.backgroundColor}');
 
 		var left = style.borderLeftColor != null;
 		var right = style.borderRightColor != null;
 		var top = style.borderTopColor != null;
 		var bot = style.borderBottomColor != null;
 
-		//trace('${style.borderColor} | $left | $right | $top | $bot');
+		// trace('${style.borderColor} | $left | $right | $top | $bot');
 		if (style.borderColor != null || left || right || top || bot) {
 			if (this.border == null) {
 				border = new Border();
@@ -455,11 +455,16 @@ class ComponentImpl extends ComponentBase {
 		event.screenX = x;
 		event.screenY = y;
 		var listener = this.eventMap[type];
-
-		if (over) {
+		var hittest = this.hitTest(x, y);
+		if (!hittest && over) {
 			listener(event);
 			over = false;
 		}
+
+		// if (over) {
+		// 	listener(event);
+		// 	over = false;
+		// }
 	}
 
 	function _onMouseOver(info:TouchInfo) {
@@ -475,12 +480,17 @@ class ComponentImpl extends ComponentBase {
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
-		
+
 		var listener = this.eventMap[type];
-		if (!over) {
-			this.over = true;
+		var hittest = this.hitTest(x, y);
+		if (hittest) {
 			listener(event);
+			over = true;
 		}
+		// if (!over) {
+		// 	this.over = true;
+		// 	listener(event);
+		// }
 	}
 
 	function onMouseLeftUp(info:TouchInfo) {
@@ -672,12 +682,14 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OVER:
 				if (!eventMap.exists(MouseEvent.MOUSE_OVER)) {
 					this.eventMap.set(type, listener);
-					visual.onPointerOver(visual, this._onMouseOver);
+					// visual.onPointerOver(visual, this._onMouseOver);
+					screen.onPointerMove(visual, this._onMouseOver);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					visual.onPointerOut(visual, _onMouseOut);
+					//visual.onPointerOut(visual, _onMouseOut);
+					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
@@ -752,12 +764,12 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
-					visual.offPointerOver(_onMouseOver);
+					screen.offPointerMove(_onMouseOver);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
-					visual.offPointerOut(_onMouseOut);
+					screen.offPointerMove(_onMouseOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
 				}
 			case MouseEvent.MOUSE_UP:
