@@ -274,17 +274,17 @@ class ComponentImpl extends ComponentBase {
 			if (isQuad) {
 				background.asQuad.color = style.backgroundColor;
 			}
-
-			if (style.backgroundOpacity != null && background != null) {
-				background.alpha = style.backgroundOpacity;
-			}
 		}
 
 		if (this.background != null) {
-			if (style.backgroundColor == null) {
-				background.alpha = 0;
+			if (style.backgroundOpacity != null) {
+				background.alpha = style.backgroundOpacity;
 			} else {
-				background.alpha = 1;
+				if (style.backgroundColor == null) {
+					background.alpha = 0;
+				} else {
+					background.alpha = 1;
+				}
 			}
 		}
 		//		trace('$isQuad | $isMesh | ${style.backgroundColor}');
