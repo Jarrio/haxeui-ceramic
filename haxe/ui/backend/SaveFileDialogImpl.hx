@@ -29,7 +29,7 @@ class SaveFileDialogImpl extends SaveFileDialogBase {
 	}
 	#else
 	public override function show() {
-		trace('not implemented on this target yet');2
+		trace('not implemented on this target yet');
 		// Dialogs.saveFile('Open file', [], (file) -> {
 		// 	if (file != null) {
 		// 		dialogConfirmed();
