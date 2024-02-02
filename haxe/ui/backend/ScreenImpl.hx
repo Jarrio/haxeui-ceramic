@@ -199,6 +199,7 @@ function onKey(type:String, key:Key) {
 	}
 	var event = new KeyboardEvent(type);
 	event.keyCode = key.keyCode;
+
 	if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
 		event.altKey = true;
 	}
