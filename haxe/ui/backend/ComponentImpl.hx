@@ -18,6 +18,7 @@ import haxe.ui.events.MouseEvent;
 import ceramic.MouseButton;
 import haxe.ui.backend.ToolkitOptions;
 import ceramic.Point;
+import ceramic.Timer;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -30,6 +31,11 @@ class ComponentImpl extends ComponentBase {
 
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
+	}
+
+	public static function changed() {
+		last_fast_fps = Timer.now;
+		App.app.settings.targetFps = 60;
 	}
 
 	private function recursiveReady() {
@@ -53,6 +59,8 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.x = left;
 			}
+			root().render();
+			//changed();
 		}
 
 		if (this.visual.y != top) {
@@ -60,6 +68,8 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.y = top;
 			}
+			root().render();
+			//changed();
 		}
 
 		// if (this.y != top)
@@ -84,6 +94,8 @@ class ComponentImpl extends ComponentBase {
 			if (style != null) {
 				applyStyle(style);
 			}
+			root().render();
+			//changed();
 		}
 	}
 
@@ -139,6 +151,8 @@ class ComponentImpl extends ComponentBase {
 
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
+		root().render();
+		//changed();
 	}
 
 	private override function handleVisibility(show:Bool):Void {
@@ -335,6 +349,9 @@ class ComponentImpl extends ComponentBase {
 				border.borderBottomColor = style.borderBottomColor;
 			}
 		}
+
+		root().render();
+		//changed();
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
@@ -688,7 +705,7 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					//visual.onPointerOut(visual, _onMouseOut);
+					// visual.onPointerOut(visual, _onMouseOut);
 					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:

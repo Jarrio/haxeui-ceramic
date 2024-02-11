@@ -1,6 +1,8 @@
 package haxe.ui.backend;
 
 import haxe.ui.backend.ToolkitOptions.root;
+import haxe.ui.backend.ToolkitOptions.rootAdd;
+import haxe.ui.backend.ToolkitOptions.rootRemove;
 import ceramic.TouchInfo;
 import haxe.ui.core.Component;
 import haxe.ui.backend.ceramic.MouseHelper;
@@ -40,7 +42,7 @@ class ScreenImpl extends ScreenBase {
 		resizeComponent(c);
 		rootComponents.push(component);
 		component.visual.active = true;
-		root().add(c.visual);
+		rootAdd(c.visual);
 		this.mapComponents();
 		return c;
 	}
@@ -57,7 +59,7 @@ class ScreenImpl extends ScreenBase {
 			component.visual.dispose();
 		} else {
 			component.visual.active = false;
-			root().remove(component.visual);
+			rootRemove(component.visual);
 		}
 		rootComponents.remove(component);
 		this.mapComponents();
