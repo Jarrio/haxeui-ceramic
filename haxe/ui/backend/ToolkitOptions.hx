@@ -49,13 +49,11 @@ var _init:Bool = false;
 
 function root() {
 	var options = Toolkit.screen.options;
-	if (options != null && options.root != null) {
-		return options.root;
-	}
 
 	if (options == null) {
 		options = Toolkit.screen.options = {
-			root: null
+			root: null,
+			performance: None
 		}
 	}
 
@@ -67,11 +65,12 @@ function root() {
 }
 
 inline function rootAdd(visual:Visual) {
+	var root = root();
 	if (options().performance == Render) {
-		var p:Filter = cast root();
+		var p:Filter = cast root;
 		p.content.add(visual);
 	} else {
-		root().add(visual);
+		root.add(visual);
 	}
 }
 
@@ -94,7 +93,6 @@ function init() {
 	
 	if (options().performance == null) {
 		options().performance = None;
-		return;
 	}
 
 	if (options().performance == FPS) {

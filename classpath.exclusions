@@ -1,2 +1,0 @@
-; exclude paths from classpath when searching for haxeui arifacts (module.xml, native.xml, etc)
-; speeds up build
