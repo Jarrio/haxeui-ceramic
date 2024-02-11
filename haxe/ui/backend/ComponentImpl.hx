@@ -35,9 +35,9 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private function updated() {
-		if (options().performance == Render) {
-			cast (root(), Filter).render();
-		}
+		#if !no_filter_root
+			root().render();
+		#end
 
 		if (options().performance == FPS) {
 			last_fast_fps = Timer.now;

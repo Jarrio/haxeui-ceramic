@@ -18,10 +18,6 @@ enum PerformanceOptions {
 	 * Will thottle fps when it has been detirmined that the app is in an idle state
 	 */
 	FPS;
-	/**
-	 * Will render all UI to a texture
-	 */
-	Render;
 }
 
 typedef ToolkitOptions = {
@@ -30,7 +26,7 @@ typedef ToolkitOptions = {
 	 */
 	@:optional var performance:PerformanceOptions;
 
-	@:optional var root:Visual;
+	@:optional var root:#if no_filter_root Visual #else Filter #end;
 	@:optional var assets:Assets;
 
 	/**
@@ -65,22 +61,19 @@ function root() {
 }
 
 inline function rootAdd(visual:Visual) {
-	var root = root();
-	if (options().performance == Render) {
-		var p:Filter = cast root;
-		p.content.add(visual);
-	} else {
-		root.add(visual);
-	}
+	#if no_filter_root
+		root().add(visual);
+	#else
+	root().content.add(visual);
+	#end
 }
 
 inline function rootRemove(visual:Visual) {
-	if (options().performance == Render) {
-		var p:Filter = cast root();
-		p.content.remove(visual);
-	} else {
-		root().remove(visual);
-	}
+	#if no_filter_root
+	root().remove(visual);
+	#else
+	root().content.remove(visual);
+	#end
 }
 
 function options() {
@@ -108,21 +101,19 @@ function init() {
 		});
 	}
 
-	var parent:Visual = options().root;
-	if (parent == null) {
-		if (options().performance == Render) {
-			parent = new Filter();
-			var p:Filter = cast parent;
-			p.autoRender = false;
-			p.explicitRender = true;
-		} else {
-			parent = new Visual();
-		}
-	}
+	if (options().root == null) {
+		#if no_filter_root
+		var parent = new Visual();
+		#else
+		var parent = new Filter();
+		parent.autoRender = false;
+		parent.explicitRender = true;
+		#end
 
-	parent.depth = 1000;
-	options().root = parent;
-	options().root.bindToNativeScreenSize();
+		parent.depth = 1000;
+		options().root = parent;
+		options().root.bindToNativeScreenSize();
+	}
 }
 
 function aliasing() {
