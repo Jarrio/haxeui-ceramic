@@ -4,8 +4,6 @@ import ceramic.App;
 
 class CallLaterImpl {
 	public function new(fn:Void->Void) {
-		App.app.onceUpdate(null, (_) -> {
-			fn();
-		});
+		App.app.onceImmediate(() -> fn());
 	}
 }

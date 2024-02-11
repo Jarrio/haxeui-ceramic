@@ -17,7 +17,7 @@ enum PerformanceOptions {
 	/**
 	 * Will thottle fps when it has been detirmined that the app is in an idle state
 	 */
-	FPS(delay:Float);
+	FPS;
 }
 
 
