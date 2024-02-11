@@ -8,7 +8,7 @@ import ceramic.App;
 import ceramic.Scene;
 import ceramic.Timer;
 
-enum ThrottleOptions {
+enum PerformanceOptions {
 	/**
 	 * default - no thottling
 	 */
@@ -25,7 +25,7 @@ typedef ToolkitOptions = {
 	/**
 	 * A performance toggle that reduces UI resources
 	 */
-	@:optional var thottle:ThrottleOptions;
+	@:optional var performance:PerformanceOptions;
 	@:optional var root:Filter;
 	@:optional var assets:Assets;
 	/**
@@ -81,16 +81,21 @@ inline function rootRemove(visual:Visual) {
 var last_fast_fps:Float;
 function init() {
 	var options = Toolkit.screen.options;
-	// App.app.screen.onPointerDown(options.root, _ -> {
-	// 	last_fast_fps = Timer.now;
-	// 	App.app.settings.targetFps = 60;
-	// });
+	if (options.performance == null) {
+		options.performance = None;
+		return;
+	}
+	
+	App.app.screen.onPointerDown(options.root, _ -> {
+		last_fast_fps = Timer.now;
+		App.app.settings.targetFps = 60;
+	});
 
-	// Timer.interval(options.root, 0.5, () -> {
-	// 	if (Timer.now - last_fast_fps > 5.0) {
-	// 		App.app.settings.targetFps = 15;
-	// 	}
-	// });
+	Timer.interval(options.root, 0.5, () -> {
+		if (Timer.now - last_fast_fps > 5.0) {
+			App.app.settings.targetFps = 15;
+		}
+	});
 }
 
 function aliasing() {

@@ -60,7 +60,7 @@ class ComponentImpl extends ComponentBase {
 				this.filter.x = left;
 			}
 			root().render();
-			//changed();
+			changed();
 		}
 
 		if (this.visual.y != top) {
@@ -69,7 +69,7 @@ class ComponentImpl extends ComponentBase {
 				this.filter.y = top;
 			}
 			root().render();
-			//changed();
+			changed();
 		}
 
 		// if (this.y != top)
@@ -95,7 +95,7 @@ class ComponentImpl extends ComponentBase {
 				applyStyle(style);
 			}
 			root().render();
-			//changed();
+			changed();
 		}
 	}
 
@@ -152,7 +152,7 @@ class ComponentImpl extends ComponentBase {
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
 		root().render();
-		//changed();
+		changed();
 	}
 
 	private override function handleVisibility(show:Bool):Void {
@@ -351,7 +351,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		root().render();
-		//changed();
+		changed();
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
