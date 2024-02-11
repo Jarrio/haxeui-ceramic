@@ -19,6 +19,7 @@ import ceramic.MouseButton;
 import haxe.ui.backend.ToolkitOptions;
 import ceramic.Point;
 import ceramic.Timer;
+import ceramic.Filter;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -33,9 +34,15 @@ class ComponentImpl extends ComponentBase {
 		// recursiveReady();
 	}
 
-	public static function changed() {
-		last_fast_fps = Timer.now;
-		App.app.settings.targetFps = 60;
+	private function updated() {
+		if (options().performance == Render) {
+			cast (root(), Filter).render();
+		}
+
+		if (options().performance == FPS) {
+			last_fast_fps = Timer.now;
+			App.app.settings.targetFps = 60;
+		}
 	}
 
 	private function recursiveReady() {
@@ -59,8 +66,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.x = left;
 			}
-			root().render();
-			changed();
+			this.updated();
 		}
 
 		if (this.visual.y != top) {
@@ -68,8 +74,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.y = top;
 			}
-			root().render();
-			changed();
+			this.updated();
 		}
 
 		// if (this.y != top)
@@ -94,8 +99,7 @@ class ComponentImpl extends ComponentBase {
 			if (style != null) {
 				applyStyle(style);
 			}
-			root().render();
-			changed();
+			this.updated();
 		}
 	}
 
@@ -151,8 +155,7 @@ class ComponentImpl extends ComponentBase {
 
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
-		root().render();
-		changed();
+		this.updated();
 	}
 
 	private override function handleVisibility(show:Bool):Void {
@@ -350,8 +353,7 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		root().render();
-		changed();
+		this.updated();
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
