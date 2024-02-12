@@ -26,17 +26,23 @@ class ComponentImpl extends ComponentBase {
 
 	private var eventMap:Map<String, UIEvent->Void>;
 	private var addedRoot:Bool = false;
-
+	private var redraw:Bool = false;
 	public function new() {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
+		App.app.onPostUpdate(this.visual, (_) -> {
+			if (redraw) {
+				Ceramic.forceRender();
+				redraw = false;
+			}
+		});
 	}
 
 	private function updated() {
 		#if !no_filter_root
-			root().render();
+			redraw = true;
 		#end
 
 		if (options().performance == FPS) {
