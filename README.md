@@ -52,7 +52,7 @@ class Foo extends Visual {
 			return;
 		}
 		// Do stuff
-		Ceramic.render(); //<-- Call this to force a complete UI re-render
+		Ceramic.forceRender(); //<-- Call this to force a complete UI re-render
 	}
 }
 ```
