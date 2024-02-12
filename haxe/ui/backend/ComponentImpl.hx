@@ -32,12 +32,14 @@ class ComponentImpl extends ComponentBase {
 
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
+		#if !no_filter_root
 		App.app.onPostUpdate(this.visual, (_) -> {
 			if (redraw) {
 				Ceramic.forceRender();
 				redraw = false;
 			}
 		});
+		#end
 	}
 
 	private function updated() {
