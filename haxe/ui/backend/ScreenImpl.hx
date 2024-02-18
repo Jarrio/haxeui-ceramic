@@ -53,8 +53,7 @@ class ScreenImpl extends ScreenBase {
 		this.mapComponents();
 	}
 
-	public override function removeComponent(component:Component, dispose:Bool = true):Component {
-		
+	public override function removeComponent(component:Component, dispose:Bool = true, invalidate:Bool = true):Component {
 		if (dispose) {
 			component.visual.dispose();
 		} else {
