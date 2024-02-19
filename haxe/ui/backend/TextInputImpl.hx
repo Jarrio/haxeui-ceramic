@@ -20,6 +20,29 @@ class TextInputImpl extends TextDisplayImpl {
 		field.focus();
 	}
 
+	public override function blur() {
+		field.stopInput();
+	}
+
+	private var _eventsRegistered:Bool = false;
+
+	private function registerEvents() {
+		if (_eventsRegistered) {
+			return;
+		}
+		_eventsRegistered = true;
+		parentComponent.registerEvent(UIEvent.HIDDEN, onParentHidden);
+	}
+
+	private function unregisterEvents() {
+		parentComponent.unregisterEvent(UIEvent.HIDDEN, onParentHidden);
+		_eventsRegistered = false;
+	}
+
+	private function onParentHidden(_) {
+		blur();
+	}
+
 	private override function validateStyle():Bool {
 		var measureTextRequired:Bool = super.validateStyle();
 
@@ -29,6 +52,9 @@ class TextInputImpl extends TextDisplayImpl {
 	}
 
 	function onTextChanged(text:String) {
+		if (text == _text) {
+			return;
+		}
 		_text = text;
 		measureText();
         
