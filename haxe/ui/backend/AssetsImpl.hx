@@ -107,4 +107,12 @@ class AssetsImpl extends AssetsBase {
 			});
 		});
 	}
+		
+	public override function imageInfoFromImageData(imageData:ImageData):ImageInfo {
+		return {
+			data: imageData,
+			width: cast imageData.width,
+			height: cast imageData.height
+		};
+	}
 }
