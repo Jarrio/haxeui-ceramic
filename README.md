@@ -35,10 +35,12 @@ Screen.instance.addComponent(haxeui_component);
 In your `Toolkit.init()` there's a new option called `performance` set this to `FPS` and whenever your app gets into an idle state, it will lower the FPS down to 15 and boost it back up when it is no longer idle
 ### Cached Rendering
 Out of the box this will only update the UI when a change has occured to prevent constant draws to occur. If you want to completely turn this feature off add the `no_filter_root` define to your ceramic.yml.
-
+There are 2 ways you can go about this. 
+#### Ceramic.forceRender();
+Call this if you want a quick "pulse"
 If you want to use the feature but want to add non UI components to your UI hierarchy then here's what you do:
 1) Add `import haxe.ui.backend.Ceramic;`
-2) Then in your custom visual/component, call `Ceramic.render()`
+2) Then in your custom visual/component, call `Ceramic.forceRender()`
 
 so an example:
 
@@ -53,6 +55,24 @@ class Foo extends Visual {
 		}
 		// Do stuff
 		Ceramic.forceRender(); //<-- Call this to force a complete UI re-render
+	}
+}
+```
+#### Ceramic.startForceDraw() and Ceramic.endForceDraw() 
+This one is used as a state toggle, call `startForceDraw` once to turn "off" the caching, will redraw every frame like normal and then call `endForceDraw` to stop it
+```hx
+import haxe.ui.backend.Ceramic;
+
+class Foo extends Visual {
+	var field:EditText;
+	public function new() {
+		field.onStart(this, function() {
+			Ceramic.startForceDraw();
+		});
+
+		field.onEnd(this, function() {
+			Ceramic.endForceDraw();
+		});
 	}
 }
 ```
