@@ -43,13 +43,13 @@ typedef ToolkitOptions = {
 
 var _init:Bool = false;
 
-function root() {
+function root():#if no_filter_root Visual #else Filter #end {
 	var options = Toolkit.screen.options;
 
 	if (options == null) {
 		options = Toolkit.screen.options = {
 			root: null,
-			performance: None
+			performance: PerformanceOptions.None
 		}
 	}
 
@@ -100,6 +100,13 @@ function init() {
 			}
 		});
 	}
+
+	App.app.screen.onResize(null, Ceramic.forceRender);
+
+	App.app.onUpdate(null, function(_) {
+		Ceramic.redraw();
+	});
+	
 
 	if (options().root == null) {
 		#if no_filter_root

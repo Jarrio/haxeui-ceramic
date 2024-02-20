@@ -26,27 +26,15 @@ class ComponentImpl extends ComponentBase {
 
 	private var eventMap:Map<String, UIEvent->Void>;
 	private var addedRoot:Bool = false;
-	private var redraw:Bool = false;
 	public function new() {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
-		#if !no_filter_root
-		App.app.onPostUpdate(this.visual, (_) -> {
-			if (redraw) {
-				Ceramic.forceRender();
-				redraw = false;
-			}
-		});
-		#end
 	}
 
-	private function updated() {
-		#if !no_filter_root
-			redraw = true;
-		#end
-
+	function updated() {
+		Ceramic.forceRender();
 		if (options().performance == FPS) {
 			last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
@@ -446,6 +434,10 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		return r;
+	}
+
+	inline function root() {
+		return options().root;
 	}
 
 	function onMouseMove(info:TouchInfo) {

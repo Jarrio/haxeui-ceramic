@@ -26,19 +26,8 @@ class TextInputImpl extends TextDisplayImpl {
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
 		field.onStop(visual, this.onStop);
-		App.app.screen.onceResize(visual, Ceramic.forceRender);
-		App.app.onUpdate(visual, this.renderEvent);
 	}
 
-	function renderEvent(_) {
-		if (!focused) {
-			return;
-		}
-		/**
-		 * Re render UI when textbox is in focus
-		 */
-		Ceramic.forceRender();
-	}
 
 	function onStop() {
 		unregisterEvents();
@@ -50,11 +39,13 @@ class TextInputImpl extends TextDisplayImpl {
 
 	public override function focus() {
 		focused = true;
+		Ceramic.startForceDraw();
 		field.focus();
 	}
 
 	public override function blur() {
 		focused = false;
+		Ceramic.endForceDraw();
 		field.stopInput();
 	}
 
