@@ -1,0 +1,18 @@
+{
+  "name": "Ceramic Downloader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "download-ceramic.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "1.6.3",
+    "cheerio": "^1.0.0-rc.12",
+    "download": "^8.0.0",
+    "glob": "10.3.1",
+    "sharp": "0.33.1"
+  }
+}
