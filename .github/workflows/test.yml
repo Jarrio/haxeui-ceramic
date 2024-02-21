@@ -62,3 +62,4 @@ jobs:
         working-directory: test-app
         run: |
           ceramic clay build web --setup --assets --debug
+          ceramic clay build web --setup --assets --debug -D no_filter_root
