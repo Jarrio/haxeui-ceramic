@@ -1,0 +1,10 @@
+app:
+  package: haxeui.test-app
+  name: test-app
+  displayName: test-app
+  author: Jarrio, l0go
+  version: '1.0'
+
+  libs:
+      - haxeui-core: git:https://github.com/haxeui/haxeui-core.git
+      - haxeui-ceramic: path:../
