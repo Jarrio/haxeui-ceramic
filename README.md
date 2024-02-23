@@ -1,3 +1,4 @@
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Jarrio/haxeui-ceramic/test.yml)
 # HaxeUI Ceramic backend
 - The cwd for `resources` and `@:build` xmls is `2` levels deep from project root. Add `../../` to your haxeui filepaths 
 - Images can be loaded from your main scene asset object, the one you pass to toolkit.init or a `file://` path
