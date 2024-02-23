@@ -8,3 +8,5 @@ app:
   libs:
       - haxeui-core: git:https://github.com/haxeui/haxeui-core.git
       - haxeui-ceramic: path:../
+  defines:
+      - ceramic_no_skip
