@@ -47,7 +47,12 @@ class TextDisplayImpl extends TextBase {
 			}
 
 			if (_textStyle.fontSize != null) {
-				visual.preRenderedSize = Std.int(_textStyle.fontSize) + 4;
+				/**
+				 * Before creating text, we prerender the fonts a couple sizes larger
+				 * You can set how much larger with the -D prerender_font_offset
+				 * By default it is 8
+				 */
+				visual.preRenderedSize = Std.int(_textStyle.fontSize) + ceramic.macros.DefinesMacro.getIntDefine("prerender_font_offset") ?? 8;
 				visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}
