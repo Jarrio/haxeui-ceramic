@@ -35,15 +35,15 @@ class TextDisplayImpl extends TextBase {
 			if (_textStyle.color != null) {
 				visual.color = _textStyle.color;
 			}
-			
+
 			if (_textStyle.fontItalic != null && visual.hasComponent('italic') != _textStyle.fontItalic) {
-					if (_textStyle.fontItalic) {
-						visual.component('italic', new ItalicText());
-						measureTextRequired = true;
-					} else {
-						visual.removeComponent('italic');
-					}
+				if (_textStyle.fontItalic) {
+					visual.component('italic', new ItalicText());
 					measureTextRequired = true;
+				} else {
+					visual.removeComponent('italic');
+				}
+				measureTextRequired = true;
 			}
 
 			if (_textStyle.fontSize != null) {
@@ -71,39 +71,70 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validatePosition() {
-		//if (parentComponent.id == 'intProp') {
+		// if (parentComponent.id == 'intProp') {
+		var left = Std.int(_left);
+		if (left % 2 != 0) {
+			left++;
+		}
+
+		var top = Std.int(_top);
+		if (top % 2 != 0) {
+			top++;
+		}
+
 		if (visual.align == CENTER) {
 			visual.anchorX = 0.5;
-			visual.x = Std.int(_left + (_width / 2));
+			left = Std.int(_left + (_width / 2));
+			if (left % 2 != 0) {
+				left++;
+			}
+			visual.x = left;
 		} else {
-			visual.x = Std.int(_left);
+			visual.x = left;
 		}
-		
-		visual.y = Std.int(_top);
+
+		visual.y = top;
 	}
 
 	private override function validateDisplay() {
-		//if (visual.width != _width) {
-			// if (_width == null) {
-			// 	var parentWidth = @:privateAccess parentComponent._width;
-			// 	visual.fitWidth = parentWidth;
-			// }
+		// if (visual.width != _width) {
+		// if (_width == null) {
+		// 	var parentWidth = @:privateAccess parentComponent._width;
+		// 	visual.fitWidth = parentWidth;
+		// }
+		var w = Math.fround(_width);
+		if (w % 2 != 0) {
+			w++;
+		}
 
-			if (_width > 0) {
-				visual.fitWidth = Std.int(_width);
-				//visual.width = _width;
-			}
-			//visual.width = _width;
-		//}
+		if (w > 0) {
+			visual.fitWidth = w;
+			// visual.width = _width;
+		}
+		// visual.width = _width;
+		// }
+		var h = Math.fround(_height);
+		if (h % 2 != 0) {
+			h++;
+		}
 
-		if (visual.height != _height) {
-			visual.height = Std.int(_height);
+		if (visual.height != h) {
+			visual.height = h;
 		}
 	}
 
 	private override function measureText() {
 		visual.computeContent();
-		_textWidth = Std.int(visual.width);
-		_textHeight = Std.int(visual.height);
+		var w = Math.fround(visual.width);
+		if (w % 2 != 0) {
+			w++;
+		}
+
+		var h = Math.fround(visual.height);
+		if (h % 2 != 0) {
+			h++;
+		}
+		_textWidth = w;
+		_textHeight = h;
 	}
 }

@@ -25,10 +25,15 @@ class ComponentSurface {
 		];
 
 		this.visual = new Visual();
+		visual.roundTranslation = 1;
 		this.visual.inheritAlpha = true;
 	}
 
 	public inline function size(width:Float, height:Float) {
+		width = Math.fround(width);
+		height = Math.fround(height);
+		//trace('here');
+		
 		this.vertices = [
 			    0,      0,
 			width,      0,

@@ -56,6 +56,17 @@ class ComponentImpl extends ComponentBase {
 		if (left == null || top == null) {
 			return;
 		}
+		
+		// left = Std.int(left);
+		// top = Std.int(top);
+
+		if (left % 2 != 0) {
+			left++;
+		}
+
+		if (top % 2 != 0) {
+			top++;
+		}
 
 		if (this.visual.x != left) {
 			this.visual.x = left;
@@ -123,12 +134,13 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
+				
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
 				filter.antialiasing = aliasing();
 				if (parent == null) {
 					visual.parent.add(filter);
-					// filter.depthRange = 0;
+					//filter.depthRange = 0;
 					// trace('here');
 				} else if (parent.isClipped) {
 					parent.filter.content.add(filter);
@@ -140,12 +152,43 @@ class ComponentImpl extends ComponentBase {
 				filter.content.add(this.visual);
 			}
 			// filter.color = Color.BLACK;
-			this.visual.x = -value.left;
-			this.visual.y = -value.top;
-			this.filter.x = left;
-			this.filter.y = top;
-			this.filter.width = value.width;
-			this.filter.height = value.height;
+			// this.visual.x = -value.left;
+			// this.visual.y = -value.top;
+			// this.filter.x = left;
+			// this.filter.y = top;
+			// this.filter.width = value.width;
+			// this.filter.height = value.height;
+			var l = Math.fround(left);
+			if (l % 2 != 0) {
+				l++;
+			}
+			var t = Math.fround(top);
+			if (t % 2 != 0) {
+				t++;
+			}
+			var lr = Math.fround(value.left);
+			if (lr % 2 != 0) {
+				lr++;
+			}
+			var tr = Math.fround(value.top);
+			if (tr % 2 != 0) {
+				tr++;
+			}
+			var w = Math.fround(value.width);
+			if (w % 2 != 0) {
+				w++;
+			}
+			var h = Math.fround(value.height);
+			if (h % 2 != 0) {
+				h++;
+			}
+			
+			this.visual.x = -lr;
+			this.visual.y = -tr;
+			this.filter.x = l;
+			this.filter.y = t;
+			this.filter.width = w;
+			this.filter.height = h;
 			// filter.size(value.width, value.height);
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 
