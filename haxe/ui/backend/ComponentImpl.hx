@@ -60,13 +60,13 @@ class ComponentImpl extends ComponentBase {
 		// left = Std.int(left);
 		// top = Std.int(top);
 
-		if (left % 2 != 0) {
-			left++;
-		}
+		// if (left % 2 != 0) {
+		// 	left++;
+		// }
 
-		if (top % 2 != 0) {
-			top++;
-		}
+		// if (top % 2 != 0) {
+		// 	top++;
+		// }
 
 		if (this.visual.x != left) {
 			this.visual.x = left;
@@ -160,27 +160,27 @@ class ComponentImpl extends ComponentBase {
 			// this.filter.height = value.height;
 			var l = Math.fround(left);
 			if (l % 2 != 0) {
-				l++;
+				//l++;
 			}
 			var t = Math.fround(top);
 			if (t % 2 != 0) {
-				t++;
+				//t++;
 			}
 			var lr = Math.fround(value.left);
 			if (lr % 2 != 0) {
-				lr++;
+				//lr++;
 			}
 			var tr = Math.fround(value.top);
 			if (tr % 2 != 0) {
-				tr++;
+				//tr++;
 			}
 			var w = Math.fround(value.width);
 			if (w % 2 != 0) {
-				w++;
+				//w++;
 			}
 			var h = Math.fround(value.height);
 			if (h % 2 != 0) {
-				h++;
+				//h++;
 			}
 			
 			this.visual.x = -lr;
@@ -354,6 +354,7 @@ class ComponentImpl extends ComponentBase {
 		if (style.borderColor != null || left || right || top || bot) {
 			if (this.border == null) {
 				border = new Border();
+				border.borderPosition = INSIDE;
 				border.color = Color.NONE;
 				border.inheritAlpha = true;
 				border.depth = 1;
