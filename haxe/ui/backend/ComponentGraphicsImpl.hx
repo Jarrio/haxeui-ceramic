@@ -146,9 +146,9 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 			if (texture.width != _component.width || texture.height != _component.height) {
 				texture = Texture.fromPixels(w, h, UInt8Array.fromBytes(pixels));
 			}
-			
-			render.submitPixels(UInt8Array.fromBytes(pixels));
 		}
+
+		render.submitPixels(UInt8Array.fromBytes(pixels));
 
 		if (this.visual == null) {
 			visual = new Quad();
