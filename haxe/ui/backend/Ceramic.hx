@@ -46,6 +46,8 @@ class Ceramic {
 			return;
 		}
 
+		internal_options().root.bindToNativeScreenSize();
+
 		if (!draw) {
 			internal_options().root.render();
 		}
