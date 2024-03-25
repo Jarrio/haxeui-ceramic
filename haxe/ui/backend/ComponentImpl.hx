@@ -7,6 +7,7 @@ import ceramic.Quad;
 import haxe.ui.core.Screen;
 import haxe.ui.geom.Rectangle;
 import ceramic.TouchInfo;
+import haxe.ui.core.InteractiveComponent;
 import haxe.ui.core.TextInput;
 import haxe.ui.core.ImageDisplay;
 import haxe.ui.core.Component;
@@ -20,6 +21,8 @@ import haxe.ui.backend.ToolkitOptions;
 import ceramic.Point;
 import ceramic.Timer;
 import ceramic.Filter;
+import haxe.ui.backend.ceramic.CursorType;
+import haxe.ui.backend.ceramic.Cursor;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -523,6 +526,9 @@ class ComponentImpl extends ComponentBase {
 		if (!hittest && over) {
 			listener(event);
 			over = false;
+			if (!Cursor.lock && (this is InteractiveComponent)) {
+				Cursor.setTo(CursorType.DEFAULT);
+			}
 		}
 
 		// if (over) {
@@ -550,6 +556,9 @@ class ComponentImpl extends ComponentBase {
 		if (hittest) {
 			listener(event);
 			over = true;
+			if (style != null && style.cursor != null && (this is InteractiveComponent)) {
+				Cursor.setTo(CursorType.fromString(style.cursor));
+			}
 		}
 		// if (!over) {
 		// 	this.over = true;
@@ -590,6 +599,12 @@ class ComponentImpl extends ComponentBase {
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
+		if (Cursor.lock) {
+			Cursor.lock = false;
+			if (!over) {
+				Cursor.setTo(CursorType.DEFAULT);
+			}
+		}
 
 		var listener = this.eventMap[type];
 		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
@@ -632,6 +647,7 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = this.eventMap[type];
 		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
+			Cursor.lock = true;
 			listener(event);
 		}
 	}
