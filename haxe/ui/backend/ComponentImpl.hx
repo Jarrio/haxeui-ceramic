@@ -101,12 +101,13 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			this.size(width, height);
-
-			if (style != null) {
+			if (width <= 0 || height <= 0) {
+				return;
+			} else {
+				this.size(width, height);
+				this.updated();
 				applyStyle(style);
 			}
-			this.updated();
 		}
 	}
 
