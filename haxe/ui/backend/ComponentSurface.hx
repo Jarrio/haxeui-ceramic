@@ -101,8 +101,17 @@ class ComponentSurface {
 		return this.visual.visible;
 	}
 
+	var x(get, set):Float;
+	inline function set_x(value:Float):Float {
+		return this.visual.x = Math.fround(value);
+	}
+
+	inline function get_x():Float {
+		return this.visual.x;
+	}
+	var y(get, set):Float;
 	inline function set_y(value:Float):Float {
-		return this.visual.y = value;
+		return this.visual.y = Math.fround(value);
 	}
 
 	inline function get_y():Float {
@@ -110,7 +119,7 @@ class ComponentSurface {
 	}
 
 	inline function set_clipX(value:Float):Float {
-		return this.visual.clip.x = value;
+		return this.visual.clip.x = Math.fround(value);
 	}
 
 	inline function get_clipX():Float {
@@ -118,7 +127,7 @@ class ComponentSurface {
 	}
 
 	inline function set_clipY(value:Float):Float {
-		return this.visual.clip.y = value;
+		return this.visual.clip.y = Math.fround(value);
 	}
 
 	inline function get_clipY():Float {
