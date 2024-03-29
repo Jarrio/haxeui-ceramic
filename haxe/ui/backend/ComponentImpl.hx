@@ -37,11 +37,10 @@ class ComponentImpl extends ComponentBase {
 		// recursiveReady();
 	}
 	
-	var last_fast_fps = -1.;
 	function updated() {
 		Ceramic.forceRender();
 		if (Screen.instance.options.performance == FPS) {
-			last_fast_fps = Timer.now;
+			Screen.instance.last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
 	}

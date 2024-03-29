@@ -255,7 +255,7 @@ function onKey(type:String, key:Key) {
 		return init(value);
 	}
 
-	var last_fast_fps:Float;
+	public var last_fast_fps:Float;
 	function init(options:ToolkitOptions) {
 		if (options.performance == null) {
 			options.performance = None;
@@ -266,23 +266,13 @@ function onKey(type:String, key:Key) {
 		}
 
 		if (options.performance == FPS) {
-			App.app.screen.onPointerDown(options.root, _ -> {
-				last_fast_fps = Timer.now;
-				App.app.settings.targetFps = 60;
-			});
-
-			Timer.interval(options.root, 0.5, () -> {
-				if (Timer.now - last_fast_fps > 5.0) {
-					App.app.settings.targetFps = 15;
-				}
-			});
+			App.app.screen.onPointerDown(options.root, onPointerDown);
+			Timer.interval(options.root, 0.5, onInterval);
 		}
 
 		App.app.screen.onResize(null, Ceramic.forceRender);
 
-		App.app.onUpdate(null, function(_) {
-			Ceramic.redraw();
-		});
+		App.app.onUpdate(null, onUpdate);
 
 		if (options.root == null) {
 			#if no_filter_root
@@ -299,6 +289,21 @@ function onKey(type:String, key:Key) {
 		}
 
 		return options;
+	}
+
+	function onPointerDown(info) {
+		last_fast_fps = Timer.now;
+		App.app.settings.targetFps = 60;
+	}
+
+	function onInterval() {
+		if (Timer.now - last_fast_fps > 5.0) {
+			App.app.settings.targetFps = 15;
+		}
+	}
+
+	function onUpdate(_) {
+		Ceramic.redraw();
 	}
 
 	inline function rootAdd(visual:Visual) {
