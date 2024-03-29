@@ -1,12 +1,7 @@
 package haxe.ui.backend;
 
-import ceramic.Filter;
 import ceramic.Visual;
 import ceramic.Assets;
-import haxe.ui.Toolkit;
-import ceramic.App;
-import ceramic.Scene;
-import ceramic.Timer;
 
 enum PerformanceOptions {
 	/**

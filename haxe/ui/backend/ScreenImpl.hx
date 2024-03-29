@@ -252,7 +252,6 @@ function onKey(type:String, key:Key) {
 
 	override function set_options(value:ToolkitOptions) {
 		super.set_options(value);
-		trace('here');
 		return init(value);
 	}
 
