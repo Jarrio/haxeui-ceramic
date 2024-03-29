@@ -2,6 +2,7 @@ package haxe.ui.backend;
 
 import haxe.ui.backend.ceramic.ItalicText;
 import ceramic.Text;
+import haxe.ui.core.Screen;
 
 class TextDisplayImpl extends TextBase {
 	public var visual:Text;
@@ -47,7 +48,8 @@ class TextDisplayImpl extends TextBase {
 			}
 
 			if (_textStyle.fontSize != null) {
-				visual.preRenderedSize = Std.int(_textStyle.fontSize) + 4;
+				var presize = Screen.instance.options.prerender_font_size;
+				visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
 				visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}

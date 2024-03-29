@@ -35,6 +35,11 @@ typedef ToolkitOptions = {
 	 * Which mode to run aliasing in
 	 */
 	@:optional var aliasmode:AliasMode;
+
+	/**
+	 * The value to pre-render fonts at. The default is set to +4
+	 */
+	@:optional var prerender_font_size:Float;
 }
 
 enum abstract AliasMode(String) to String {

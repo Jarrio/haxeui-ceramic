@@ -261,6 +261,10 @@ function onKey(type:String, key:Key) {
 			options.performance = None;
 		}
 
+		if (options.prerender_font_size == null) {
+			options.prerender_font_size = 1.5;
+		}
+
 		if (options == null || options.aliasmode == null) {
 			options.aliasmode = None;
 		}
