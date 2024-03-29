@@ -23,6 +23,7 @@ import ceramic.Timer;
 import ceramic.Filter;
 import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
+import haxe.ui.backend.ScreenImpl;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -35,10 +36,11 @@ class ComponentImpl extends ComponentBase {
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
 	}
-
+	
+	var last_fast_fps = -1.;
 	function updated() {
 		Ceramic.forceRender();
-		if (options().performance == FPS) {
+		if (Screen.instance.options.performance == FPS) {
 			last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
@@ -76,7 +78,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.x = left;
 			}
-			this.updated();
+			//this.updated();
 		}
 
 		if (this.visual.y != top) {
@@ -84,7 +86,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.y = top;
 			}
-			this.updated();
+			//this.updated();
 		}
 
 		// if (this.y != top)
@@ -108,7 +110,7 @@ class ComponentImpl extends ComponentBase {
 				return;
 			} else {
 				this.size(width, height);
-				this.updated();
+				//this.updated();
 				applyStyle(style);
 			}
 		}
@@ -141,7 +143,7 @@ class ComponentImpl extends ComponentBase {
 				
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
-				filter.antialiasing = aliasing();
+				filter.antialiasing = Screen.instance.options.antialiasing;
 				if (parent == null) {
 					visual.parent.add(filter);
 					//filter.depthRange = 0;
@@ -198,7 +200,7 @@ class ComponentImpl extends ComponentBase {
 
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
-		this.updated();
+		//this.updated();
 	}
 
 	private override function handleVisibility(show:Bool):Void {
@@ -397,7 +399,7 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		this.updated();
+		//this.updated();
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
@@ -485,7 +487,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	inline function root() {
-		return options().root;
+		return Screen.instance.options.root;
 	}
 
 	function onMouseMove(info:TouchInfo) {

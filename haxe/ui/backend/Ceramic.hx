@@ -1,20 +1,19 @@
 package haxe.ui.backend;
 
-import haxe.ui.backend.ToolkitOptions.options as internal_options;
-import haxe.ui.backend.ToolkitOptions.root as internal_root;
+import haxe.ui.core.Screen;
 
 @:keep
 class Ceramic {
 	public static var root(get, never):#if no_filter_root ceramic.Visual #else ceramic.Filter #end;
 
 	static function get_root():#if no_filter_root ceramic.Visual #else ceramic.Filter #end {
-		return options.root;
+		return Screen.instance.options.root;
 	}
 
 	public static var options(get, never):ToolkitOptions;
 
 	static function get_options() {
-		return internal_options();
+		return Screen.instance.options;
 	}
 
 	public static var draw:Bool = false;
@@ -35,7 +34,7 @@ class Ceramic {
 
 		if (draw) {
 			//trace('redrawing');
-			internal_options().root.render();
+			root.render();
 		}
 		#end
 	}
@@ -46,10 +45,8 @@ class Ceramic {
 			return;
 		}
 
-		internal_options().root.bindToNativeScreenSize();
-
 		if (!draw) {
-			internal_options().root.render();
+			root.render();
 		}
 		#end
 	}

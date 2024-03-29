@@ -1,8 +1,7 @@
 package haxe.ui.backend;
 
-import haxe.ui.backend.ToolkitOptions.root;
-import haxe.ui.backend.ToolkitOptions.rootAdd;
-import haxe.ui.backend.ToolkitOptions.rootRemove;
+import ceramic.Timer;
+import ceramic.Visual;
 import ceramic.TouchInfo;
 import haxe.ui.core.Component;
 import haxe.ui.backend.ceramic.MouseHelper;
@@ -13,6 +12,7 @@ import ceramic.KeyCode;
 import haxe.ui.events.UIEvent;
 import haxe.ui.events.MouseEvent;
 import ceramic.App;
+import ceramic.Filter;
 
 @:access(haxe.ui.backend.ComponentImpl)
 class ScreenImpl extends ScreenBase {
@@ -25,7 +25,6 @@ class ScreenImpl extends ScreenBase {
 		eventMap = new Map<String, UIEvent->Void>();
 		App.app.screen.onResize(null, this.handleResize);
 	}
-
 
 	function mapComponents() {
 		for (k => c in this.rootComponents) {
@@ -66,6 +65,10 @@ class ScreenImpl extends ScreenBase {
 	}
 
 	private function handleResize() {
+		if (options.root != null) {
+			options.root.bindToNativeScreenSize();
+		}
+
 		for (c in rootComponents) {
 			if (c.percentWidth > 0) {
 				c.width = Std.int((this.width * c.percentWidth) / 100);
@@ -238,5 +241,80 @@ function onKey(type:String, key:Key) {
 
 	private override function get_actualHeight():Float {
 		return App.app.screen.actualHeight;
+	}
+
+	override function get_options() {
+		if (_options == null) {
+			options = {};
+		}
+		return super.get_options();
+	}
+
+	override function set_options(value:ToolkitOptions) {
+		super.set_options(value);
+		trace('here');
+		return init(value);
+	}
+
+	var last_fast_fps:Float;
+	function init(options:ToolkitOptions) {
+		if (options.performance == null) {
+			options.performance = None;
+		}
+
+		if (options == null || options.aliasmode == null) {
+			options.aliasmode = None;
+		}
+
+		if (options.performance == FPS) {
+			App.app.screen.onPointerDown(options.root, _ -> {
+				last_fast_fps = Timer.now;
+				App.app.settings.targetFps = 60;
+			});
+
+			Timer.interval(options.root, 0.5, () -> {
+				if (Timer.now - last_fast_fps > 5.0) {
+					App.app.settings.targetFps = 15;
+				}
+			});
+		}
+
+		App.app.screen.onResize(null, Ceramic.forceRender);
+
+		App.app.onUpdate(null, function(_) {
+			Ceramic.redraw();
+		});
+
+		if (options.root == null) {
+			#if no_filter_root
+			var parent = new Visual();
+			#else
+			var parent = new Filter();
+			parent.autoRender = false;
+			parent.explicitRender = true;
+			#end
+
+			parent.depth = 1000;
+			options.root = parent;
+			options.root.bindToNativeScreenSize();
+		}
+
+		return options;
+	}
+
+	inline function rootAdd(visual:Visual) {
+		#if no_filter_root
+		options.root.add(visual);
+		#else
+		options.root.content.add(visual);
+		#end
+	}
+
+	inline function rootRemove(visual:Visual) {
+		#if no_filter_root
+		options.root.remove(visual);
+		#else
+		options.root.content.remove(visual);
+		#end
 	}
 }
