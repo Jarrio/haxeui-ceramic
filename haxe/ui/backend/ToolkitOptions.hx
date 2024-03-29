@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.Filter;
 import ceramic.Visual;
 import ceramic.Assets;
 

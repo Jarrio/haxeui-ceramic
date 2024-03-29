@@ -30,19 +30,20 @@ class ComponentImpl extends ComponentBase {
 
 	private var eventMap:Map<String, UIEvent->Void>;
 	private var addedRoot:Bool = false;
+
 	public function new() {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
 		// recursiveReady();
 	}
-	
-	function updated() {
-		Ceramic.forceRender();
+
+	function updateRender() {
 		if (Screen.instance.options.performance == FPS) {
 			Screen.instance.last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
+		Ceramic.redraw();
 	}
 
 	private function recursiveReady() {
@@ -60,7 +61,7 @@ class ComponentImpl extends ComponentBase {
 		if (left == null || top == null) {
 			return;
 		}
-		
+
 		// left = Std.int(left);
 		// top = Std.int(top);
 
@@ -77,7 +78,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.x = left;
 			}
-			//this.updated();
+			this.updateRender();
 		}
 
 		if (this.visual.y != top) {
@@ -85,7 +86,7 @@ class ComponentImpl extends ComponentBase {
 			if (this.isClipped) {
 				this.filter.y = top;
 			}
-			//this.updated();
+			this.updateRender();
 		}
 
 		// if (this.y != top)
@@ -109,7 +110,7 @@ class ComponentImpl extends ComponentBase {
 				return;
 			} else {
 				this.size(width, height);
-				//this.updated();
+				this.updateRender();
 				applyStyle(style);
 			}
 		}
@@ -139,13 +140,13 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
-				
+
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
 				filter.antialiasing = Screen.instance.options.antialiasing;
 				if (parent == null) {
 					visual.parent.add(filter);
-					//filter.depthRange = 0;
+					// filter.depthRange = 0;
 					// trace('here');
 				} else if (parent.isClipped) {
 					parent.filter.content.add(filter);
@@ -165,29 +166,29 @@ class ComponentImpl extends ComponentBase {
 			// this.filter.height = value.height;
 			var l = Math.fround(left);
 			if (l % 2 != 0) {
-				//l++;
+				// l++;
 			}
 			var t = Math.fround(top);
 			if (t % 2 != 0) {
-				//t++;
+				// t++;
 			}
 			var lr = Math.fround(value.left);
 			if (lr % 2 != 0) {
-				//lr++;
+				// lr++;
 			}
 			var tr = Math.fround(value.top);
 			if (tr % 2 != 0) {
-				//tr++;
+				// tr++;
 			}
 			var w = Math.fround(value.width);
 			if (w % 2 != 0) {
-				//w++;
+				// w++;
 			}
 			var h = Math.fround(value.height);
 			if (h % 2 != 0) {
-				//h++;
+				// h++;
 			}
-			
+
 			this.visual.x = -lr;
 			this.visual.y = -tr;
 			this.filter.x = l;
@@ -199,7 +200,7 @@ class ComponentImpl extends ComponentBase {
 
 			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
-		//this.updated();
+		this.updateRender();
 	}
 
 	private override function handleVisibility(show:Bool):Void {
@@ -398,7 +399,7 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		//this.updated();
+		this.updateRender();
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
