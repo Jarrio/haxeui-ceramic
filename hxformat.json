@@ -1,0 +1,68 @@
+{
+	"indentation": {
+		"character": "tab",
+		"tabWidth": 4
+	},
+	"whitespace": {
+		"parenConfig": {
+			"catchParens": {
+				"openingPolicy": "before",
+				"closingPolicy": "before"
+			},
+			"funcParamParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"anonFuncParamParens": {
+				"openingPolicy": "none",
+				"closingPolicy": "onlyAfter",
+				"removeInnerWhenEmpty": true
+			},
+			"ifConditionParens": {
+				"openingPolicy": "onlyBefore",
+				"closingPolicy": "onlyAfter"
+			},
+			"sharpConditionParens": {
+				"openingPolicy": "onlyBefore",
+				"closingPolicy": "none"
+			},
+			"switchConditionParens": {
+				"openingPolicy": "onlyBefore",
+				"closingPolicy": "onlyAfter"
+			},
+			"whileConditionParens": {
+				"openingPolicy": "onlyBefore",
+				"closingPolicy": "onlyAfter"
+			}
+		},
+		"typeParamOpenPolicy": "none",
+		"typeParamClosePolicy": "none",
+		"functionTypeHaxe4Policy": "around",
+		"arrowFunctionsPolicy": "around",
+		"colonPolicy": "none",
+		"caseColonPolicy": "onlyAfter"
+	},
+	"wrapping": {
+		"casePattern": {
+			"defaultWrap": "fillLineWithLeadingBreak",
+			"defaultLocation": "beforeLast"
+		},
+		"callParameter": {
+			"defaultWrap": "fillLine",
+			"rules": [
+				{
+					"conditions": [
+						{
+							"cond": "anyItemLength >= n",
+							"value": 60
+						}
+					],
+					"type": "onePerLine"
+				}
+			]
+		},
+		"maxLineLength": 150,
+		"arrayMatrixWrap": "matrixWrapNoAlign"
+	}
+}
