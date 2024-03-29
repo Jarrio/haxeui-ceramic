@@ -37,7 +37,7 @@ typedef ToolkitOptions = {
 	@:optional var aliasmode:AliasMode;
 
 	/**
-	 * The value to pre-render fonts at. The default is set to +4
+	 * The value to pre-render fonts at. The default is set to *1.5
 	 */
 	@:optional var prerender_font_size:Float;
 }
