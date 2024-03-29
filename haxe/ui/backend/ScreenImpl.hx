@@ -294,6 +294,7 @@ function onKey(type:String, key:Key) {
 	function onPointerDown(info) {
 		last_fast_fps = Timer.now;
 		App.app.settings.targetFps = 60;
+		Ceramic.forceRender();
 	}
 
 	function onInterval() {
