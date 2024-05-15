@@ -3,16 +3,21 @@ package haxe.ui.backend;
 import haxe.ui.backend.ceramic.ItalicText;
 import ceramic.Text;
 import haxe.ui.core.Screen;
+import ceramic.Visual;
 
 class TextDisplayImpl extends TextBase {
-	public var visual:Text;
+	public var visual:Visual;
+	public var text_visual:Text;
 
 	public function new() {
 		super();
-		visual = new Text();
+		visual = new Visual();
 		visual.active = true;
 		visual.visible = false;
 		visual.inheritAlpha = true;
+
+		text_visual = new Text();
+		visual.add(text_visual);
 		Toolkit.callLater(function() {
 			visual.visible = true;
 		});
@@ -20,47 +25,41 @@ class TextDisplayImpl extends TextBase {
 
 	private override function validateData() {
 		if (_text != null) {
-			visual.content = _text;
+			text_visual.content = _text;
 		}
-		// trace('${ComponentImpl.pad(parentComponent.id)}: validate text data -> ${_text}');
-		// if (_text != null) {
-		// 	if (_dataSource == null) {
-		// 		visual.content = (_text);
-		// 	}
-		// }
 	}
 
 	private override function validateStyle():Bool {
 		var measureTextRequired = false;
 		if (_textStyle != null) {
 			if (_textStyle.color != null) {
-				visual.color = _textStyle.color;
+				text_visual.color = _textStyle.color;
 			}
 
-			if (_textStyle.fontItalic != null && visual.hasComponent('italic') != _textStyle.fontItalic) {
+			if (_textStyle.fontItalic != null && text_visual.hasComponent('italic') != _textStyle.fontItalic) {
 				if (_textStyle.fontItalic) {
-					visual.component('italic', new ItalicText());
+					text_visual.component('italic', new ItalicText());
 					measureTextRequired = true;
 				} else {
-					visual.removeComponent('italic');
+					text_visual.removeComponent('italic');
 				}
 				measureTextRequired = true;
 			}
 
 			if (_textStyle.fontSize != null) {
 				var presize = Screen.instance.options.prerender_font_size;
-				visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
-				visual.pointSize = Std.int(_textStyle.fontSize);
+				text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
+				text_visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}
 
 			if (_fontInfo != null) {
-				visual.font = _fontInfo.data;
+				text_visual.font = _fontInfo.data;
 				measureTextRequired = true;
 			}
 
 			if (_textStyle.textAlign != null) {
-				visual.align = switch (_textStyle.textAlign) {
+				text_visual.align = switch (_textStyle.textAlign) {
 					case 'left': LEFT;
 					case 'center': CENTER;
 					case 'right': RIGHT;
@@ -73,69 +72,38 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validatePosition() {
-		// if (parentComponent.id == 'intProp') {
-		var left = Std.int(_left);
-		if (left % 2 != 0) {
-			left++;
+
+		switch (text_visual.align) {
+			case CENTER:
+				text_visual.x = Std.int(_left + (_width / 2) - (text_visual.width / 2));
+			case RIGHT:
+				text_visual.x = Std.int(_width - text_visual.width);
+			case LEFT:
+				text_visual.x = Std.int(_left);
 		}
 
-		var top = Std.int(_top);
-		if (top % 2 != 0) {
-			top++;
-		}
-
-		if (visual.align == CENTER) {
-			visual.anchorX = 0.5;
-			left = Std.int(_left + (_width / 2));
-			if (left % 2 != 0) {
-				left++;
-			}
-			visual.x = left;
-		} else {
-			visual.x = left;
-		}
-
-		visual.y = top;
+		visual.y = _top;
 	}
 
 	private override function validateDisplay() {
-		// if (visual.width != _width) {
-		// if (_width == null) {
-		// 	var parentWidth = @:privateAccess parentComponent._width;
-		// 	visual.fitWidth = parentWidth;
-		// }
-		var w = Math.fround(_width);
-		if (w % 2 != 0) {
-			w++;
+		var w = _width;
+
+		if (w > 0 && visual.width != w) {
+			visual.width = w;
 		}
 
-		if (w > 0) {
-			visual.fitWidth = w;
-			// visual.width = _width;
-		}
-		// visual.width = _width;
-		// }
-		var h = Math.fround(_height);
-		if (h % 2 != 0) {
-			h++;
-		}
+		var h = _height;
 
-		if (visual.height != h) {
+		if (h > 0 && visual.height != h) {
 			visual.height = h;
 		}
 	}
 
 	private override function measureText() {
 		visual.computeContent();
-		var w = Math.fround(visual.width);
-		if (w % 2 != 0) {
-			w++;
-		}
+		var w = Math.fround(text_visual.width);
+		var h = Math.fround(text_visual.height);
 
-		var h = Math.fround(visual.height);
-		if (h % 2 != 0) {
-			h++;
-		}
 		_textWidth = w;
 		_textHeight = h;
 	}

@@ -386,7 +386,7 @@ class ComponentImpl extends ComponentBase {
 				border.borderPosition = INSIDE;
 				border.inheritAlpha = true;
 				this.add(border);
-
+				
 				border.width = this.width;
 				border.height = this.height;
 
@@ -950,7 +950,7 @@ class ComponentImpl extends ComponentBase {
 		if (_textDisplay == null) {
 			super.createTextDisplay(text);
 			// _textDisplay.visual.touchable = false;
-			this.visual.add(_textDisplay.visual);
+			this.add(_textDisplay.visual);
 			// trace('${pad(this.id)}: create text diplay');
 		}
 		return _textDisplay;

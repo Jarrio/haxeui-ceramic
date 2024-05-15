@@ -32,7 +32,9 @@ class ComponentSurface {
 	public inline function size(width:Float, height:Float) {
 
 		//trace('here');
-		
+		width = Std.int(width);
+		height = Std.int(height);
+
 		if (isMesh) {
 			this.vertices = [
 				0, 0,
@@ -73,7 +75,7 @@ class ComponentSurface {
 		if (this.border != null) {
 			this.border.destroy();
 		}
-		border.roundTranslation = 1;
+		//border.roundTranslation = 1;
 		border.depth = 100;
 		border.depthRange = -1;
 		return this.border = border;
@@ -89,7 +91,7 @@ class ComponentSurface {
 		if (this.background != null) {
 			this.background.destroy();
 		}
-		background.roundTranslation = 1;
+		//background.roundTranslation = 1;
 		//background.depth = 0;
 		background.depthRange = -1;
 		return this.background = background;
@@ -126,15 +128,16 @@ class ComponentSurface {
 
 	var x(get, set):Float;
 	inline function set_x(value:Float):Float {
-		return this.visual.x = (value);
+		return this.visual.x = Std.int(value);
 	}
 
 	inline function get_x():Float {
 		return this.visual.x;
 	}
+	
 	var y(get, set):Float;
 	inline function set_y(value:Float):Float {
-		return this.visual.y = (value);
+		return this.visual.y = Std.int(value);
 	}
 
 	inline function get_y():Float {
