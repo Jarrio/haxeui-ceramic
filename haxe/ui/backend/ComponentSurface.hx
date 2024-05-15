@@ -8,12 +8,11 @@ import ceramic.Border;
 class ComponentSurface {
 	public var visual:Visual;
 	public var filter:Filter;
-
+	var depth_tracker = 2;
 	var visible(get, set):Bool;
 	var clipX(get, set):Float;
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
-	var border:Border;
 
 	var indices:Array<Int> = [];
 	var vertices:Array<Float> = [];
@@ -25,22 +24,25 @@ class ComponentSurface {
 		];
 
 		this.visual = new Visual();
-		visual.roundTranslation = 1;
+		//visual.depthRange = 0;
+		//visual.roundTranslation = 0;
 		this.visual.inheritAlpha = true;
 	}
 
 	public inline function size(width:Float, height:Float) {
-		width = Math.fround(width);
-		height = Math.fround(height);
+
 		//trace('here');
 		
-		this.vertices = [
-			    0,      0,
-			width,      0,
-			    0, height,
-			width, height
-		];
-		this.visual.size(width, height);
+		if (isMesh) {
+			this.vertices = [
+				0, 0,
+				width, 0,
+				0, height,
+				width, height
+			];
+		} else {
+			this.visual.size(width, height);
+		}
 
 		if (this.isMesh || this.isQuad) {
 			this.background.size(width, height);
@@ -56,11 +58,29 @@ class ComponentSurface {
 	}
 
 	public inline function add(visual:Visual) {
+		//visual.depth = depth_tracker++;
+		//visual.depthRange = ;
 		this.visual.add(visual);
 	}
 
 	public inline function remove(visual:Visual) {
 		this.visual.remove(visual);
+	}
+
+	@:isVar var border(get, set):Border;
+
+	function set_border(border:Border) {
+		if (this.border != null) {
+			this.border.destroy();
+		}
+		border.roundTranslation = 1;
+		border.depth = 100;
+		border.depthRange = -1;
+		return this.border = border;
+	}
+
+	function get_border() {
+		return this.border;
 	}
 
 	@:isVar var background(get, set):Visual;
@@ -69,6 +89,9 @@ class ComponentSurface {
 		if (this.background != null) {
 			this.background.destroy();
 		}
+		background.roundTranslation = 1;
+		//background.depth = 0;
+		background.depthRange = -1;
 		return this.background = background;
 	}
 
@@ -103,7 +126,7 @@ class ComponentSurface {
 
 	var x(get, set):Float;
 	inline function set_x(value:Float):Float {
-		return this.visual.x = Math.fround(value);
+		return this.visual.x = (value);
 	}
 
 	inline function get_x():Float {
@@ -111,7 +134,7 @@ class ComponentSurface {
 	}
 	var y(get, set):Float;
 	inline function set_y(value:Float):Float {
-		return this.visual.y = Math.fround(value);
+		return this.visual.y = (value);
 	}
 
 	inline function get_y():Float {
@@ -119,7 +142,7 @@ class ComponentSurface {
 	}
 
 	inline function set_clipX(value:Float):Float {
-		return this.visual.clip.x = Math.fround(value);
+		return this.visual.clip.x = (value);
 	}
 
 	inline function get_clipX():Float {
@@ -127,7 +150,7 @@ class ComponentSurface {
 	}
 
 	inline function set_clipY(value:Float):Float {
-		return this.visual.clip.y = Math.fround(value);
+		return this.visual.clip.y = (value);
 	}
 
 	inline function get_clipY():Float {
