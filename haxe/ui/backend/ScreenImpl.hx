@@ -16,6 +16,7 @@ import ceramic.Filter;
 
 @:access(haxe.ui.backend.ComponentImpl)
 class ScreenImpl extends ScreenBase {
+	var depth_tracker = 1;
 	var eventCallbacks:Map<String, Entity> = [];
 	private var screenEntity:Entity;
 	private var eventMap:Map<String, UIEvent->Void>;
@@ -30,7 +31,7 @@ class ScreenImpl extends ScreenBase {
 		for (k => c in this.rootComponents) {
 			c.visual.depth = k;
 			if (c.visual.children != null) {
-				c.visual.sortChildrenByDepth();
+				//c.visual.sortChildrenByDepth();
 			}
 		}
 	}
@@ -312,6 +313,7 @@ function onKey(type:String, key:Key) {
 	}
 
 	inline function rootAdd(visual:Visual) {
+		
 		#if no_filter_root
 		options.root.add(visual);
 		#else

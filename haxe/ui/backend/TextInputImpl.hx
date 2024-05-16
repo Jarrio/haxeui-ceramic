@@ -145,7 +145,7 @@ class TextInputImpl extends TextBase {
 	}
 
 	private override function validateDisplay() {
-		trace(_width, _height, visual.height);
+//		trace(_width, _height, visual.height);
 		if (_width != visual.clipTextWidth) {
 			visual.clipTextWidth = _width;
 		}

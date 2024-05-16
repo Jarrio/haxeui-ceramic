@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ceramic.BorderQuad.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;
@@ -74,21 +75,17 @@ class ComponentImpl extends ComponentBase {
 		// 	top++;
 		// }
 
-		if (this.visual.x != left) {
-			this.visual.x = left;
-			if (this.isClipped) {
-				this.filter.x = left;
-			}
-			this.updateRender();
+		this.visual.x = left;
+		if (this.isClipped) {
+			this.filter.x = left;
 		}
+		this.updateRender();
 
-		if (this.visual.y != top) {
-			this.visual.y = top;
-			if (this.isClipped) {
-				this.filter.y = top;
-			}
-			this.updateRender();
+		this.visual.y = top;
+		if (this.isClipped) {
+			this.filter.y = top;
 		}
+		this.updateRender();
 
 		// if (this.y != top)
 		// 	this.y = this.top = top;
@@ -218,8 +215,9 @@ class ComponentImpl extends ComponentBase {
 	public override function createImageDisplay():ImageDisplay {
 		if (_imageDisplay == null) {
 			super.createImageDisplay();
-			this.visual.add(_imageDisplay.visual);
+			this.add(_imageDisplay.visual);
 		}
+
 		return _imageDisplay;
 	}
 
@@ -237,29 +235,30 @@ class ComponentImpl extends ComponentBase {
 
 	function mapChildren() {
 		for (k => c in this.childComponents) {
-			// c.visual.depth = k;
+			//c.visual.depth = k;
 		}
 	}
 
-	// private override function handleSetComponentIndex(child:Component, index:Int) {
-	// 	child.visual.depth = index;
-	// 	this.mapChildren();
-	// }
+	private override function handleSetComponentIndex(child:Component, index:Int) {
+		child.visual.depth = depth;
+		this.mapChildren();
+	}
 
 	private override function handleAddComponent(child:Component):Component {
 		child.visual.active = true;
+		child.visual.depth = depth;
 		this.add(child.visual);
 		this.mapChildren();
 		return child;
 	}
 
-	// private override function handleAddComponentAt(child:Component, index:Int):Component {
-	// 	child.visual.active = true;
-	// 	child.visual.depth = index;
-	// 	this.visual.add(child.visual);
-	// 	this.mapChildren();
-	// 	return child;
-	// }
+	private override function handleAddComponentAt(child:Component, index:Int):Component {
+		child.visual.active = true;
+		child.visual.depth = depth;
+		this.add(child.visual);
+		this.mapChildren();
+		return child;
+	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
@@ -272,28 +271,14 @@ class ComponentImpl extends ComponentBase {
 		return child;
 	}
 
-	// private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
-	// 	// trace('${pad(this.id)}: remove component at index -> ${index}');
-	// 	return this.handleRemoveComponent(this.childComponents[index], dispose);
-	// }
+	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
+		// trace('${pad(this.id)}: remove component at index -> ${index}');
+		return this.handleRemoveComponent(this.childComponents[index], dispose);
+	}
+
 	//***********************************************************************************************************
 	// Style
 	//***********************************************************************************************************
-	function initMeshBg() {
-		this.background = new Mesh();
-		background.asMesh.indices = this.indices;
-		background.asMesh.vertices = this.vertices;
-		background.asMesh.size(visual.width, visual.height);
-		background.inheritAlpha = true;
-		this.add(background);
-	}
-
-	function initQuadBg() {
-		this.background = new Quad();
-		background.inheritAlpha = true;
-		background.asQuad.size(visual.width, visual.height);
-		this.add(background);
-	}
 
 	private override function applyStyle(style:Style) {
 		if (style == null) {
@@ -306,6 +291,9 @@ class ComponentImpl extends ComponentBase {
 			visual.alpha = style.opacity;
 		}
 
+		if (style.backgroundOpacity != null) {
+			visual.bg_alpha = style.backgroundOpacity;
+		}
 		// if (id != null && this.id == "debug") {
 		// 	trace('here');
 		// 	trace(style.backgroundColor);
@@ -315,134 +303,155 @@ class ComponentImpl extends ComponentBase {
 		// 	trace(style.borderBottomSize);
 		// }
 
-		if (style.backgroundColor == null) {
-			if (background != null) {
-				background.alpha = 0;
+		var alpha:Int = 0xFF000000;
+
+		if (style.backgroundColor != null) {
+			if (style.backgroundColorEnd != null) {
+
+				var start = (style.backgroundColor | alpha);
+				var end = (style.backgroundColorEnd | alpha);
+				var type = "vertical";
+				if (style.backgroundGradientStyle != null) {
+					type = style.backgroundGradientStyle;
+				}
+
+				visual.setGradient(type, start, end);
+				trace('here');
+			} else {
+				visual.bg_color = style.backgroundColor;
 			}
 		} else {
-			if (this.background == null) {
-				if (style.backgroundColorEnd != null) {
-					initMeshBg();
-				} else {
-					initQuadBg();
-				}
-			} else {
-				background.alpha = 1;
-			}
-
-			if (this.isQuad) {
-				if (this.id == "debug") {
-					trace('here');
-				}
-
-				if (style.backgroundColor != null) {
-					background.asQuad.color = style.backgroundColor;
-				}
-
-				if (style.backgroundOpacity != null) {
-					background.alpha = style.backgroundOpacity;
-				}
-			}
-
-			if (isMesh) {
-				if (this.id == "debug") {
-					trace('here');
-				}
-				if (style.backgroundColorEnd != null) {
-					background.asMesh.colorMapping = VERTICES;
-					var c = Color.fromInt(style.backgroundColor);
-					var start = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
-					c = Color.fromInt(style.backgroundColorEnd);
-					var end = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
-
-					var start = (style.backgroundColor | alpha);
-					var end = (style.backgroundColorEnd | alpha);
-
-					var type = "vertical";
-					if (style.backgroundGradientStyle != null) {
-						type = style.backgroundGradientStyle;
-					}
-
-					switch (type) {
-						case "horizontal":
-							background.asMesh.colors = [start, end, start, end];
-						case "vertical" | _:
-							background.asMesh.colors = [start, start, end, end];
-					}
-				} else {
-					background.alpha = 0;
-				}
-			}
+			visual.bg_alpha = 0;
 		}
+
+		if (style.backgroundOpacity != null) {
+			//visual.bg_alpha = style.backgroundOpacity;
+		}
+
+		// if (style.backgroundColor != null) {
+		// 	if (style.backgroundColorEnd != null && style.backgroundColorEnd != style.backgroundColor) {
+		// 		var direction:Direction = switch (style.backgroundGradientStyle) {
+		// 			case "vertical": vertical;
+		// 			case "horizontal": horizontal;
+		// 			default: vertical;
+		// 		}
+		// 		var start = (style.backgroundColor | alpha);
+		// 		var end = (style.backgroundColorEnd | alpha);
+
+		// 		visual.setGradient(direction, start, end);
+		// 	} else {
+		// 		visual.bg_color = style.backgroundColor;
+		// 	}
+		// } else {
+		// 	visual.bg_color = Color.NONE;
+		// }
+
+		// if (style.backgroundColor == null) {
+		// 	visual.bg_alpha = 0;
+		// } else {
+		// 	visual.bg_alpha = 1;
+		// 	if (style.backgroundOpacity != null) {
+		// 		visual.bg_alpha = style.backgroundOpacity;
+		// 	}
+
+		// 	if (!this.visual.isMesh) {
+		// 		if (style.backgroundColor != null) {
+		// 			visual.bg_color = style.backgroundColor;
+		// 		}
+		// 	} else {
+		// 		if (style.backgroundColorEnd != null) {
+		// 			var c = Color.fromInt(style.backgroundColor);
+		// 			var start = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
+		// 			c = Color.fromInt(style.backgroundColorEnd);
+		// 			var end = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
+
+		// 			var start = (style.backgroundColor | alpha);
+		// 			var end = (style.backgroundColorEnd | alpha);
+
+		// 			var direction:Direction = switch (style.backgroundGradientStyle) {
+		// 				case "vertical": vertical;
+		// 				case "horizontal": horizontal;
+		// 				default: vertical;
+		// 			}
+		// 			visual.setGradient(direction, start, end);
+		// 		} else {
+		// 			visual.bg_alpha = 0;
+		// 		}
+		// 	}
+		// }
 
 		var type = style.borderType;
 		switch (type) {
 			case None:
-				if (this.border != null) {
-					border.destroy();
-				}
+				visual.border_size = 0;
+				visual.border_color = Color.NONE;
 			default:
-				border = new Border();
-				border.borderPosition = INSIDE;
-				border.inheritAlpha = true;
-				this.add(border);
-				
-				border.width = this.width;
-				border.height = this.height;
-
-				// if (id != null && StringTools.contains(id, 'debug')) {
-				// 	trace(type, style.borderSize, style.borderColor);
-				// }
 				if (type == Full) {
 					if (style.borderColor != null) {
-						border.borderColor = style.borderColor;
+						visual.border_color = style.borderColor;
 					}
 
 					if (style.borderSize != null && style.borderSize > 0) {
-						border.borderSize = style.fullBorderSize;
+						visual.border_size = style.fullBorderSize;
 					} else {
-						border.alpha = 0;
+						visual.border_size = 0;
 					}
 				}
 
 				if (type == Compound) {
-					border.borderSize = 0;
+					visual.border_size = 0;
 
 					if (style.borderLeftSize != null) {
-						border.borderLeftSize = style.borderLeftSize;
+						visual.border_left_size = style.borderLeftSize;
+					} else {
+						visual.border_left_size = -1;
 					}
 
 					if (style.borderLeftColor != null) {
-						border.borderLeftColor = (style.borderLeftColor);
+						visual.border_left_color = (style.borderLeftColor);
+					} else {
+						visual.border_left_color = -1;
 					}
 
 					if (style.borderRightSize != null) {
-						border.borderRightSize = style.borderRightSize;
+						visual.border_right_size = style.borderRightSize;
+					} else {
+						visual.border_right_size = -1;
 					}
 
 					if (style.borderRightColor != null) {
-						border.borderRightColor = (style.borderRightColor);
+						visual.border_right_color = (style.borderRightColor);
+					} else {
+						visual.border_right_color = -1;
 					}
 
 					if (style.borderTopSize != null) {
-						border.borderTopSize = style.borderTopSize;
+						visual.border_top_size = style.borderTopSize;
+					} else {
+						visual.border_top_size = -1;
 					}
 
 					if (style.borderTopColor != null) {
-						border.borderTopColor = (style.borderTopColor);
+						visual.border_top_color = (style.borderTopColor);
+					} else {
+						visual.border_top_color = -1;
 					}
 
 					if (style.borderBottomSize != null) {
-						border.borderBottomSize = style.borderBottomSize;
+						visual.border_bottom_size = style.borderBottomSize;
+					} else {
+						visual.border_bottom_size = -1;
 					}
 
 					if (style.borderBottomColor != null) {
-						border.borderBottomColor = (style.borderBottomColor);
+						visual.border_bottom_color = (style.borderBottomColor);
+					} else {
+						visual.border_bottom_color = -1;
 					}
 				}
 
 				if (style.borderOpacity != null) {
-					border.alpha = style.borderOpacity;
+					visual.border_alpha = style.borderOpacity;
 				}
 				// trace(type, this._id, this.id, this.visual.id);
 		}
@@ -959,7 +968,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createTextInput(text:String = null):TextInput {
 		if (_textInput == null) {
 			super.createTextInput(text);
-			this.visual.add(_textInput.visual);
+			this.add(_textInput.visual);
 		}
 		return _textInput;
 	}

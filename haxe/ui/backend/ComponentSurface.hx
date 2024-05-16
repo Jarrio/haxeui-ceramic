@@ -1,12 +1,12 @@
 package haxe.ui.backend;
 
+import ceramic.Quad;
 import ceramic.Filter;
 import ceramic.Visual;
-import ceramic.Quad;
-import ceramic.Border;
+import haxe.ui.backend.ceramic.BorderQuad;
 
 class ComponentSurface {
-	public var visual:Visual;
+	public var visual:BorderQuad;
 	public var filter:Filter;
 	var depth_tracker = 2;
 	var visible(get, set):Bool;
@@ -18,50 +18,20 @@ class ComponentSurface {
 	var vertices:Array<Float> = [];
 	
 	public function new() {
-		this.indices = [
-			0, 1, 3,
-			0, 2, 3
-		];
-
-		this.visual = new Visual();
-		//visual.depthRange = 0;
-		//visual.roundTranslation = 0;
+		this.visual = new BorderQuad();
+		//visual.depthRange = -1;
 		this.visual.inheritAlpha = true;
 	}
 
 	public inline function size(width:Float, height:Float) {
 
 		//trace('here');
-		width = Std.int(width);
-		height = Std.int(height);
-
-		if (isMesh) {
-			this.vertices = [
-				0, 0,
-				width, 0,
-				0, height,
-				width, height
-			];
-		} else {
-			this.visual.size(width, height);
-		}
-
-		if (this.isMesh || this.isQuad) {
-			this.background.size(width, height);
-			if (this.isMesh) {
-				background.asMesh.vertices = this.vertices;
-			}
-		}
-
-		if (this.border != null) {
-			this.border.width = width;
-			this.border.height = height;
-		}
+		this.visual.width = Std.int(width);
+		this.visual.height = Std.int(height);
 	}
 
 	public inline function add(visual:Visual) {
-		//visual.depth = depth_tracker++;
-		//visual.depthRange = ;
+		visual.depthRange = -1;
 		this.visual.add(visual);
 	}
 
@@ -69,55 +39,6 @@ class ComponentSurface {
 		this.visual.remove(visual);
 	}
 
-	@:isVar var border(get, set):Border;
-
-	function set_border(border:Border) {
-		if (this.border != null) {
-			this.border.destroy();
-		}
-		//border.roundTranslation = 1;
-		border.depth = 100;
-		border.depthRange = -1;
-		return this.border = border;
-	}
-
-	function get_border() {
-		return this.border;
-	}
-
-	@:isVar var background(get, set):Visual;
-
-	function set_background(background:Visual) {
-		if (this.background != null) {
-			this.background.destroy();
-		}
-		//background.roundTranslation = 1;
-		//background.depth = 0;
-		background.depthRange = -1;
-		return this.background = background;
-	}
-
-	function get_background() {
-		return this.background;
-	}
-
-	public var isQuad(get, never):Bool;
-	function get_isQuad() {
-		if (this.background == null) {
-			return false;
-		}
-
-		return this.background.asQuad != null;
-	}
-
-	public var isMesh(get, never):Bool;
-	function get_isMesh() {
-		if (this.background == null) {
-			return false;
-		}
-
-		return this.background.asMesh != null;
-	}
 	inline function set_visible(value:Bool):Bool {
 		return this.visual.visible = value;
 	}
