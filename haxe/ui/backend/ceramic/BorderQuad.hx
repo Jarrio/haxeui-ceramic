@@ -57,7 +57,6 @@ class BorderQuad extends Visual {
 		if (background == null) {
 			return;
 		}
-		trace('destroy');
 		background.destroy();
 		background = null;
 	}
@@ -91,7 +90,6 @@ class BorderQuad extends Visual {
 		if (this.gbackground == null) {
 			return;
 		}
-		trace('gdestroy');
 		this.gbackground.destroy();
 		gbackground = null;
 	}
