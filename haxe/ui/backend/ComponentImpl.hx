@@ -234,18 +234,27 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
+
 		for (k => c in this.childComponents) {
-			//c.visual.depth = k;
+			c.visual.sortChildrenByDepth();
 		}
 	}
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = depth;
+		var depth = child.depth;
+		if (depth == -1) {
+			depth = 0;
+		}
+		child.visual.depth = depth + index;
 		this.mapChildren();
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		child.visual.active = true;
+		var depth = child.depth;
+		if (depth == -1) {
+			depth = 0;
+		}
 		child.visual.depth = depth;
 		this.add(child.visual);
 		this.mapChildren();
@@ -254,7 +263,11 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
 		child.visual.active = true;
-		child.visual.depth = depth;
+		var depth = child.depth;
+		if (depth == -1) {
+			depth = 0;
+		}
+		child.visual.depth = depth + index;
 		this.add(child.visual);
 		this.mapChildren();
 		return child;
@@ -264,9 +277,10 @@ class ComponentImpl extends ComponentBase {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
 		child.visual.active = false;
 		if (dispose) {
-			child.visual.dispose();
+			child.visual.destroy();
+		} else {
+			this.visual.remove(child.visual);
 		}
-		this.visual.remove(child.visual);
 		this.mapChildren();
 		return child;
 	}
@@ -294,20 +308,15 @@ class ComponentImpl extends ComponentBase {
 		if (style.backgroundOpacity != null) {
 			visual.bg_alpha = style.backgroundOpacity;
 		}
-		// if (id != null && this.id == "debug") {
-		// 	trace('here');
-		// 	trace(style.backgroundColor);
-		// 	trace(style.borderLeftSize);
-		// 	trace(style.borderRightSize);
-		// 	trace(style.borderTopSize);
-		// 	trace(style.borderBottomSize);
-		// }
 
 		var alpha:Int = 0xFF000000;
 
 		if (style.backgroundColor != null) {
+			if (style.backgroundOpacity != null) {
+				visual.bg_alpha = style.backgroundOpacity;
+			}
+			
 			if (style.backgroundColorEnd != null) {
-
 				var start = (style.backgroundColor | alpha);
 				var end = (style.backgroundColorEnd | alpha);
 				var type = "vertical";
@@ -316,16 +325,11 @@ class ComponentImpl extends ComponentBase {
 				}
 
 				visual.setGradient(type, start, end);
-				trace('here');
 			} else {
 				visual.bg_color = style.backgroundColor;
 			}
 		} else {
 			visual.bg_alpha = 0;
-		}
-
-		if (style.backgroundOpacity != null) {
-			//visual.bg_alpha = style.backgroundOpacity;
 		}
 
 		// if (style.backgroundColor != null) {
@@ -385,75 +389,71 @@ class ComponentImpl extends ComponentBase {
 			case None:
 				visual.border_size = 0;
 				visual.border_color = Color.NONE;
-			default:
-				if (type == Full) {
-					if (style.borderColor != null) {
-						visual.border_color = style.borderColor;
-					}
-
-					if (style.borderSize != null && style.borderSize > 0) {
-						visual.border_size = style.fullBorderSize;
-					} else {
-						visual.border_size = 0;
-					}
+			case Full:
+				if (style.borderColor != null) {
+					visual.border_color = style.borderColor;
 				}
 
-				if (type == Compound) {
+				if (style.borderSize != null && style.borderSize > 0) {
+					visual.border_size = style.fullBorderSize;
+				} else {
 					visual.border_size = 0;
+				}
+			case Compound:
+				visual.border_size = 0;
 
-					if (style.borderLeftSize != null) {
-						visual.border_left_size = style.borderLeftSize;
-					} else {
-						visual.border_left_size = -1;
-					}
-
-					if (style.borderLeftColor != null) {
-						visual.border_left_color = (style.borderLeftColor);
-					} else {
-						visual.border_left_color = -1;
-					}
-
-					if (style.borderRightSize != null) {
-						visual.border_right_size = style.borderRightSize;
-					} else {
-						visual.border_right_size = -1;
-					}
-
-					if (style.borderRightColor != null) {
-						visual.border_right_color = (style.borderRightColor);
-					} else {
-						visual.border_right_color = -1;
-					}
-
-					if (style.borderTopSize != null) {
-						visual.border_top_size = style.borderTopSize;
-					} else {
-						visual.border_top_size = -1;
-					}
-
-					if (style.borderTopColor != null) {
-						visual.border_top_color = (style.borderTopColor);
-					} else {
-						visual.border_top_color = -1;
-					}
-
-					if (style.borderBottomSize != null) {
-						visual.border_bottom_size = style.borderBottomSize;
-					} else {
-						visual.border_bottom_size = -1;
-					}
-
-					if (style.borderBottomColor != null) {
-						visual.border_bottom_color = (style.borderBottomColor);
-					} else {
-						visual.border_bottom_color = -1;
-					}
+				if (style.borderLeftSize != null) {
+					visual.border_left_size = style.borderLeftSize;
+				} else {
+					visual.border_left_size = -1;
 				}
 
-				if (style.borderOpacity != null) {
-					visual.border_alpha = style.borderOpacity;
+				if (style.borderLeftColor != null) {
+					visual.border_left_color = (style.borderLeftColor);
+				} else {
+					visual.border_left_color = -1;
 				}
-				// trace(type, this._id, this.id, this.visual.id);
+
+				if (style.borderRightSize != null) {
+					visual.border_right_size = style.borderRightSize;
+				} else {
+					visual.border_right_size = -1;
+				}
+
+				if (style.borderRightColor != null) {
+					visual.border_right_color = (style.borderRightColor);
+				} else {
+					visual.border_right_color = -1;
+				}
+
+				if (style.borderTopSize != null) {
+					visual.border_top_size = style.borderTopSize;
+				} else {
+					visual.border_top_size = -1;
+				}
+
+				if (style.borderTopColor != null) {
+					visual.border_top_color = (style.borderTopColor);
+				} else {
+					visual.border_top_color = -1;
+				}
+
+				if (style.borderBottomSize != null) {
+					visual.border_bottom_size = style.borderBottomSize;
+				} else {
+					visual.border_bottom_size = -1;
+				}
+
+				if (style.borderBottomColor != null) {
+					visual.border_bottom_color = (style.borderBottomColor);
+				} else {
+					visual.border_bottom_color = -1;
+				}
+			default:
+				 trace(type, this._id, this.id, this.visual.id);
+		}
+		if (style.borderOpacity != null) {
+			visual.border_alpha = style.borderOpacity;
 		}
 
 		this.updateRender();
