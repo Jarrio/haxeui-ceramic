@@ -90,6 +90,7 @@ class TextDisplayImpl extends TextBase {
 
 		if (w > 0 && visual.width != w) {
 			visual.width = w;
+			text_visual.fitWidth = w;
 		}
 
 		var h = _height;
