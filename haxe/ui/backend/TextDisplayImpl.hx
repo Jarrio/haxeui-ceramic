@@ -23,6 +23,8 @@ class TextDisplayImpl extends TextBase {
 		text_visual = new Text();
 		
 		var font = Screen.instance.options.default_text_font;
+		//font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
+		
 		if (font != null) {
 			text_visual.font = font;
 		}
@@ -66,6 +68,14 @@ class TextDisplayImpl extends TextBase {
 			if (_fontInfo != null) {
 				text_visual.font = _fontInfo.data;
 				measureTextRequired = true;
+			}
+
+			if (_textStyle.fontName != null) {
+				var font = App.app.assets.fontAsset(_textStyle.fontName);
+
+				if (font != null && font.font != null) {
+					text_visual.font = font.font;
+				}
 			}
 
 			if (_textStyle.textAlign != null) {
