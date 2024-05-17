@@ -22,9 +22,9 @@ class TextDisplayImpl extends TextBase {
 
 		text_visual = new Text();
 		
-		var font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
+		var font = Screen.instance.options.default_text_font;
 		if (font != null) {
-			//text_visual.font = font;
+			text_visual.font = font;
 		}
 		
 		visual.add(text_visual);

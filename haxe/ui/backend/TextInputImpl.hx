@@ -28,6 +28,12 @@ class TextInputImpl extends TextBase {
 		visual.visible = false;
 		visual.inheritAlpha = true;
 		field = new EditText(Color.fromString('#B4D5FE'), Color.BLACK, 0, 0, 0.8);
+		
+		var font = Screen.instance.options.default_textfield_font;
+		if (font != null) {
+			visual.font = font;
+		}
+
 		visual.component('edit_text', field);
 		visual.clipText(0, 0, _width, _height);
 		field.onUpdate(visual, this.onTextChanged);

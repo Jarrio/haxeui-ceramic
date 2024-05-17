@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.BitmapFont;
 import ceramic.Filter;
 import ceramic.Visual;
 import ceramic.Assets;
@@ -17,6 +18,14 @@ enum PerformanceOptions {
 }
 
 typedef ToolkitOptions = {
+	/**
+	 * specify the default font the backend uses for all text labels in the backend
+	 */
+	@:optional var default_text_font:BitmapFont;
+	/**
+	 * specify the default font the backend uses for all text inputsScreen.instance.options.default_text_font in the backend
+	 */
+	@:optional var default_textfield_font:BitmapFont;
 	/**
 	 * A performance toggle that reduces UI resources
 	 */
