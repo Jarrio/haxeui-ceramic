@@ -1,9 +1,13 @@
 package haxe.ui.backend;
 
+import assets.Fonts;
+import ceramic.Assets;
 import haxe.ui.backend.ceramic.ItalicText;
 import ceramic.Text;
 import haxe.ui.core.Screen;
 import ceramic.Visual;
+import ceramic.App;
+import haxe.ui.backend.AppImpl;
 
 class TextDisplayImpl extends TextBase {
 	public var visual:Visual;
@@ -17,6 +21,12 @@ class TextDisplayImpl extends TextBase {
 		visual.inheritAlpha = true;
 
 		text_visual = new Text();
+		
+		var font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
+		if (font != null) {
+			//text_visual.font = font;
+		}
+		
 		visual.add(text_visual);
 		Toolkit.callLater(function() {
 			visual.visible = true;
