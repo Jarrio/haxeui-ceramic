@@ -8,6 +8,7 @@ import haxe.ui.core.Screen;
 import ceramic.Visual;
 import ceramic.App;
 import haxe.ui.backend.AppImpl;
+import haxe.ui.backend.ceramic.UnderlineText;
 
 class TextDisplayImpl extends TextBase {
 	public var visual:Visual;
@@ -57,6 +58,16 @@ class TextDisplayImpl extends TextBase {
 				}
 				measureTextRequired = true;
 			}
+			
+			if (_textStyle.fontUnderline != null && text_visual.hasComponent('underline') != _textStyle.fontUnderline) {
+				if (_textStyle.fontUnderline) {
+					text_visual.component('underline', new UnderlineText());
+					measureTextRequired = true;
+				} else {
+					text_visual.removeComponent('underline');
+				}
+				measureTextRequired = true;
+			}
 
 			if (_textStyle.fontSize != null) {
 				var presize = Screen.instance.options.prerender_font_size;
@@ -69,13 +80,22 @@ class TextDisplayImpl extends TextBase {
 				text_visual.font = _fontInfo.data;
 				measureTextRequired = true;
 			}
-
-			if (_textStyle.fontName != null) {
-				var font = App.app.assets.fontAsset(_textStyle.fontName);
-
-				if (font != null && font.font != null) {
-					text_visual.font = font.font;
+			var font_name = _textStyle.fontName;
+			if (font_name != null) {
+				var font = App.app.assets.font(font_name);
+				if (font == null) {
+					var assets = Screen.instance.options.assets;
+					if (assets != null) {
+						font = assets.font(font_name);
+					}
 				}
+				
+				if (font != null) {
+					text_visual.font = font;
+				} else {
+					trace('[Haxeui-Ceramic] - Font ${font_name} does not exist in the assets object');
+				}
+				measureTextRequired = true;
 			}
 
 			if (_textStyle.textAlign != null) {
