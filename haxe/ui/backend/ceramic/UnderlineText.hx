@@ -21,7 +21,7 @@ class UnderlineText extends Entity implements Component {
 		super();
 		this.thickness = thickness;
 		this.line.height = thickness;
-		this.color = color;
+		//this.color = color;
 		line.roundTranslation = 1;
 	}
 
@@ -39,13 +39,8 @@ class UnderlineText extends Entity implements Component {
 			return;
 		}
 
-		if (this.color == Color.NONE) {
-			if (line.color != text.color) {
-				this.line.color = text.color;
-			}
-		} else {
-			this.line.color = color;
-		}
+		line.color = text.color;
+		line.alpha = text.alpha;
 
 		if (this.lastPointLineHeight != text.pointSize) {
 			lastPointLineHeight = text.pointSize;
@@ -53,8 +48,25 @@ class UnderlineText extends Entity implements Component {
 		}
 
 		if (text.height != this.textHeight) {
-			this.textHeight = text.height;
-			this.line.height = this.thickness;
+			if (text.numLines == 1) {
+				this.textHeight = text.height;
+				this.line.height = this.thickness;
+			} else { //multiline
+	//			trace(text.maxLineDiff);
+				var breaks = text.content.lastIndexOf('\n');
+				var spacing = Math.floor(text.height / (text.numLines));
+				
+//				trace(breaks);
+				// for (i in 0...text.numLines) {
+				// 	var line = new Quad();
+				// 	line.color = text.color;
+				// 	line.height = 1;
+				// 	var size = spacing;
+				// 	line.pos(0, (size - (line.height)) * (i + 1));
+				// 	line.width = text.width;
+				// 	text.add(line);
+				// }
+			}
 		}
 
 		if (text.width != this.textWidth) {
@@ -68,18 +80,16 @@ class UnderlineText extends Entity implements Component {
 		// 	if (g.code == 32) {
 		// 		continue;
 		// 	}
-
-		// 	if (minHeight == -1 || (g.glyph.height < minHeight)) {
-		// 		minHeight = g.glyph.height;
+		// 	if (minHeight == -1 || (g.height < minHeight)) {
+		// 		minHeight = g.height;
 		// 	}
 
-		// 	if (maxHeight == -1 || g.glyph.height > maxHeight) {
+		// 	if (maxHeight == -1 || g.height > maxHeight) {
 		// 		maxHeight = g.glyph.height;
 		// 	}
 		// }
-
-		// trace('min: $minHeight | max: $maxHeight | ${textHeight}');
-		line.y = text.height + 2;
+		
+		line.y = Math.floor(text.height - (line.height / 4));
 	}
 
 	var lineHeight(get, never):Float;
@@ -92,7 +102,7 @@ class UnderlineText extends Entity implements Component {
 
 	function get_thickness() {
 		if (thickness == -1) {
-			return Math.floor(Math.max(1, text.pointSize / 10));
+			return Math.floor(Math.max(1, text.pointSize / 12));
 		}
 		return this.thickness;
 	}

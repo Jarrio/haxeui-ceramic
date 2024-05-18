@@ -72,7 +72,7 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (!size) {
 			return super.strokeStyle(color, thickness, alpha);
 		}
-		this.color = ceramic.Color.BLACK;
+		this.color = ceramic.Color.fromInt(color);
 		this.thickness = thickness;
 		this.alpha = alpha;
 	}
@@ -125,7 +125,8 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		arc.angle = 360;
 		arc.color = this.color;
 		arc.alpha = this.alpha;
-		arc.thickness = 1;
+		
+		arc.thickness = this.thickness;
 		arc.x = x;
 		arc.y = y;
 		render.stamp(arc, () -> {
