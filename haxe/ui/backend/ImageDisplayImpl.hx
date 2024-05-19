@@ -5,7 +5,7 @@ import ceramic.Quad;
 
 class ImageDisplayImpl extends ImageBase {
 	public var visual:Quad;
-
+	
 	public function new() {
 		super();
 		this.visual = new Quad();

@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.loaders.image.ImageLoader;
 import haxe.ui.backend.ceramic.BorderQuad.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
@@ -26,6 +27,7 @@ import ceramic.Filter;
 import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import haxe.ui.backend.ScreenImpl;
+import ceramic.NineSlice;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -234,7 +236,6 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-
 		for (k => c in this.childComponents) {
 			c.visual.sortChildrenByDepth();
 		}
@@ -293,6 +294,7 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Style
 	//***********************************************************************************************************
+	var imgCache:Map<String, NineSlice> = [];
 
 	private override function applyStyle(style:Style) {
 		if (style == null) {
@@ -315,7 +317,7 @@ class ComponentImpl extends ComponentBase {
 			if (style.backgroundOpacity != null) {
 				visual.bg_alpha = style.backgroundOpacity;
 			}
-			
+
 			if (style.backgroundColorEnd != null) {
 				var start = (style.backgroundColor | alpha);
 				var end = (style.backgroundColorEnd | alpha);
@@ -332,58 +334,7 @@ class ComponentImpl extends ComponentBase {
 			visual.bg_alpha = 0;
 		}
 
-		// if (style.backgroundColor != null) {
-		// 	if (style.backgroundColorEnd != null && style.backgroundColorEnd != style.backgroundColor) {
-		// 		var direction:Direction = switch (style.backgroundGradientStyle) {
-		// 			case "vertical": vertical;
-		// 			case "horizontal": horizontal;
-		// 			default: vertical;
-		// 		}
-		// 		var start = (style.backgroundColor | alpha);
-		// 		var end = (style.backgroundColorEnd | alpha);
-
-		// 		visual.setGradient(direction, start, end);
-		// 	} else {
-		// 		visual.bg_color = style.backgroundColor;
-		// 	}
-		// } else {
-		// 	visual.bg_color = Color.NONE;
-		// }
-
-		// if (style.backgroundColor == null) {
-		// 	visual.bg_alpha = 0;
-		// } else {
-		// 	visual.bg_alpha = 1;
-		// 	if (style.backgroundOpacity != null) {
-		// 		visual.bg_alpha = style.backgroundOpacity;
-		// 	}
-
-		// 	if (!this.visual.isMesh) {
-		// 		if (style.backgroundColor != null) {
-		// 			visual.bg_color = style.backgroundColor;
-		// 		}
-		// 	} else {
-		// 		if (style.backgroundColorEnd != null) {
-		// 			var c = Color.fromInt(style.backgroundColor);
-		// 			var start = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
-		// 			c = Color.fromInt(style.backgroundColorEnd);
-		// 			var end = AlphaColor.fromRGBAFloat(c.redFloat, c.greenFloat, c.blueFloat, 0);
-
-		// 			var start = (style.backgroundColor | alpha);
-		// 			var end = (style.backgroundColorEnd | alpha);
-
-		// 			var direction:Direction = switch (style.backgroundGradientStyle) {
-		// 				case "vertical": vertical;
-		// 				case "horizontal": horizontal;
-		// 				default: vertical;
-		// 			}
-		// 			visual.setGradient(direction, start, end);
-		// 		} else {
-		// 			visual.bg_alpha = 0;
-		// 		}
-		// 	}
-		// }
-
+		// borders
 		var type = style.borderType;
 		switch (type) {
 			case None:
@@ -450,10 +401,50 @@ class ComponentImpl extends ComponentBase {
 					visual.border_bottom_color = -1;
 				}
 			default:
-				 trace(type, this._id, this.id, this.visual.id);
+				trace(type, this._id, this.id, this.visual.id);
 		}
+
 		if (style.borderOpacity != null) {
 			visual.border_alpha = style.borderOpacity;
+		}
+
+		if (style.backgroundImage != null) {
+			var obj:NineSlice;
+			if (imgCache.exists(style.backgroundImage)) {
+				obj = imgCache.get(style.backgroundImage);
+			} else {
+				ImageLoader.instance.load(style.backgroundImage, function(image) {
+					if (image == null) {
+						trace(
+							'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+						);
+						return;
+					}
+					
+					obj = new NineSlice();
+					imgCache.set(style.backgroundImage, obj);
+					obj.x = left;
+					obj.y = top;
+					obj.texture = image.data;
+					var sliceTop = style.backgroundImageSliceTop != null;
+					var sliceLeft = style.backgroundImageSliceLeft != null;
+					var sliceBottom = style.backgroundImageSliceBottom != null;
+					var sliceRight = style.backgroundImageSliceRight != null;
+
+					var slice = false;
+					if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
+						obj.slice(style.backgroundImageSliceTop, style.backgroundImageSliceLeft, style.backgroundImageSliceBottom,
+							style.backgroundImageSliceRight);
+						slice = true;
+					}
+
+					if (parentComponent != null) {
+						parentComponent.add(obj);
+					} else {
+						this.add(obj);
+					}
+				});
+			}
 		}
 
 		this.updateRender();
