@@ -80,6 +80,7 @@ class TextDisplayImpl extends TextBase {
 				text_visual.font = _fontInfo.data;
 				measureTextRequired = true;
 			}
+
 			var font_name = _textStyle.fontName;
 			if (font_name != null) {
 				var font = App.app.assets.font(font_name);
@@ -112,7 +113,6 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validatePosition() {
-
 		switch (text_visual.align) {
 			case CENTER:
 				text_visual.x = Std.int(_left + (_width / 2) - (text_visual.width / 2));

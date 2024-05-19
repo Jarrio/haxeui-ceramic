@@ -28,7 +28,7 @@ class TextInputImpl extends TextBase {
 		visual.visible = false;
 		visual.inheritAlpha = true;
 		field = new EditText(Color.fromString('#B4D5FE'), Color.BLACK, 0, 0, 0.8);
-		
+
 		var font = Screen.instance.options.default_textfield_font;
 		if (font != null) {
 			visual.font = font;
@@ -88,43 +88,53 @@ class TextInputImpl extends TextBase {
 		var measureTextRequired:Bool = super.validateStyle();
 
 		field.disabled = parentComponent.disabled;
-		if (_textStyle != null) {
-			field.multiline = _displayData.multiline;
+		if (_textStyle == null) {
+			return false;
+		}
 
-			if (text_align != _textStyle.textAlign) {
-				text_align = _textStyle.textAlign;
-				visual.align = switch (text_align) {
-					case 'left': LEFT;
-					case 'right': RIGHT;
-					case 'center': CENTER;
-					default: LEFT;
-				}
-			}
+		field.multiline = _displayData.multiline;
 
-			if (_textStyle.color != null && color != _textStyle.color) {
-				color = _textStyle.color;
-				visual.color = Color.fromInt(color);
-			}
-
-			if (_textStyle.fontSize != null && font_size != _textStyle.fontSize) {
-				var presize = Screen.instance.options.prerender_font_size;
-				font_size = _textStyle.fontSize;
-				visual.preRenderedSize = Std.int(font_size * presize);
-				visual.pointSize = font_size;
-			}
-
-			if (_textStyle.backgroundColor != null && background_color != _textStyle.backgroundColor) {
-				background_color = _textStyle.color;
-				// if (visual.clipRect != null) {
-				// 	visual.clipRect.color = Color.fromInt(color);
-				// }
+		if (text_align != _textStyle.textAlign) {
+			text_align = _textStyle.textAlign;
+			visual.align = switch (text_align) {
+				case 'left': LEFT;
+				case 'right': RIGHT;
+				case 'center': CENTER;
+				default: LEFT;
 			}
 		}
+
+		if (_textStyle.color != null && color != _textStyle.color) {
+			color = _textStyle.color;
+			visual.color = color;
+		}
+
+		if (_textStyle.fontSize != null && font_size != _textStyle.fontSize) {
+			var presize = Screen.instance.options.prerender_font_size;
+			font_size = _textStyle.fontSize;
+			visual.preRenderedSize = Std.int(font_size * presize);
+			visual.pointSize = font_size;
+		}
+
+		if (_textStyle.backgroundColor != null && background_color != _textStyle.backgroundColor) {
+			background_color = _textStyle.color;
+			// if (field.clipRect != null) {
+			// 	field.clipRect.color = Color.fromInt(color);
+			// }
+		}
+
 		return measureTextRequired;
+	}
+
+	private override function validateData() {
+		if (_text != null && _text != visual.content) {
+			visual.content = _text;
+		}
 	}
 
 	function onTextChanged(text:String) {
 		_text = text;
+		visual.content = text;
 		measureText();
 
 		if (_inputData.onChangedCallback != null) {
@@ -151,7 +161,7 @@ class TextInputImpl extends TextBase {
 	}
 
 	private override function validateDisplay() {
-//		trace(_width, _height, visual.height);
+		//		trace(_width, _height, visual.height);
 		if (_width != visual.clipTextWidth) {
 			visual.clipTextWidth = _width;
 		}
