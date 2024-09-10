@@ -241,12 +241,13 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	var depth_counter = 0;
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		var depth = child.depth;
 		if (depth == -1) {
 			depth = 0;
 		}
-		child.visual.depth = depth + index;
+		child.visual.depth = index;
 		this.mapChildren();
 	}
 
@@ -256,7 +257,7 @@ class ComponentImpl extends ComponentBase {
 		if (depth == -1) {
 			depth = 0;
 		}
-		child.visual.depth = depth;
+		child.visual.depth = depth_counter++;
 		this.add(child.visual);
 		this.mapChildren();
 		return child;
@@ -268,7 +269,7 @@ class ComponentImpl extends ComponentBase {
 		if (depth == -1) {
 			depth = 0;
 		}
-		child.visual.depth = depth + index;
+		child.visual.depth = index;
 		this.add(child.visual);
 		this.mapChildren();
 		return child;
