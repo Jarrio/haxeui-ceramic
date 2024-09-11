@@ -7,6 +7,7 @@ import ceramic.Text;
 import ceramic.EditText;
 import haxe.ui.core.Screen;
 import haxe.ui.backend.TextBase;
+import haxe.ui.backend.ceramic.PasswordText;
 
 class TextInputImpl extends TextBase {
 	public var field:EditText;
@@ -20,6 +21,39 @@ class TextInputImpl extends TextBase {
 	var font_name:String;
 	var color:Int = -1;
 	var background_color:Int = -1;
+	var pw_comp:PasswordText;
+
+	public var is_password(default, set):Bool = false;
+
+	function set_is_password(value:Bool) {
+		if (value != is_password) {
+			if (value) {
+				if (pw_comp == null) {
+					pw_comp = new PasswordText();
+				}
+				
+				field.component('password', pw_comp);
+			} else {
+				if (field.hasComponent('password')) {
+//					field.offUpdate(pw_comp.applyChange);
+					field.removeComponent('password');
+					pw_comp.destroy();
+					pw_comp = null;
+				}
+			}
+			return is_password = value;
+		}
+		return value;
+	}
+
+	public var content(get, never):String;
+
+	function get_content() {
+		if (pw_comp == null) {
+			return '';
+		}
+		return pw_comp.content;
+	}
 
 	public function new() {
 		super();
@@ -28,13 +62,13 @@ class TextInputImpl extends TextBase {
 		visual.visible = false;
 		visual.inheritAlpha = true;
 		field = new EditText(Color.fromString('#B4D5FE'), Color.BLACK, 0, 0, 0.8);
+		visual.component('edit_text', field);
 
 		var font = Screen.instance.options.default_textfield_font;
 		if (font != null) {
 			visual.font = font;
 		}
 
-		visual.component('edit_text', field);
 		visual.clipText(0, 0, _width, _height);
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
@@ -87,7 +121,12 @@ class TextInputImpl extends TextBase {
 	private override function validateStyle():Bool {
 		var measureTextRequired:Bool = super.validateStyle();
 
+		if (_inputData.password != this.is_password) {
+			is_password = true;
+		}
+
 		field.disabled = parentComponent.disabled;
+
 		if (_textStyle == null) {
 			return false;
 		}
