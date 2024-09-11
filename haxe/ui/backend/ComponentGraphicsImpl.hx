@@ -162,13 +162,15 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 			texture = Texture.fromPixels(w, h, uint8Array);
 		} else {
 			texture.submitPixels(uint8Array);
+			Ceramic.forceRender();
 		}
-		
+
 		if (this.visual == null) {
 			visual = new Quad();
 			visual.size(w, h);
 			_component.visual.add(visual);
 		}
+		
 		if (this.visual.texture != texture) {
 			visual.texture = texture;
 		}
