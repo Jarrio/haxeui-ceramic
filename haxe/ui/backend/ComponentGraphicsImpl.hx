@@ -26,9 +26,9 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 
 	var size:Bool = false;
 
-	var line = new Line();
-	var quad:Quad = new Quad();
-	var arcs:Arc = new Arc();
+	// var line = new Line();
+	// var quad:Quad = new Quad();
+	//var arcs:Arc = new Arc();
 
 	public function new(component:Component) {
 		super(component);
@@ -71,6 +71,9 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 	override function strokeStyle(color:Null<Color>, thickness:Null<Float> = 1, alpha:Null<Float> = 1) {
 		if (!size) {
 			return super.strokeStyle(color, thickness, alpha);
+		}
+		if (color == null) {
+			trace(color);
 		}
 		this.color = ceramic.Color.fromInt(color);
 		this.thickness = thickness;
@@ -119,6 +122,7 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (!size) {
 			return super.circle(x, y, radius);
 		}
+		
 		var arc = new Arc();
 		arc.borderPosition = MIDDLE;
 		arc.radius = radius;

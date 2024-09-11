@@ -34,6 +34,7 @@ class BorderQuad extends Visual {
 		if (border == null) {
 			return;
 		}
+		this.remove(border);
 		border.destroy();
 		border = null;
 		//border.active = false;
@@ -57,6 +58,7 @@ class BorderQuad extends Visual {
 		if (background == null) {
 			return;
 		}
+		this.remove(background);
 		background.destroy();
 		background = null;
 	}
@@ -90,6 +92,7 @@ class BorderQuad extends Visual {
 		if (this.gbackground == null) {
 			return;
 		}
+		this.remove(gbackground);
 		this.gbackground.destroy();
 		gbackground = null;
 	}
@@ -101,6 +104,7 @@ class BorderQuad extends Visual {
 				gbackground.colors = [start, end, start, end];
 			case vertical:
 				gbackground.colors = [start, start, end, end];
+				
 		}
 	}
 
