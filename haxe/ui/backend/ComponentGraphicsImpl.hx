@@ -19,7 +19,7 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 	var hasSize = false;
 
 	var current_position:Point = new Point();
-	
+
 	var color:ceramic.Color;
 	var thickness:Float;
 	var alpha:Float = 1;
@@ -28,19 +28,19 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 
 	// var line = new Line();
 	// var quad:Quad = new Quad();
-	//var arcs:Arc = new Arc();
+	// var arcs:Arc = new Arc();
 
 	public function new(component:Component) {
 		super(component);
-		//line.color = ceramic.Color.BLACK;
-		//App.app.onBeginDraw(visual, draw);
+		// line.color = ceramic.Color.BLACK;
+		// App.app.onBeginDraw(visual, draw);
 	}
 
 	public override function clear() {
 		if (!size) {
 			return super.clear();
 		}
-		//render.clear(() -> {});
+		// render.clear(() -> {});
 	}
 
 	// function draw() {
@@ -52,7 +52,6 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 	// 				this.current_position.y = y;
 	// 			case LineTo(x, y):
 	// 				// var line = new Line();
-				
 	// 				// line.color = this.color;
 	// 				// line.thickness = this.thickness;
 	// 				// line.points = [current_position.x, current_position.y, x, y];
@@ -122,14 +121,14 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (!size) {
 			return super.circle(x, y, radius);
 		}
-		
+
 		var arc = new Arc();
 		arc.borderPosition = MIDDLE;
 		arc.radius = radius;
 		arc.angle = 360;
 		arc.color = this.color;
 		arc.alpha = this.alpha;
-		
+
 		arc.thickness = this.thickness;
 		arc.x = x;
 		arc.y = y;
@@ -142,26 +141,35 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (!size) {
 			return super.setPixels(pixels);
 		}
+
 		var w = Std.int(_component.width);
 		var h = Std.int(_component.height);
+		var pixel_length = w * h * 4;
 
-		if (this.texture == null) {
-			texture = Texture.fromPixels(w, h, UInt8Array.fromBytes(pixels));
-		} else {
-			if (texture.width != _component.width || texture.height != _component.height) {
-				texture = Texture.fromPixels(w, h, UInt8Array.fromBytes(pixels));
-			}
+		if (pixels.length != pixel_length) {
+			trace('Error: $pixel_length');
+			return;
 		}
 
-		render.submitPixels(UInt8Array.fromBytes(pixels));
+		if (pixels == null || pixels.length == 0) {
+			trace('Error: Pixel data is null or empty');
+			return;
+		}
 
+		var uint8Array = UInt8Array.fromBytes(pixels);
+
+		if (this.texture == null || this.texture.width != w || this.texture.height != h) {
+			texture = Texture.fromPixels(w, h, uint8Array);
+		} else {
+			texture.submitPixels(uint8Array);
+		}
+		
 		if (this.visual == null) {
 			visual = new Quad();
 			visual.size(w, h);
 			_component.visual.add(visual);
 		}
-
-		if (this.visual.texture == null) {
+		if (this.visual.texture != texture) {
 			visual.texture = texture;
 		}
 	}
@@ -170,10 +178,10 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (width > 0 && height > 0) {
 			if (!size) {
 				size = true;
-				
+
 				visual = new Quad();
 				render = new RenderTexture(width, height);
-				
+
 				render.autoRender = false;
 				visual.texture = render;
 				_component.visual.add(visual);
