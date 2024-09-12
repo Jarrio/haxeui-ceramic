@@ -81,7 +81,6 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.x = left;
 		}
-		this.updateRender();
 
 		this.visual.y = top;
 		if (this.isClipped) {
@@ -106,11 +105,9 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			if (width <= 0 || height <= 0) {
-				return;
-			} else {
+			this.size(width, height);			
+			if (style != null) {
 				applyStyle(style);
-				this.size(width, height);
 			}
 		}
 		this.updateRender();
@@ -243,6 +240,7 @@ class ComponentImpl extends ComponentBase {
 
 	var depth_counter = 0;
 	private override function handleSetComponentIndex(child:Component, index:Int) {
+		trace(index);
 		var depth = child.depth;
 		if (depth == -1) {
 			depth = 0;
@@ -264,6 +262,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
+		trace(index);
 		child.visual.active = true;
 		var depth = child.depth;
 		if (depth == -1) {
