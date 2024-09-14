@@ -85,7 +85,12 @@ class AssetsImpl extends AssetsBase {
 			#end
 		}
 
-		Texture.fromBytes(bytes, (texture) -> {
+		if (bytes == null) {
+			trace('[haxeui-ceramic] Error - Could not find image');
+			return;
+		}
+
+		Texture.fromBytes(bytes, (texture:Texture) -> {
 			if (texture != null) {
 				callback({
 					data: texture,

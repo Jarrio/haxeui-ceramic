@@ -7,11 +7,14 @@ import ceramic.Color;
 import ceramic.Quad;
 import ceramic.Visual;
 import ceramic.Border;
+import ceramic.NineSlice;
 
 class BorderQuad extends Visual {
-	public var isMesh:Bool;
+	public var isMesh:Bool =  false;
+	public var isSlice:Bool = false;
 	var border:Border;
 	var background:Quad;
+	var sliceBackground:NineSlice;
 	var gbackground:Mesh; // used for gradients
 
 	public function new() {
@@ -40,7 +43,34 @@ class BorderQuad extends Visual {
 		//border.active = false;
 	}
 
+	function activateSliceBackground() {
+		this.deactivateBackground();
+		this.deactivateGradientBackground();
+		if (sliceBackground == null) {
+			this.isMesh = false;
+			sliceBackground = new NineSlice();
+			sliceBackground.inheritAlpha = true;
+			sliceBackground.size(width, height);
+			sliceBackground.depth = 0;
+			this.add(sliceBackground);
+			this.isSlice = true;
+		}
+
+		sliceBackground.active = true;
+	}
+
+	function deactivateSliceBackground() {
+		if (sliceBackground == null) {
+			return;
+		}
+		this.remove(sliceBackground);
+		sliceBackground.destroy();
+		sliceBackground = null;
+		this.isSlice = false;
+	}
+
 	function activateBackground() {
+		this.deactivateSliceBackground();
 		this.deactivateGradientBackground();
 		if (background == null) {
 			this.isMesh = false;
@@ -65,6 +95,7 @@ class BorderQuad extends Visual {
 
 	function activateGradientBackground() {
 		this.deactivateBackground();
+		this.deactivateSliceBackground();
 		if (this.gbackground == null) {
 			this.isMesh = true;
 			gbackground = new Mesh();
@@ -92,6 +123,7 @@ class BorderQuad extends Visual {
 		if (this.gbackground == null) {
 			return;
 		}
+		this.isMesh = false;
 		this.remove(gbackground);
 		this.gbackground.destroy();
 		gbackground = null;
@@ -106,6 +138,34 @@ class BorderQuad extends Visual {
 				gbackground.colors = [start, start, end, end];
 				
 		}
+	}
+
+	public function setNineSlice(texture:Texture, top:Float, bot:Float, left:Float, right:Float) {
+
+		activateSliceBackground();
+		sliceBackground.texture = texture;
+		setSlice(top, bot, left, right);
+	}
+
+	inline public function setSlice(top:Float, bot:Float, left:Float, right:Float) {
+		if (sliceBackground == null) {
+			return;
+		}
+		sliceBackground.slice(top, right, bot, left);
+	}
+
+	inline public function setSlicePos(x:Float, y:Float) {
+		if (sliceBackground == null) {
+			return;
+		}
+		sliceBackground.pos(x, y);
+	}
+
+	inline public function setSliceSize(width:Float, height:Float) {
+		if (sliceBackground == null) {
+			return;
+		}
+		sliceBackground.size(width, height);
 	}
 
 	override function set_width(value) {
@@ -126,6 +186,10 @@ class BorderQuad extends Visual {
 				width, height
 			];
 			this.gbackground.width = value;
+		}
+
+		if (sliceBackground != null) {
+			sliceBackground.width = value;
 		}
 		return value;
 	}
@@ -148,6 +212,10 @@ class BorderQuad extends Visual {
 				width, height
 			];
 			this.gbackground.height = value;
+		}
+
+		if (sliceBackground != null) {
+			sliceBackground.height = value;
 		}
 		return value;
 	}

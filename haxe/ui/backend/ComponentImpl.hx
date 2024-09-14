@@ -1,5 +1,7 @@
 package haxe.ui.backend;
 
+import ceramic.Texture;
+import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
 import haxe.ui.backend.ceramic.BorderQuad.Direction;
 import ceramic.AlphaColor;
@@ -105,7 +107,7 @@ class ComponentImpl extends ComponentBase {
 
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			this.size(width, height);			
+			this.size(width, height);
 			if (style != null) {
 				applyStyle(style);
 			}
@@ -239,6 +241,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	var depth_counter = 0;
+
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		trace(index);
 		var depth = child.depth;
@@ -262,7 +265,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		trace(index);
+		//		trace(index);
 		child.visual.active = true;
 		var depth = child.depth;
 		if (depth == -1) {
@@ -294,7 +297,7 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Style
 	//***********************************************************************************************************
-	var imgCache:Map<String, NineSlice> = [];
+	var imgCache:Map<String, Texture> = [];
 
 	private override function applyStyle(style:Style) {
 		if (style == null) {
@@ -345,60 +348,44 @@ class ComponentImpl extends ComponentBase {
 					visual.border_color = style.borderColor;
 				}
 
-				if (style.borderSize != null && style.borderSize > 0) {
-					visual.border_size = style.fullBorderSize;
+				if (style.borderSize != null) {
+					visual.border_size = style.borderSize;
 				} else {
-					visual.border_size = 0;
+					// visual.border_size = -1;
 				}
 			case Compound:
 				visual.border_size = 0;
 
 				if (style.borderLeftSize != null) {
 					visual.border_left_size = style.borderLeftSize;
-				} else {
-					visual.border_left_size = -1;
 				}
 
 				if (style.borderLeftColor != null) {
 					visual.border_left_color = (style.borderLeftColor);
-				} else {
-					visual.border_left_color = -1;
 				}
 
 				if (style.borderRightSize != null) {
 					visual.border_right_size = style.borderRightSize;
-				} else {
-					visual.border_right_size = -1;
 				}
 
 				if (style.borderRightColor != null) {
 					visual.border_right_color = (style.borderRightColor);
-				} else {
-					visual.border_right_color = -1;
 				}
 
 				if (style.borderTopSize != null) {
 					visual.border_top_size = style.borderTopSize;
-				} else {
-					visual.border_top_size = -1;
 				}
 
 				if (style.borderTopColor != null) {
 					visual.border_top_color = (style.borderTopColor);
-				} else {
-					visual.border_top_color = -1;
 				}
 
 				if (style.borderBottomSize != null) {
 					visual.border_bottom_size = style.borderBottomSize;
-				} else {
-					visual.border_bottom_size = -1;
 				}
 
 				if (style.borderBottomColor != null) {
 					visual.border_bottom_color = (style.borderBottomColor);
-				} else {
-					visual.border_bottom_color = -1;
 				}
 			default:
 				trace(type, this._id, this.id, this.visual.id);
@@ -408,42 +395,47 @@ class ComponentImpl extends ComponentBase {
 			visual.border_alpha = style.borderOpacity;
 		}
 
-		if (style.backgroundImage != null) {
-			var obj:NineSlice;
-			if (imgCache.exists(style.backgroundImage)) {
-				obj = imgCache.get(style.backgroundImage);
+		var sliceTop = style.backgroundImageSliceTop != null;
+		var sliceLeft = style.backgroundImageSliceLeft != null;
+		var sliceBottom = style.backgroundImageSliceBottom != null;
+		var sliceRight = style.backgroundImageSliceRight != null;
+
+		if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
+			var topSlice = style.backgroundImageSliceTop;
+			var botSlice = style.backgroundImageSliceBottom;
+			var leftSlice = style.backgroundImageSliceLeft;
+			var rightSlice = style.backgroundImageSliceRight;
+
+			// var obj:NineSlice;
+			if (!visual.isSlice) {
+				var texture = null;
+				if (imgCache.exists(style.backgroundImage)) {
+					texture = imgCache.get(style.backgroundImage);
+					visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+				} else {
+					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+						if (image == null) {
+							trace(
+								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+							);
+							return;
+						}
+						texture = image.data;
+						visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+						imgCache.set(style.backgroundImage, image.data);
+
+						trace('saved image');
+					});
+				}
+			}
+
+			if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
+				visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
+				// visual.setSlicePos(leftSlice, topSlice);
+				// visual.setSliceSize(rightSlice, botSlice);
+				trace(topSlice, botSlice, leftSlice, rightSlice);
 			} else {
-				ImageLoader.instance.load(style.backgroundImage, function(image) {
-					if (image == null) {
-						trace(
-							'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-						);
-						return;
-					}
-					
-					obj = new NineSlice();
-					imgCache.set(style.backgroundImage, obj);
-					obj.x = left;
-					obj.y = top;
-					obj.texture = image.data;
-					var sliceTop = style.backgroundImageSliceTop != null;
-					var sliceLeft = style.backgroundImageSliceLeft != null;
-					var sliceBottom = style.backgroundImageSliceBottom != null;
-					var sliceRight = style.backgroundImageSliceRight != null;
-
-					var slice = false;
-					if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-						obj.slice(style.backgroundImageSliceTop, style.backgroundImageSliceLeft, style.backgroundImageSliceBottom,
-							style.backgroundImageSliceRight);
-						slice = true;
-					}
-
-					if (parentComponent != null) {
-						parentComponent.add(obj);
-					} else {
-						this.add(obj);
-					}
-				});
+				trace(topSlice, botSlice, leftSlice, rightSlice);
 			}
 		}
 

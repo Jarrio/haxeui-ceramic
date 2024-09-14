@@ -22,7 +22,7 @@ class PasswordText extends Entity implements Component {
 			content = text;
 			text = stars;
 		}
-
+		
 		visual.entity.onGlyphQuadsChange(this, applyChange);
 	}
 
