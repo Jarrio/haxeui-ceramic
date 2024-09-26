@@ -69,6 +69,10 @@ class TextDisplayImpl extends TextBase {
 				measureTextRequired = true;
 			}
 
+			if (_textStyle.opacity != null) {
+				text_visual.alpha = _textStyle.opacity;
+			}
+
 			if (_textStyle.fontSize != null) {
 				var presize = Screen.instance.options.prerender_font_size;
 				text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
