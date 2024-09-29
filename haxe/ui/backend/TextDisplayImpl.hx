@@ -22,14 +22,14 @@ class TextDisplayImpl extends TextBase {
 		visual.inheritAlpha = true;
 
 		text_visual = new Text();
-		
+
 		var font = Screen.instance.options.default_text_font;
-		//font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
-		
+		// font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
+
 		if (font != null) {
 			text_visual.font = font;
 		}
-		
+
 		visual.add(text_visual);
 		Toolkit.callLater(function() {
 			visual.visible = true;
@@ -58,7 +58,7 @@ class TextDisplayImpl extends TextBase {
 				}
 				measureTextRequired = true;
 			}
-			
+
 			if (_textStyle.fontUnderline != null && text_visual.hasComponent('underline') != _textStyle.fontUnderline) {
 				if (_textStyle.fontUnderline) {
 					text_visual.component('underline', new UnderlineText());
@@ -94,11 +94,13 @@ class TextDisplayImpl extends TextBase {
 						font = assets.font(font_name);
 					}
 				}
-				
+
 				if (font != null) {
 					text_visual.font = font;
 				} else {
-					trace('[Haxeui-Ceramic] - Font ${font_name} does not exist in the assets object');
+					trace(
+						'[Haxeui-Ceramic] - Font ${font_name} does not exist in the assets object'
+					);
 				}
 				measureTextRequired = true;
 			}
