@@ -88,7 +88,7 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
-		this.updateRender();
+		//this.updateRender();
 
 		// if (this.y != top)
 		// 	this.y = this.top = top;
@@ -105,18 +105,20 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (height == 0 || width == 0){
-			this.updateRender();
-			return;
-		}
-
-		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
-			this.size(width, height);
 			if (style != null) {
 				applyStyle(style);
 			}
 		}
+
+		if (height > 0) {
+			this.visual.height = height;
+		}
+
+		if (width > 0) {
+			this.visual.width = width;
+		}
+		
 		this.updateRender();
 	}
 
@@ -240,26 +242,26 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-		//visual.normalizeChildrenDepth();
+		visual.normalizeChildrenDepth();
 	}
 
 	var depth_counter = 0;
 
-private override function handleSetComponentIndex(child:Component, index:Int) {
-	child.visual.depth = index;
-}
+	private override function handleSetComponentIndex(child:Component, index:Int) {
+		child.visual.depth = index;
+	}
 
-private override function handleAddComponent(child:Component):Component {
-	//child.visual.depth = child.depth;
-	this.add(child.visual);
-	return child;
-}
+	private override function handleAddComponent(child:Component):Component {
+		// child.visual.depth = child.depth;
+		this.add(child.visual);
+		return child;
+	}
 
-private override function handleAddComponentAt(child:Component, index:Int):Component {
-	child.visual.depth = index;
-	this.add(child.visual);
-	return child;
-}
+	private override function handleAddComponentAt(child:Component, index:Int):Component {
+		child.visual.depth = index;
+		this.add(child.visual);
+		return child;
+	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
