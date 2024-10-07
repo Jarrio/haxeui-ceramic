@@ -105,6 +105,11 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		if (height == 0 || width == 0){
+			this.updateRender();
+			return;
+		}
+
 		// visual.size(w, h);
 		if (visual.width != width || visual.height != height) {
 			this.size(width, height);
@@ -235,47 +240,26 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-		for (k => c in this.childComponents) {
-			c.visual.sortChildrenByDepth();
-		}
+		//visual.normalizeChildrenDepth();
 	}
 
 	var depth_counter = 0;
 
-	private override function handleSetComponentIndex(child:Component, index:Int) {
-		trace(index);
-		var depth = child.depth;
-		if (depth == -1) {
-			depth = 0;
-		}
-		child.visual.depth = index;
-		this.mapChildren();
-	}
+private override function handleSetComponentIndex(child:Component, index:Int) {
+	child.visual.depth = index;
+}
 
-	private override function handleAddComponent(child:Component):Component {
-		child.visual.active = true;
-		var depth = child.depth;
-		if (depth == -1) {
-			depth = 0;
-		}
-		child.visual.depth = depth_counter++;
-		this.add(child.visual);
-		this.mapChildren();
-		return child;
-	}
+private override function handleAddComponent(child:Component):Component {
+	//child.visual.depth = child.depth;
+	this.add(child.visual);
+	return child;
+}
 
-	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		//		trace(index);
-		child.visual.active = true;
-		var depth = child.depth;
-		if (depth == -1) {
-			depth = 0;
-		}
-		child.visual.depth = index;
-		this.add(child.visual);
-		this.mapChildren();
-		return child;
-	}
+private override function handleAddComponentAt(child:Component, index:Int):Component {
+	child.visual.depth = index;
+	this.add(child.visual);
+	return child;
+}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
