@@ -67,18 +67,6 @@ class ComponentImpl extends ComponentBase {
 		if (left == null || top == null) {
 			return;
 		}
-
-		// left = Std.int(left);
-		// top = Std.int(top);
-
-		// if (left % 2 != 0) {
-		// 	left++;
-		// }
-
-		// if (top % 2 != 0) {
-		// 	top++;
-		// }
-
 		this.visual.x = left;
 		if (this.isClipped) {
 			this.filter.x = left;
@@ -88,16 +76,7 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
-		//this.updateRender();
 
-		// if (this.y != top)
-		// 	this.y = this.top = top;
-
-		// if (clipQuad != null) {
-		// 	if (clipQuad.x != left) clipQuad.x = left;
-		// 	if (clipQuad.y != top)  clipQuad.y = top;
-		// }
-		// trace('${pad(this.id)}: move -> ${left}x${top}');
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
@@ -286,9 +265,9 @@ class ComponentImpl extends ComponentBase {
 	var imgCache:Map<String, Texture> = [];
 
 	private override function applyStyle(style:Style) {
-		if (style == null) {
-			return;
-		}
+		// if (style == null) {
+		// 	return;
+		// }
 
 		// background
 		var alpha:Int = 0xFF000000;
@@ -323,6 +302,10 @@ class ComponentImpl extends ComponentBase {
 			visual.bg_alpha = 0;
 		}
 
+		if (this.text == 'Haxe' || this.text == "Java") {
+			trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		}
+
 		// borders
 		var type = style.borderType;
 		switch (type) {
@@ -330,10 +313,14 @@ class ComponentImpl extends ComponentBase {
 				visual.border_size = 0;
 				visual.border_color = Color.NONE;
 			case Full:
+				visual.border_size = 0;
+				visual.border_color = Color.NONE;
+
 				if (style.borderColor != null) {
 					visual.border_color = style.borderColor;
 				}
-
+				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+				
 				if (style.borderSize != null) {
 					visual.border_size = style.borderSize;
 				} else {
@@ -344,34 +331,30 @@ class ComponentImpl extends ComponentBase {
 
 				if (style.borderLeftSize != null) {
 					visual.border_left_size = style.borderLeftSize;
-				}
-
-				if (style.borderLeftColor != null) {
-					visual.border_left_color = (style.borderLeftColor);
+					if (style.borderLeftColor != null) {
+						visual.border_left_color = (style.borderLeftColor);
+					}
 				}
 
 				if (style.borderRightSize != null) {
 					visual.border_right_size = style.borderRightSize;
-				}
-
-				if (style.borderRightColor != null) {
-					visual.border_right_color = (style.borderRightColor);
+					if (style.borderRightColor != null) {
+						visual.border_right_color = (style.borderRightColor);
+					}
 				}
 
 				if (style.borderTopSize != null) {
 					visual.border_top_size = style.borderTopSize;
-				}
-
-				if (style.borderTopColor != null) {
-					visual.border_top_color = (style.borderTopColor);
+					if (style.borderTopColor != null) {
+						visual.border_top_color = (style.borderTopColor);
+					}
 				}
 
 				if (style.borderBottomSize != null) {
 					visual.border_bottom_size = style.borderBottomSize;
-				}
-
-				if (style.borderBottomColor != null) {
-					visual.border_bottom_color = (style.borderBottomColor);
+					if (style.borderBottomColor != null) {
+						visual.border_bottom_color = (style.borderBottomColor);
+					}
 				}
 			default:
 				trace(type, this._id, this.id, this.visual.id);
