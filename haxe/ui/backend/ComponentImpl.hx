@@ -221,24 +221,32 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-		visual.normalizeChildrenDepth();
+		//visual.normalizeChildrenDepth();
 	}
 
 	var depth_counter = 0;
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = index;
+		child.visual.depth = index + 2;
+		mapChildren();
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		// child.visual.depth = child.depth;
+		trace(this.depth);
+		var v = this.depth + 2;
+		if (v < 2) {
+			v = 2;
+		}
+		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		child.visual.depth = index;
+		child.visual.depth = index + 2;
 		this.add(child.visual);
+		mapChildren();
 		return child;
 	}
 
@@ -302,10 +310,11 @@ class ComponentImpl extends ComponentBase {
 			visual.bg_alpha = 0;
 		}
 
-		if (this.text == 'Haxe' || this.text == "Java") {
-			trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-		}
-
+		//if (this.text == 'Haxe' || this.text == "Java") {
+			//trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+			//trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
+		//}
+		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
 		// borders
 		var type = style.borderType;
 		switch (type) {
@@ -315,44 +324,40 @@ class ComponentImpl extends ComponentBase {
 			case Full:
 				visual.border_size = 0;
 				visual.border_color = Color.NONE;
-
-				if (style.borderColor != null) {
-					visual.border_color = style.borderColor;
-				}
 				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 				
 				if (style.borderSize != null) {
 					visual.border_size = style.borderSize;
-				} else {
-					// visual.border_size = -1;
+					if (style.borderSize > 0) {
+						visual.border_color = style.borderColor;
+					}
 				}
 			case Compound:
-				visual.border_size = 0;
-
 				if (style.borderLeftSize != null) {
 					visual.border_left_size = style.borderLeftSize;
-					if (style.borderLeftColor != null) {
+					if (style.borderLeftSize > 0) {
 						visual.border_left_color = (style.borderLeftColor);
 					}
 				}
 
 				if (style.borderRightSize != null) {
 					visual.border_right_size = style.borderRightSize;
-					if (style.borderRightColor != null) {
+					if (style.borderRightSize > 0) {
 						visual.border_right_color = (style.borderRightColor);
 					}
 				}
 
 				if (style.borderTopSize != null) {
 					visual.border_top_size = style.borderTopSize;
-					if (style.borderTopColor != null) {
+					if (style.borderTopSize > 0) {
 						visual.border_top_color = (style.borderTopColor);
 					}
 				}
 
 				if (style.borderBottomSize != null) {
 					visual.border_bottom_size = style.borderBottomSize;
-					if (style.borderBottomColor != null) {
+					if (style.borderBottomSize > 0) {
+						trace(style.borderBottomColor);
 						visual.border_bottom_color = (style.borderBottomColor);
 					}
 				}
