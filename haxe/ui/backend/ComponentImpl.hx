@@ -233,11 +233,11 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleAddComponent(child:Component):Component {
 		// child.visual.depth = child.depth;
-		trace(this.depth);
+//		trace(this.depth);
 		var v = this.depth + 2;
-		if (v < 2) {
-			v = 2;
-		}
+		// if (v < 2) {
+		// 	v = 2;
+		// }
 		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
 		return child;
@@ -357,7 +357,6 @@ class ComponentImpl extends ComponentBase {
 				if (style.borderBottomSize != null) {
 					visual.border_bottom_size = style.borderBottomSize;
 					if (style.borderBottomSize > 0) {
-						trace(style.borderBottomColor);
 						visual.border_bottom_color = (style.borderBottomColor);
 					}
 				}
