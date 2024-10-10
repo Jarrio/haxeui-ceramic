@@ -26,7 +26,7 @@ class BorderQuad extends Visual {
 			border = new Border();
 			border.inheritAlpha = true;
 			border.size(width, height);
-			border.depth = 1;
+			border.depth = 2;
 			border.borderSize = 0;
 			this.add(border);
 		}
@@ -51,7 +51,7 @@ class BorderQuad extends Visual {
 			sliceBackground = new NineSlice();
 			sliceBackground.inheritAlpha = true;
 			sliceBackground.size(width, height);
-			sliceBackground.depth = 0;
+			sliceBackground.depth = 1;
 			this.add(sliceBackground);
 			this.isSlice = true;
 		}
@@ -77,7 +77,7 @@ class BorderQuad extends Visual {
 			background = new Quad();
 			background.inheritAlpha = true;
 			background.size(width, height);
-			background.depth = 0;
+			background.depth = 1;
 			this.add(background);
 		}
 
@@ -112,7 +112,7 @@ class BorderQuad extends Visual {
 				width, height
 			];
 			gbackground.size(width, height);
-			gbackground.depth = 0;
+			gbackground.depth = 1;
 			this.add(gbackground);
 		}
 
@@ -129,9 +129,9 @@ class BorderQuad extends Visual {
 		gbackground = null;
 	}
 
-	public function setGradient(direction:Direction, start:Color, end:Color) {
+	public function setGradient(Adirection:ADirection, start:Color, end:Color) {
 		activateGradientBackground();
-		switch (direction) {
+		switch (Adirection) {
 			case horizontal:
 				gbackground.colors = [start, end, start, end];
 			case vertical:
@@ -487,7 +487,7 @@ class BorderQuad extends Visual {
 	}
 }
 
-enum abstract Direction(String) from String {
+enum abstract ADirection(String) from String {
 	var vertical;
 	var horizontal;
 }

@@ -3,7 +3,7 @@ package haxe.ui.backend;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import haxe.ui.backend.ceramic.BorderQuad.Direction;
+import haxe.ui.backend.ceramic.GradientQuad.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;
@@ -41,7 +41,6 @@ class ComponentImpl extends ComponentBase {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
-		// recursiveReady();
 	}
 
 	function updateRender() {
@@ -76,7 +75,6 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
-
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
@@ -84,20 +82,13 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (visual.width != width || visual.height != height) {
-			if (style != null) {
-				applyStyle(style);
-			}
+		this.visual.height = height;
+		this.visual.width = width;
+
+		if (style != null) {
+			applyStyle(style);
 		}
 
-		if (height > 0) {
-			this.visual.height = height;
-		}
-
-		if (width > 0) {
-			this.visual.width = width;
-		}
-		
 		this.updateRender();
 	}
 
@@ -221,30 +212,40 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-		//visual.normalizeChildrenDepth();
+		// visual.normalizeChildrenDepth();
 	}
 
 	var depth_counter = 0;
+	var depth_pad = 2;
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = index + 2;
+		child.visual.depth = index + depth_pad;
+		if (child.visual.depth < 2) {
+			trace(index, child.visual.depth);
+		}
+//		trace(child.visual.depth);
 		mapChildren();
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		// child.visual.depth = child.depth;
-//		trace(this.depth);
-		var v = this.depth + 2;
-		// if (v < 2) {
-		// 	v = 2;
-		// }
-		child.visual.depth = this.depth + 2;
+		//		trace(this.depth);
+		var v = this.depth + depth_pad;
+		if (v < 2) {
+			v = 2;
+		}
+		child.visual.depth = 2;
+		//		trace(v);
 		this.add(child.visual);
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		child.visual.depth = index + 2;
+		child.visual.depth = index + depth_pad;
+		// trace(child.visual.depth);
+		if (child.visual.depth < 2) {
+			trace(index, child.visual.depth);
+		}
 		this.add(child.visual);
 		mapChildren();
 		return child;
@@ -283,15 +284,17 @@ class ComponentImpl extends ComponentBase {
 			visual.alpha = style.opacity;
 		}
 
+		visual.isSolid = (style.backgroundColorEnd == null);
+
 		if (style.backgroundOpacity != null) {
-			visual.bg_alpha = style.backgroundOpacity;
+			visual.bgAlpha = style.backgroundOpacity;
 		}
 
 		var alpha:Int = 0xFF000000;
 
 		if (style.backgroundColor != null) {
 			if (style.backgroundOpacity != null) {
-				visual.bg_alpha = style.backgroundOpacity;
+				visual.alpha = style.backgroundOpacity;
 			}
 
 			if (style.backgroundColorEnd != null) {
@@ -304,68 +307,69 @@ class ComponentImpl extends ComponentBase {
 
 				visual.setGradient(type, start, end);
 			} else {
-				visual.bg_color = style.backgroundColor;
+				visual.color = style.backgroundColor;
 			}
 		} else {
-			visual.bg_alpha = 0;
+			
+			visual.bgAlpha = 0;
 		}
 
-		//if (this.text == 'Haxe' || this.text == "Java") {
-			//trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-			//trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
-		//}
+		// if (this.text == 'Haxe' || this.text == "Java") {
+		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		// trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
+		// }
 		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
 		// borders
 		var type = style.borderType;
 		switch (type) {
 			case None:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
+				visual.borderActive = false;
 			case Full:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
-				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-				
+				// visual.resetBorder();
+				// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+
 				if (style.borderSize != null) {
-					visual.border_size = style.borderSize;
-					if (style.borderSize > 0) {
-						visual.border_color = style.borderColor;
-					}
+					visual.borderSize = style.borderSize;
+					visual.borderColor = style.borderColor ?? Color.NONE;
+				} else {
+					visual.borderSize = 0;
 				}
 			case Compound:
+				visual.resetBorder();
+
 				if (style.borderLeftSize != null) {
-					visual.border_left_size = style.borderLeftSize;
-					if (style.borderLeftSize > 0) {
-						visual.border_left_color = (style.borderLeftColor);
-					}
+					visual.borderLeftSize = style.borderLeftSize;
+					visual.borderLeftColor = style.borderLeftColor ?? Color.NONE;
+				} else {
+					visual.borderLeftSize = 0;
 				}
 
 				if (style.borderRightSize != null) {
-					visual.border_right_size = style.borderRightSize;
-					if (style.borderRightSize > 0) {
-						visual.border_right_color = (style.borderRightColor);
-					}
+					visual.borderRightSize = style.borderRightSize;
+					visual.borderRightColor = style.borderRightColor ?? Color.NONE;
+				} else {
+					visual.borderRightSize = 0;
 				}
 
 				if (style.borderTopSize != null) {
-					visual.border_top_size = style.borderTopSize;
-					if (style.borderTopSize > 0) {
-						visual.border_top_color = (style.borderTopColor);
-					}
+					visual.borderTopSize = style.borderTopSize;
+					visual.borderTopColor = style.borderTopColor ?? Color.NONE;
+				} else {
+					visual.borderTopSize = 0;
 				}
 
 				if (style.borderBottomSize != null) {
-					visual.border_bottom_size = style.borderBottomSize;
-					if (style.borderBottomSize > 0) {
-						visual.border_bottom_color = (style.borderBottomColor);
-					}
+					visual.borderBottomSize = style.borderBottomSize;
+					visual.borderBottomColor = style.borderBottomColor ?? Color.NONE;
+				} else {
+					visual.borderBottomSize = 0;
 				}
 			default:
 				trace(type, this._id, this.id, this.visual.id);
 		}
 
 		if (style.borderOpacity != null) {
-			visual.border_alpha = style.borderOpacity;
+			visual.borderAlpha = style.borderOpacity;
 		}
 
 		var sliceTop = style.backgroundImageSliceTop != null;
@@ -380,30 +384,30 @@ class ComponentImpl extends ComponentBase {
 			var rightSlice = style.backgroundImageSliceRight;
 
 			// var obj:NineSlice;
-			if (!visual.isSlice) {
-				var texture = null;
-				if (imgCache.exists(style.backgroundImage)) {
-					texture = imgCache.get(style.backgroundImage);
-					visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-				} else {
-					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-						if (image == null) {
-							trace(
-								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-							);
-							return;
-						}
-						texture = image.data;
-						visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-						imgCache.set(style.backgroundImage, image.data);
+			// if (!visual.isSlice) {
+			// 	var texture = null;
+			// 	if (imgCache.exists(style.backgroundImage)) {
+			// 		texture = imgCache.get(style.backgroundImage);
+			// 		visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+			// 	} else {
+			// 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			// 			if (image == null) {
+			// 				trace(
+			// 					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+			// 				);
+			// 				return;
+			// 			}
+			// 			texture = image.data;
+			// 			visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+			// 			imgCache.set(style.backgroundImage, image.data);
 
-						trace('saved image');
-					});
-				}
-			}
+			// 			trace('saved image');
+			// 		});
+			// 	}
+			// }
 
 			if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-				visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
+				// visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
 				// visual.setSlicePos(leftSlice, topSlice);
 				// visual.setSliceSize(rightSlice, botSlice);
 				trace(topSlice, botSlice, leftSlice, rightSlice);

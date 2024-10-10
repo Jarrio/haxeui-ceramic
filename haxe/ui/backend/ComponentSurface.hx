@@ -3,10 +3,10 @@ package haxe.ui.backend;
 import ceramic.Quad;
 import ceramic.Filter;
 import ceramic.Visual;
-import haxe.ui.backend.ceramic.BorderQuad;
+import haxe.ui.backend.ceramic.BorderVisual;
 
 class ComponentSurface {
-	public var visual:BorderQuad;
+	public var visual:BorderVisual;
 	public var filter:Filter;
 	var depth_tracker = 2;
 	var visible(get, set):Bool;
@@ -14,11 +14,9 @@ class ComponentSurface {
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
 
-	var indices:Array<Int> = [];
-	var vertices:Array<Float> = [];
 	
 	public function new() {
-		this.visual = new BorderQuad();
+		this.visual = new BorderVisual();
 		//visual.depthRange = -1;
 		this.visual.inheritAlpha = true;
 	}
@@ -26,8 +24,8 @@ class ComponentSurface {
 	public inline function size(width:Float, height:Float) {
 
 		//trace('here');
-		this.visual.width = Std.int(width);
-		this.visual.height = Std.int(height);
+		this.visual.width = (width);
+		this.visual.height = (height);
 	}
 
 	public inline function add(visual:Visual) {
@@ -49,7 +47,7 @@ class ComponentSurface {
 
 	var x(get, set):Float;
 	inline function set_x(value:Float):Float {
-		return this.visual.x = Std.int(value);
+		return this.visual.x = (value);
 	}
 
 	inline function get_x():Float {
@@ -58,7 +56,7 @@ class ComponentSurface {
 	
 	var y(get, set):Float;
 	inline function set_y(value:Float):Float {
-		return this.visual.y = Std.int(value);
+		return this.visual.y = (value);
 	}
 
 	inline function get_y():Float {
