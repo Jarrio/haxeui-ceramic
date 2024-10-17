@@ -131,7 +131,11 @@ class TextDisplayImpl extends TextBase {
 		visual.y = _top;
 
 		if (text_visual.numLines == 1) {
-			visual.y = _top + Math.floor(text_visual.height - text_visual.pointSize);
+			var offset = Screen.instance.options.text_offset;
+			if (offset == null) {
+				offset = Math.floor(text_visual.height - text_visual.pointSize);
+			}
+			visual.y = _top + offset;
 		}
 	}
 
@@ -155,6 +159,11 @@ class TextDisplayImpl extends TextBase {
 
 		var w = (text_visual.width);
 		var h = (text_visual.pointSize);
+
+		if (Screen.instance.options.text_offset != null) {
+			h = text_visual.height;
+		}
+		
 		if (text_visual.numLines > 1) {
 			h = text_visual.height;
 		}

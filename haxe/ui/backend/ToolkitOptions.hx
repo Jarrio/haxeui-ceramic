@@ -46,6 +46,12 @@ typedef ToolkitOptions = {
 	@:optional var aliasmode:AliasMode;
 
 	/**
+	 * Text offset - If text appears to be incorrectly aligned, use this to add an offset 
+	 * default is arbitrarily calculated. Set this to `0` to overwrite the default
+	 */
+	@:optional var text_offset:Float;
+
+	/**
 	 * The value to pre-render fonts at. The default is set to *1.5
 	 */
 	@:optional var prerender_font_size:Float;
