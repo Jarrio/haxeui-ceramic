@@ -128,7 +128,11 @@ class TextDisplayImpl extends TextBase {
 				text_visual.x = (_left);
 		}
 
-		visual.y = _top + Math.floor(text_visual.height - text_visual.pointSize);
+		visual.y = _top;
+
+		if (text_visual.numLines == 1) {
+			visual.y = _top + Math.floor(text_visual.height - text_visual.pointSize);
+		}
 	}
 
 	private override function validateDisplay() {
@@ -151,6 +155,9 @@ class TextDisplayImpl extends TextBase {
 
 		var w = (text_visual.width);
 		var h = (text_visual.pointSize);
+		if (text_visual.numLines > 1) {
+			h = text_visual.height;
+		}
 
 		_textWidth = w;
 		_textHeight = h;
