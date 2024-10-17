@@ -75,7 +75,7 @@ class TextDisplayImpl extends TextBase {
 
 			if (_textStyle.fontSize != null) {
 				var presize = Screen.instance.options.prerender_font_size;
-				text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
+				//text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
 				text_visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}
@@ -121,14 +121,14 @@ class TextDisplayImpl extends TextBase {
 	private override function validatePosition() {
 		switch (text_visual.align) {
 			case CENTER:
-				text_visual.x = Std.int(_left + (_width / 2) - (text_visual.width / 2));
+				text_visual.x = (_left + (_width / 2) - (text_visual.width / 2));
 			case RIGHT:
-				text_visual.x = Std.int(_width - text_visual.width);
+				text_visual.x = (_width - text_visual.width);
 			case LEFT:
-				text_visual.x = Std.int(_left);
+				text_visual.x = (_left);
 		}
 
-		visual.y = _top;
+		visual.y = _top + Math.floor(text_visual.height - text_visual.pointSize);
 	}
 
 	private override function validateDisplay() {
@@ -148,8 +148,9 @@ class TextDisplayImpl extends TextBase {
 
 	private override function measureText() {
 		visual.computeContent();
-		var w = Math.fround(text_visual.width);
-		var h = Math.fround(text_visual.height);
+
+		var w = (text_visual.width);
+		var h = (text_visual.pointSize);
 
 		_textWidth = w;
 		_textHeight = h;

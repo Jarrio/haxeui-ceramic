@@ -238,6 +238,7 @@ class ComponentImpl extends ComponentBase {
 		// if (v < 2) {
 		// 	v = 2;
 		// }
+
 		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
 		return child;
