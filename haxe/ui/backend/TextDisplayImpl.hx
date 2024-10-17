@@ -75,7 +75,7 @@ class TextDisplayImpl extends TextBase {
 
 			if (_textStyle.fontSize != null) {
 				var presize = Screen.instance.options.prerender_font_size;
-				//text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
+				text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
 				text_visual.pointSize = Std.int(_textStyle.fontSize);
 				measureTextRequired = true;
 			}
