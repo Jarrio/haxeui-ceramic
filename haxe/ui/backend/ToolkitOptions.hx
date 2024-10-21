@@ -1,9 +1,11 @@
 package haxe.ui.backend;
 
+import haxe.ui.styles.Style.FontWeight;
 import ceramic.BitmapFont;
 import ceramic.Filter;
 import ceramic.Visual;
 import ceramic.Assets;
+import ceramic.AssetId;
 
 enum PerformanceOptions {
 	/**
@@ -55,6 +57,10 @@ typedef ToolkitOptions = {
 	 * The value to pre-render fonts at. The default is set to *1.5
 	 */
 	@:optional var prerender_font_size:Float;
+	/**
+	 * The value to pre-render fonts at. The default is set to *1.5
+	 */
+	@:optional var font_weights:Map<FontWeight, BitmapFont>;
 }
 
 enum abstract AliasMode(String) to String {

@@ -85,6 +85,19 @@ class TextDisplayImpl extends TextBase {
 				measureTextRequired = true;
 			}
 
+			if (_textStyle.fontWeight != null) {
+				var weights = Screen.instance.options.font_weights;
+				var font = null;
+				if (!weights.exists(_textStyle.fontWeight)) {
+					font = Screen.instance.options.default_text_font;
+				} else {
+					font = weights.get(_textStyle.fontWeight);
+				}
+
+				text_visual.font = font;
+				measureTextRequired = true;
+			}
+
 			var font_name = _textStyle.fontName;
 			if (font_name != null) {
 				var font = App.app.assets.font(font_name);
