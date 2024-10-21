@@ -28,12 +28,7 @@ class ScreenImpl extends ScreenBase {
 	}
 
 	function mapComponents() {
-		for (k => c in this.rootComponents) {
-			c.visual.depth = k;
-			if (c.visual.children != null) {
-				//c.visual.sortChildrenByDepth();
-			}
-		}
+
 	}
 	// TODO: shouldnt be neded
 	public override function addComponent(component:haxe.ui.core.Component):haxe.ui.core.Component {
@@ -48,6 +43,7 @@ class ScreenImpl extends ScreenBase {
 	}
 	
 	private override function handleSetComponentIndex(component:Component, index:Int) {
+
 		component.visual.depth = index;
 		resizeComponent(component);
 		this.mapComponents();
@@ -288,7 +284,7 @@ function onKey(type:String, key:Key) {
 			parent.explicitRender = true;
 			#end
 
-			parent.depth = 1000;
+			//parent.depth = 0;
 			options.root = parent;
 			options.root.bindToNativeScreenSize();
 		}

@@ -3,7 +3,7 @@ package haxe.ui.backend;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import haxe.ui.backend.ceramic.GradientQuad.Direction;
+import haxe.ui.backend.ceramic.BorderVisual.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;
@@ -219,10 +219,8 @@ class ComponentImpl extends ComponentBase {
 	var depth_pad = 2;
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = index + depth_pad;
-		if (child.visual.depth < 2) {
-			trace(index, child.visual.depth);
-		}
+		child.visual.depth = index;
+
 //		trace(child.visual.depth);
 		mapChildren();
 	}
@@ -234,14 +232,14 @@ class ComponentImpl extends ComponentBase {
 		if (v < 2) {
 			v = 2;
 		}
-		child.visual.depth = 2;
+
 		//		trace(v);
 		this.add(child.visual);
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		child.visual.depth = index + depth_pad;
+		child.visual.depth = index;
 		// trace(child.visual.depth);
 		if (child.visual.depth < 2) {
 			trace(index, child.visual.depth);
@@ -310,7 +308,6 @@ class ComponentImpl extends ComponentBase {
 				visual.color = style.backgroundColor;
 			}
 		} else {
-			
 			visual.bgAlpha = 0;
 		}
 
@@ -325,7 +322,7 @@ class ComponentImpl extends ComponentBase {
 			case None:
 				visual.borderActive = false;
 			case Full:
-				// visual.resetBorder();
+				visual.borderActive = false;
 				// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 
 				if (style.borderSize != null) {
@@ -335,7 +332,8 @@ class ComponentImpl extends ComponentBase {
 					visual.borderSize = 0;
 				}
 			case Compound:
-				visual.resetBorder();
+				//visual.resetBorder();
+				//visual.borderActive = false;
 
 				if (style.borderLeftSize != null) {
 					visual.borderLeftSize = style.borderLeftSize;

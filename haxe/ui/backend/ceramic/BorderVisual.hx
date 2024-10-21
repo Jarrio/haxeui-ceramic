@@ -1,11 +1,14 @@
 package haxe.ui.backend.ceramic;
 
+import ceramic.MeshExtensions;
 import ceramic.AlphaColor;
 import ceramic.Visual;
 import ceramic.Color;
+import ceramic.Mesh;
+import ceramic.Quad;
 import ceramic.Border;
-import haxe.ui.backend.ceramic.GradientQuad;
 
+@:keep
 class BorderVisual extends Visual {
 	public var border:Border;
 	public var solid:SolidQuad;
@@ -15,7 +18,7 @@ class BorderVisual extends Visual {
 		super();
 	}
 
-	public inline function setGradient(direction:Direction, start:Color, end:Color) {
+	public inline function setGradient(direction:Direction, start:AlphaColor, end:AlphaColor) {
 		if (gradient == null) {
 			return;
 		}
@@ -48,7 +51,7 @@ class BorderVisual extends Visual {
 			solid = new SolidQuad();
 			solid.inheritAlpha = true;
 			solid.size(width, height);
-			solid.depth = 0;
+			solid.depth = -5;
 			add(solid);
 		} else {
 			if (solid != null) {
@@ -58,7 +61,7 @@ class BorderVisual extends Visual {
 			gradient = new GradientQuad();
 			gradient.inheritAlpha = true;
 			gradient.size(width, height);
-			gradient.depth = 0;
+			gradient.depth = -5;
 			add(gradient);
 		}
 		return isSolid = value;
@@ -71,10 +74,14 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderActive(value:Bool) {
+		if (border != null && value == border.active) {
+			return value;
+		}
+
 		if (value) {
 			border = new Border();
 			border.size(width, height);
-			border.depth = 1;
+			border.depth = -4;
 			add(border);
 		} else {
 			if (border != null) {
@@ -185,7 +192,7 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderLeftSize(size:Float) {
-		if (size > 0 && border == null) {
+		if (size > 0 || border == null) {
 			borderActive = true;
 		}
 
@@ -202,7 +209,7 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderRightSize(size:Float) {
-		if (size > 0 && border == null) {
+		if (size > 0 || border == null) {
 			borderActive = true;
 		}
 
@@ -219,7 +226,7 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderTopSize(size:Float) {
-		if (size > 0 && border == null) {
+		if (size > 0 || border == null) {
 			borderActive = true;
 		}
 
@@ -236,7 +243,7 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderBottomSize(size:Float) {
-		if (size > 0 && border == null) {
+		if (size > 0 || border == null) {
 			borderActive = true;
 		}
 
@@ -253,11 +260,11 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderLeftColor(color:Color) {
-		
 		if (color == Color.NONE || border == null) {
+			borderLeftSize = 0;
 			return color;
 		}
-		trace(color.toHexString(), color);
+		//trace(color.toHexString(), color);
 		return border.borderLeftColor = color;
 	}
 
@@ -268,11 +275,11 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderRightColor(color:Color) {
-		
 		if (color == Color.NONE || border == null) {
+			borderRightSize = 0;
 			return color;
 		}
-		trace(color.toHexString(), color);
+		//trace(color.toHexString(), color);
 		return border.borderRightColor = color;
 	}
 
@@ -283,11 +290,11 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderTopColor(color:Color) {
-		
 		if (color == Color.NONE || border == null) {
+			borderTopSize = 0;
 			return color;
 		}
-		trace(color.toHexString(), color);
+		//trace(color.toHexString(), color);
 		return border.borderTopColor = color;
 	}
 
@@ -298,11 +305,11 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderBottomColor(color:Color) {
-		
 		if (color == Color.NONE || border == null) {
+			borderBottomSize = 0;
 			return color;
 		}
-		trace(color.toHexString(), color);
+//		trace(color.toHexString(), color);
 		// 0xD2D2D2
 		return border.borderBottomColor = color;
 	}
@@ -311,7 +318,7 @@ class BorderVisual extends Visual {
 		if (border != null) {
 			border.width = width;
 		}
-		
+
 		if (solid != null) {
 			solid.width = width;
 		}
@@ -336,4 +343,61 @@ class BorderVisual extends Visual {
 		}
 		return super.set_height(height);
 	}
+}
+
+
+class SolidQuad extends Quad {
+	public function new() {
+		super();
+	}
+}
+
+class GradientQuad extends Mesh {
+	public function new() {
+		super();
+		
+		indices = [
+			0, 1, 3,
+			0, 2, 3
+		];
+
+		colorMapping = VERTICES;
+	}
+
+	public function setGradient(direction:Direction, start:AlphaColor, end:AlphaColor) {
+		switch (direction) {
+			case horizontal:
+				this.colors = [start, end, start, end];
+			case vertical:
+				this.colors = [start, start, end, end];
+		}
+	}
+
+	override function set_height(height:Float):Float {
+		this.vertices = [
+			    0,      0,
+			width,      0,
+			    0, height,
+			width, height
+		];
+		contentDirty = true;
+		return super.set_height(height);
+	}
+
+	override function set_width(width:Float):Float {
+//		trace(width, height);
+		this.vertices = [
+			    0,      0,
+			width,      0,
+			    0, height,
+			width, height
+		];
+		contentDirty = true;
+		return super.set_width(width);
+	}
+}
+
+enum abstract Direction(String) from String {
+	var vertical;
+	var horizontal;
 }
