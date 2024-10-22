@@ -24,8 +24,6 @@ class ComponentSurface {
 	}
 
 	public inline function size(width:Float, height:Float) {
-
-		//trace('here');
 		this.visual.width = Std.int(width);
 		this.visual.height = Std.int(height);
 	}

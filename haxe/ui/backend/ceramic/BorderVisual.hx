@@ -8,6 +8,7 @@ import ceramic.Mesh;
 import ceramic.Quad;
 import ceramic.Border;
 import ceramic.RoundedRect;
+import ceramic.Texture;
 
 enum abstract VisualType(String) {
 	var SOLID;
@@ -22,13 +23,13 @@ class BorderVisual extends Visual {
 	public var gradient:GradientQuad;
 	public var rounded:RoundedRect;
 
-	var type:VisualType = SOLID;
+	public var type:VisualType;
 
 	public function new() {
 		super();
 	}
 
-	public inline function setGradient(direction:Direction, start:AlphaColor, end:AlphaColor) {
+	public function setGradient(direction:Direction, start:AlphaColor, end:AlphaColor) {
 		if (gradient != null) {
 			gradient.setGradient(direction, start, end);	
 		}
@@ -56,6 +57,10 @@ class BorderVisual extends Visual {
 	}
 
 	public function setType(value:VisualType) {
+		if(type == value) {
+			return;
+		}
+
 		this.type = value;
 
 		clearGraphicsType(value);
@@ -70,7 +75,7 @@ class BorderVisual extends Visual {
 
 		bgVisual.inheritAlpha = true;
 		bgVisual.depth = -5;
-		bgVisual.size(width, height);
+		//bgVisual.size(width, height);
 
 		add(bgVisual);
 	}
@@ -107,6 +112,15 @@ class BorderVisual extends Visual {
 		}
 	}
 
+	public var texture(get, set):Texture;
+	function get_texture() {
+		return solid.texture;
+	}
+
+	function set_texture(value:Texture) {
+		return this.solid.texture = value;
+	}
+
 	public var borderActive(get, set):Bool;
 
 	function get_borderActive() {
@@ -125,7 +139,7 @@ class BorderVisual extends Visual {
 			add(border);
 		} else {
 			if (border != null) {
-				border.dispose();
+				border.destroy();
 				border = null;
 			}
 		}
@@ -163,6 +177,7 @@ class BorderVisual extends Visual {
 		if (solid == null) {
 			return Color.NONE;
 		}
+
 		return solid.color;
 	}
 

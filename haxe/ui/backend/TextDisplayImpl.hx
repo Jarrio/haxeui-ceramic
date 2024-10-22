@@ -17,12 +17,13 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Visual();
+		visual.depthRange = -1;
 		visual.active = true;
 		visual.visible = false;
 		visual.inheritAlpha = true;
 
 		text_visual = new Text();
-
+		text_visual.depth = -4;
 		var font = Screen.instance.options.default_text_font;
 		// font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
 

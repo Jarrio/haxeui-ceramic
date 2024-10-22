@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import ceramic.Assets;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
@@ -30,7 +31,6 @@ import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import haxe.ui.backend.ScreenImpl;
 import ceramic.NineSlice;
-
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -118,7 +118,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
-				//filter.depthRange = -1;
+				// filter.depthRange = this.depth;
 
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
@@ -126,14 +126,17 @@ class ComponentImpl extends ComponentBase {
 				if (parent == null) {
 					visual.parent.add(filter);
 					// filter.depthRange = 0;
-					 trace('here');
 				} else if (parent.isClipped) {
+					// trace('here');
 					parent.filter.content.add(filter);
 				} else {
+					// trace('here');
+					// filter.depth = this.depth - 6;
 					parent.visual.add(filter);
 				}
 				this.isClipped = true;
 				// this.parentComponent.visual.remove(this.visual);
+				// visual.depth = this.depth - 1;
 				filter.content.add(this.visual);
 			}
 			// filter.color = Color.BLACK;
@@ -223,9 +226,9 @@ class ComponentImpl extends ComponentBase {
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		child.visual.depth = index;
 		if (child.isClipped) {
-			//child.filter.depth = index - 1;
+			// child.filter.depth = index - 1;
 		}
-//		trace(child.visual.depth);
+		//		trace(child.visual.depth);
 		mapChildren();
 	}
 
@@ -238,7 +241,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		//		trace(v);
-		visual.depth = child.depth;
+		//visual.depth = child.depth;
 		this.add(child.visual);
 		return child;
 	}
@@ -247,10 +250,10 @@ class ComponentImpl extends ComponentBase {
 		child.visual.depth = index;
 		// trace(child.visual.depth);
 		if (child.visual.depth < 2) {
-			trace(index, child.visual.depth);
+			//			trace(index, child.visual.depth);
 		}
 		if (child.isClipped) {
-			//child.filter.depth = index - 1;
+			// child.filter.depth = index - 1;
 		}
 		this.add(child.visual);
 		mapChildren();
@@ -278,6 +281,7 @@ class ComponentImpl extends ComponentBase {
 	// Style
 	//***********************************************************************************************************
 	var imgCache:Map<String, Texture> = [];
+	var imgRequest:Map<String, Bool> = [];
 
 	private override function applyStyle(style:Style) {
 		// if (style == null) {
@@ -310,7 +314,7 @@ class ComponentImpl extends ComponentBase {
 			}
 
 			if (value == 0) {
-				//hasRadius = false;
+				hasRadius = false;
 			}
 		}
 		// background
@@ -325,13 +329,13 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			type = SOLID;
 		}
-		
+
 		if (hasRadius) {
-			//type = ROUNDED;
+			// type = ROUNDED;
 		}
 
 		visual.setType(type);
-
+		
 		if (type == ROUNDED) {
 			if (totalRadius) {
 				visual.radius = style.borderRadius;
@@ -376,11 +380,14 @@ class ComponentImpl extends ComponentBase {
 				visual.setGradient(type, start, end);
 			} else {
 				visual.color = style.backgroundColor;
-//				trace('here', type);
 			}
 		} else {
-			visual.bgAlpha = 0;
+			if (style.backgroundImage == null) {
+				visual.bgAlpha = 0;
+			}
 		}
+
+		trace(type, visual.width, visual.height);
 
 		// if (this.text == 'Haxe' || this.text == "Java") {
 		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
@@ -388,8 +395,8 @@ class ComponentImpl extends ComponentBase {
 		// }
 		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
 		// borders
-		var type = style.borderType;
-		switch (type) {
+		var borderType = style.borderType;
+		switch (borderType) {
 			case None:
 				visual.borderActive = false;
 			case Full:
@@ -403,8 +410,8 @@ class ComponentImpl extends ComponentBase {
 					visual.borderSize = 0;
 				}
 			case Compound:
-				//visual.resetBorder();
-				//visual.borderActive = false;
+				// visual.resetBorder();
+				// visual.borderActive = false;
 
 				if (style.borderLeftSize != null) {
 					visual.borderLeftSize = style.borderLeftSize;
@@ -434,19 +441,46 @@ class ComponentImpl extends ComponentBase {
 					visual.borderBottomSize = 0;
 				}
 			default:
-				trace(type, this._id, this.id, this.visual.id);
+				trace(borderType, this._id, this.id, this.visual.id);
 		}
 
 		if (style.borderOpacity != null) {
 			visual.borderAlpha = style.borderOpacity;
 		}
 
-
-
 		var sliceTop = style.backgroundImageSliceTop != null;
 		var sliceLeft = style.backgroundImageSliceLeft != null;
 		var sliceBottom = style.backgroundImageSliceBottom != null;
 		var sliceRight = style.backgroundImageSliceRight != null;
+
+		if (style.backgroundImage != null) {
+			if (imgCache.exists(style.backgroundImage)) {
+				var texture = imgCache.get(style.backgroundImage);
+				if (texture != visual.texture && texture != null) {
+					trace(texture.asset, visual?.texture?.asset);
+					visual.texture = texture;
+				}
+			} else {
+				var request = false;
+				if (imgRequest.exists(style.backgroundImage)) {
+					request = imgRequest.get(style.backgroundImage);
+				}
+
+				imgRequest.set(style.backgroundImage, true);
+				ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+					trace('here');
+					if (image == null) {
+						App.app.logger.warning(
+							'[haxeui-ceramic] CANNOT FIND IMAGE RESOURCE "${style.backgroundImage}". Did you load it?'
+						);
+						return;
+					}
+					visual.texture = image.data;
+					imgCache.set(style.backgroundImage, image.data);
+					imgRequest.remove(style.backgroundImage);
+				});
+			}
+		}
 
 		if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
 			var topSlice = style.backgroundImageSliceTop;
@@ -461,20 +495,7 @@ class ComponentImpl extends ComponentBase {
 			// 		texture = imgCache.get(style.backgroundImage);
 			// 		visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
 			// 	} else {
-			// 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-			// 			if (image == null) {
-			// 				trace(
-			// 					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-			// 				);
-			// 				return;
-			// 			}
-			// 			texture = image.data;
-			// 			visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-			// 			imgCache.set(style.backgroundImage, image.data);
 
-			// 			trace('saved image');
-			// 		});
-			// 	}
 			// }
 
 			if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
