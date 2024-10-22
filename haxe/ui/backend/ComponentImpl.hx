@@ -105,7 +105,6 @@ class ComponentImpl extends ComponentBase {
 
 	override function handleClipRect(value:Rectangle):Void {
 		// @TODO fix clipping with absolute/box
-		//return;
 		if (this.parentComponent == null) {
 			return;
 		}
@@ -131,11 +130,9 @@ class ComponentImpl extends ComponentBase {
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
 				filter.antialiasing = Screen.instance.options.antialiasing;
-				//filter.depth = ;
-				filter.depthRange = -1;
-
 				if (parent == null) {
 					visual.parent.add(filter);
+					// filter.depthRange = 0;
 					// trace('here');
 				} else if (parent.isClipped) {
 					parent.filter.content.add(filter);
@@ -230,25 +227,25 @@ class ComponentImpl extends ComponentBase {
 	var depth_counter = 0;
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = index;
+		child.visual.depth = index + 2;
 		mapChildren();
 	}
 
 	private override function handleAddComponent(child:Component):Component {
 		// child.visual.depth = child.depth;
 //		trace(this.depth);
-		var v = this.depth;
+		var v = this.depth + 2;
 		// if (v < 2) {
 		// 	v = 2;
 		// }
 
-		//child.visual.depth = this.depth;
+		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		child.visual.depth = index;
+		child.visual.depth = index + 2;
 		this.add(child.visual);
 		mapChildren();
 		return child;
@@ -326,41 +323,43 @@ class ComponentImpl extends ComponentBase {
 				visual.border_size = 0;
 				visual.border_color = Color.NONE;
 			case Full:
-				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 				visual.border_size = 0;
+				visual.border_color = Color.NONE;
+				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+				
 				if (style.borderSize != null) {
 					visual.border_size = style.borderSize;
-					visual.border_color = style.borderColor ?? Color.NONE;
-					
+					if (style.borderSize > 0) {
+						visual.border_color = style.borderColor;
+					}
 				}
 			case Compound:
-				
 				if (style.borderLeftSize != null) {
 					visual.border_left_size = style.borderLeftSize;
-						visual.border_left_color = (style.borderLeftColor ?? Color.NONE);
-				} else {
-					visual.border_left_size = 0;
+					if (style.borderLeftSize > 0) {
+						visual.border_left_color = (style.borderLeftColor);
+					}
 				}
 
 				if (style.borderRightSize != null) {
 					visual.border_right_size = style.borderRightSize;
-						visual.border_right_color = (style.borderRightColor ?? Color.NONE);
-				} else {
-					visual.border_right_size = 0;
+					if (style.borderRightSize > 0) {
+						visual.border_right_color = (style.borderRightColor);
+					}
 				}
 
 				if (style.borderTopSize != null) {
 					visual.border_top_size = style.borderTopSize;
-						visual.border_top_color = (style.borderTopColor ?? Color.NONE);
-				} else {
-					visual.border_top_size = 0;
+					if (style.borderTopSize > 0) {
+						visual.border_top_color = (style.borderTopColor);
+					}
 				}
 
 				if (style.borderBottomSize != null) {
 					visual.border_bottom_size = style.borderBottomSize;
-						visual.border_bottom_color = (style.borderBottomColor ?? Color.NONE);
-				} else {
-					visual.border_bottom_size = 0;
+					if (style.borderBottomSize > 0) {
+						visual.border_bottom_color = (style.borderBottomColor);
+					}
 				}
 			default:
 				trace(type, this._id, this.id, this.visual.id);

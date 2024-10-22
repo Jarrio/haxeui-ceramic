@@ -31,7 +31,7 @@ class ComponentSurface {
 	}
 
 	public inline function add(visual:Visual) {
-		visual.depthRange = -1;
+		//visual.depthRange = -1;
 		this.visual.add(visual);
 	}
 

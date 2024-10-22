@@ -26,7 +26,8 @@ class BorderQuad extends Visual {
 			border = new Border();
 			border.inheritAlpha = true;
 			border.size(width, height);
-			border.depth = -4;
+			border.depth = 1;
+			border.borderSize = 0;
 			this.add(border);
 		}
 		border.active = true;
@@ -50,7 +51,7 @@ class BorderQuad extends Visual {
 			sliceBackground = new NineSlice();
 			sliceBackground.inheritAlpha = true;
 			sliceBackground.size(width, height);
-			sliceBackground.depth = -5;
+			sliceBackground.depth = 0;
 			this.add(sliceBackground);
 			this.isSlice = true;
 		}
@@ -76,7 +77,7 @@ class BorderQuad extends Visual {
 			background = new Quad();
 			background.inheritAlpha = true;
 			background.size(width, height);
-			background.depth = -5;
+			background.depth = 0;
 			this.add(background);
 		}
 
@@ -111,7 +112,7 @@ class BorderQuad extends Visual {
 				width, height
 			];
 			gbackground.size(width, height);
-			gbackground.depth = -5;
+			gbackground.depth = 0;
 			this.add(gbackground);
 		}
 
