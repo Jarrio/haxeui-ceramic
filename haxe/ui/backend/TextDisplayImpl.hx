@@ -17,12 +17,13 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Visual();
+		visual.depthRange = -1;
 		visual.active = true;
 		visual.visible = false;
 		visual.inheritAlpha = true;
 
 		text_visual = new Text();
-
+		text_visual.depth = -4;
 		var font = Screen.instance.options.default_text_font;
 		// font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
 
@@ -85,19 +86,6 @@ class TextDisplayImpl extends TextBase {
 				measureTextRequired = true;
 			}
 
-			if (_textStyle.fontWeight != null) {
-				var weights = Screen.instance.options.font_weights;
-				var font = null;
-				if (!weights.exists(_textStyle.fontWeight)) {
-					font = Screen.instance.options.default_text_font;
-				} else {
-					font = weights.get(_textStyle.fontWeight);
-				}
-
-				text_visual.font = font;
-				measureTextRequired = true;
-			}
-
 			var font_name = _textStyle.fontName;
 			if (font_name != null) {
 				var font = App.app.assets.font(font_name);
@@ -134,22 +122,14 @@ class TextDisplayImpl extends TextBase {
 	private override function validatePosition() {
 		switch (text_visual.align) {
 			case CENTER:
-				text_visual.x = (_left + (_width / 2) - (text_visual.width / 2));
+				text_visual.x = Std.int(_left + (_width / 2) - (text_visual.width / 2));
 			case RIGHT:
-				text_visual.x = (_width - text_visual.width);
+				text_visual.x = Std.int(_width - text_visual.width);
 			case LEFT:
-				text_visual.x = (_left);
+				text_visual.x = Std.int(_left);
 		}
 
 		visual.y = _top;
-
-		if (text_visual.numLines == 1) {
-			var offset = Screen.instance.options.text_offset;
-			if (offset == null) {
-				offset = Math.floor(text_visual.height - text_visual.pointSize);
-			}
-			visual.y = _top + offset;
-		}
 	}
 
 	private override function validateDisplay() {
@@ -169,17 +149,8 @@ class TextDisplayImpl extends TextBase {
 
 	private override function measureText() {
 		visual.computeContent();
-
-		var w = (text_visual.width);
-		var h = (text_visual.pointSize);
-
-		if (Screen.instance.options.text_offset != null) {
-			h = text_visual.height;
-		}
-		
-		if (text_visual.numLines > 1) {
-			h = text_visual.height;
-		}
+		var w = Math.fround(text_visual.width);
+		var h = Math.fround(text_visual.height);
 
 		_textWidth = w;
 		_textHeight = h;
