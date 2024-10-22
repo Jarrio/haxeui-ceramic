@@ -8,11 +8,19 @@ import ceramic.Mesh;
 import ceramic.Quad;
 import ceramic.Border;
 
+enum abstract VisualType(String) {
+	var SOLID;
+	var GRADIENT;
+	//var ROUNDED;
+}
+
 @:keep
 class BorderVisual extends Visual {
 	public var border:Border;
 	public var solid:SolidQuad;
 	public var gradient:GradientQuad;
+	public var rounded:RoundedRect;
+	var type:VisualType = SOLID;
 
 	public function new() {
 		super();
@@ -36,35 +44,49 @@ class BorderVisual extends Visual {
 		borderSize = 0;
 	}
 
-	@:isVar public var isSolid(get, set):Bool;
+	public function setType(value:VisualType) {
+		this.type = value;
 
-	function get_isSolid():Bool {
-		return isSolid;
+		clearGraphicsType(value);
+		switch (value) {
+			case SOLID:
+				solid = new SolidQuad();
+				solid.inheritAlpha = true;
+				solid.size(width, height);
+				solid.depth = -5;
+				add(solid);
+			case GRADIENT:
+				gradient = new GradientQuad();
+				gradient.inheritAlpha = true;
+				gradient.size(width, height);
+				gradient.depth = -5;
+				add(gradient);
+		}
+
 	}
 
-	function set_isSolid(value:Bool) {
-		if (value) {
-			if (gradient != null) {
-				gradient.dispose();
-				gradient = null;
-			}
-			solid = new SolidQuad();
-			solid.inheritAlpha = true;
-			solid.size(width, height);
-			solid.depth = -5;
-			add(solid);
-		} else {
+	public var bgVisual(get, never):Visual;
+	function get_bgVisual() {
+		return switch(this.type) {
+			case SOLID: this.solid;
+			case GRADIENT: this.gradient;
+		}
+	}
+
+	function clearGraphicsType(current:VisualType) {
+		if (current != SOLID) {
 			if (solid != null) {
 				solid.dispose();
 				solid = null;
 			}
-			gradient = new GradientQuad();
-			gradient.inheritAlpha = true;
-			gradient.size(width, height);
-			gradient.depth = -5;
-			add(gradient);
 		}
-		return isSolid = value;
+
+		if (current != GRADIENT) {
+			if (gradient != null) {
+				gradient.dispose();
+				gradient = null;
+			}
+		}
 	}
 
 	public var borderActive(get, set):Bool;
@@ -100,17 +122,11 @@ class BorderVisual extends Visual {
 	public var bgAlpha(get, set):Float;
 
 	function get_bgAlpha():Float {
-		if (solid != null) {
-			return solid.alpha;
-		}
-		return gradient.alpha;
+		return bgVisual.alpha;
 	}
 
 	function set_bgAlpha(alpha:Float) {
-		if (solid != null) {
-			return solid.alpha = alpha;
-		}
-		return gradient.alpha = alpha;
+		return bgVisual.alpha = alpha;
 	}
 
 	public var borderAlpha(get, set):Float;

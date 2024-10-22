@@ -6,6 +6,7 @@ import ceramic.Arc;
 import ceramic.Color;
 import ceramic.Visual;
 
+
 typedef Coords = {
 	@:optional var x:Float;
 	@:optional var y:Float;

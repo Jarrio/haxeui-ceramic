@@ -14,6 +14,8 @@ class ComponentSurface {
 	var clipY(get, set):Float;
 	var clipQuad(get, set):Quad;
 
+	var indices:Array<Int> = [];
+	var vertices:Array<Float> = [];
 	
 	public function new() {
 		this.visual = new BorderVisual();
@@ -24,12 +26,12 @@ class ComponentSurface {
 	public inline function size(width:Float, height:Float) {
 
 		//trace('here');
-		this.visual.width = (width);
-		this.visual.height = (height);
+		this.visual.width = Std.int(width);
+		this.visual.height = Std.int(height);
 	}
 
 	public inline function add(visual:Visual) {
-		//visual.depthRange = -1;
+		visual.depthRange = -1;
 		this.visual.add(visual);
 	}
 
@@ -47,7 +49,7 @@ class ComponentSurface {
 
 	var x(get, set):Float;
 	inline function set_x(value:Float):Float {
-		return this.visual.x = (value);
+		return this.visual.x = Std.int(value);
 	}
 
 	inline function get_x():Float {
@@ -56,7 +58,7 @@ class ComponentSurface {
 	
 	var y(get, set):Float;
 	inline function set_y(value:Float):Float {
-		return this.visual.y = (value);
+		return this.visual.y = Std.int(value);
 	}
 
 	inline function get_y():Float {

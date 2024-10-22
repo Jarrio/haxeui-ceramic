@@ -3,7 +3,7 @@ package haxe.ui.backend;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import haxe.ui.backend.ceramic.BorderVisual.Direction;
+import haxe.ui.backend.ceramic.BorderVisual;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;
@@ -30,6 +30,7 @@ import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import haxe.ui.backend.ScreenImpl;
 import ceramic.NineSlice;
+
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -117,6 +118,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
+				//filter.depthRange = -1;
 
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
@@ -124,10 +126,12 @@ class ComponentImpl extends ComponentBase {
 				if (parent == null) {
 					visual.parent.add(filter);
 					// filter.depthRange = 0;
-					// trace('here');
+					 trace('here');
 				} else if (parent.isClipped) {
+					filter.depth = this.depth - 2;
 					parent.filter.content.add(filter);
 				} else {
+					filter.depth = this.depth - 1;
 					parent.visual.add(filter);
 				}
 				this.isClipped = true;
@@ -220,7 +224,9 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		child.visual.depth = index;
-
+		if (child.isClipped) {
+			child.filter.depth = index - 1;
+		}
 //		trace(child.visual.depth);
 		mapChildren();
 	}
@@ -234,6 +240,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		//		trace(v);
+		visual.depth = child.depth;
 		this.add(child.visual);
 		return child;
 	}
@@ -243,6 +250,9 @@ class ComponentImpl extends ComponentBase {
 		// trace(child.visual.depth);
 		if (child.visual.depth < 2) {
 			trace(index, child.visual.depth);
+		}
+		if (child.isClipped) {
+			child.filter.depth = index - 1;
 		}
 		this.add(child.visual);
 		mapChildren();
@@ -275,15 +285,26 @@ class ComponentImpl extends ComponentBase {
 		// if (style == null) {
 		// 	return;
 		// }
+		var totalRadius = style.borderRadius != null;
+		var radiusTopLeft = style.borderRadiusTopLeft != null;
+		var radiusTopRight = style.borderRadiusTopRight != null;
+		var radiusBotLeft = style.borderRadiusBottomLeft != null;
+		var radiusBotRight = style.borderRadiusBottomRight != null;
 
+		var hasRadius = totalRadius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight;
 		// background
 		var alpha:Int = 0xFF000000;
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
 		}
 
-		visual.isSolid = (style.backgroundColorEnd == null);
+		var type = SOLID;
+		if (style.backgroundColorEnd != null) {
+			type = GRADIENT;
+		}
 
+		visual.setType(type);
+		
 		if (style.backgroundOpacity != null) {
 			visual.bgAlpha = style.backgroundOpacity;
 		}
