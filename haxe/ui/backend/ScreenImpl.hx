@@ -29,7 +29,7 @@ class ScreenImpl extends ScreenBase {
 
 	function mapComponents() {
 		for (k => c in this.rootComponents) {
-			c.visual.depth = k;
+			//c.visual.depth = k;
 			if (c.visual.children != null) {
 				//c.visual.sortChildrenByDepth();
 			}
@@ -42,6 +42,7 @@ class ScreenImpl extends ScreenBase {
 		resizeComponent(c);
 		rootComponents.push(component);
 		component.visual.active = true;
+		//component.visual.depth = component.depth;
 		rootAdd(c.visual);
 		this.mapComponents();
 		return c;
@@ -288,7 +289,7 @@ function onKey(type:String, key:Key) {
 			parent.explicitRender = true;
 			#end
 
-			parent.depth = 1000;
+			//parent.depth = 1000;
 			options.root = parent;
 			options.root.bindToNativeScreenSize();
 		}
