@@ -376,7 +376,7 @@ class ComponentImpl extends ComponentBase {
 				visual.setGradient(type, start, end);
 			} else {
 				visual.color = style.backgroundColor;
-				trace('here', type);
+//				trace('here', type);
 			}
 		} else {
 			visual.bgAlpha = 0;
