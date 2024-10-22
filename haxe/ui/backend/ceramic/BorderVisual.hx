@@ -7,11 +7,12 @@ import ceramic.Color;
 import ceramic.Mesh;
 import ceramic.Quad;
 import ceramic.Border;
+import ceramic.RoundedRect;
 
 enum abstract VisualType(String) {
 	var SOLID;
 	var GRADIENT;
-	//var ROUNDED;
+	var ROUNDED;
 }
 
 @:keep
@@ -20,6 +21,7 @@ class BorderVisual extends Visual {
 	public var solid:SolidQuad;
 	public var gradient:GradientQuad;
 	public var rounded:RoundedRect;
+
 	var type:VisualType = SOLID;
 
 	public function new() {
@@ -27,10 +29,19 @@ class BorderVisual extends Visual {
 	}
 
 	public inline function setGradient(direction:Direction, start:AlphaColor, end:AlphaColor) {
-		if (gradient == null) {
-			return;
+		if (gradient != null) {
+			gradient.setGradient(direction, start, end);	
 		}
-		gradient.setGradient(direction, start, end);
+
+		if (rounded != null) {
+			rounded.colorMapping = VERTICES;
+			switch (direction) {
+				case horizontal:
+					rounded.colors = [start, end, start, end];
+				case vertical:
+					rounded.colors = [start, start, end, end];
+			}
+		}
 	}
 
 	public function resetBorder() {
@@ -51,18 +62,17 @@ class BorderVisual extends Visual {
 		switch (value) {
 			case SOLID:
 				solid = new SolidQuad();
-				solid.inheritAlpha = true;
-				solid.size(width, height);
-				solid.depth = -5;
-				add(solid);
 			case GRADIENT:
 				gradient = new GradientQuad();
-				gradient.inheritAlpha = true;
-				gradient.size(width, height);
-				gradient.depth = -5;
-				add(gradient);
+			case ROUNDED:
+				rounded = new RoundedRect();
 		}
 
+		bgVisual.inheritAlpha = true;
+		bgVisual.depth = -5;
+		bgVisual.size(width, height);
+
+		add(bgVisual);
 	}
 
 	public var bgVisual(get, never):Visual;
@@ -70,21 +80,29 @@ class BorderVisual extends Visual {
 		return switch(this.type) {
 			case SOLID: this.solid;
 			case GRADIENT: this.gradient;
+			case ROUNDED: this.rounded;
 		}
 	}
 
 	function clearGraphicsType(current:VisualType) {
 		if (current != SOLID) {
 			if (solid != null) {
-				solid.dispose();
+				solid.destroy();
 				solid = null;
 			}
 		}
 
 		if (current != GRADIENT) {
 			if (gradient != null) {
-				gradient.dispose();
+				gradient.destroy();
 				gradient = null;
+			}
+		}
+
+		if (current != ROUNDED) {
+			if (rounded != null) {
+				rounded.destroy();
+				rounded = null;
 			}
 		}
 	}
@@ -149,10 +167,15 @@ class BorderVisual extends Visual {
 	}
 
 	function set_color(color:Color) {
-		if (solid == null) {
-			return color;
+		if (solid != null) {
+			solid.color = color;
 		}
-		return solid.color = color;
+
+		if (rounded != null) {
+			rounded.colorMapping = MESH;
+			rounded.color = color;
+		}
+		return color;
 	}
 
 	public var colors(get, set):Array<AlphaColor>;
@@ -328,6 +351,52 @@ class BorderVisual extends Visual {
 //		trace(color.toHexString(), color);
 		// 0xD2D2D2
 		return border.borderBottomColor = color;
+	}
+
+	public var radius(get, set):Float;
+	function get_radius() {
+		return rounded.radiusTopLeft;
+	}
+
+	function set_radius(value:Float) {
+		rounded.radius(value);
+		return value;
+	}
+
+	public var topLeftRadius(get, set):Float;
+	function get_topLeftRadius() {
+		return rounded.radiusTopLeft;
+	}
+
+	function set_topLeftRadius(value:Float) {
+		return rounded.radiusTopLeft = value;
+	}
+
+	public var topRightRadius(get, set):Float;
+	function get_topRightRadius() {
+		return rounded.radiusTopRight;
+	}
+
+	function set_topRightRadius(value:Float) {
+		return rounded.radiusTopRight = value;
+	}
+
+	public var bottomLeftRadius(get, set):Float;
+	function get_bottomLeftRadius() {
+		return rounded.radiusBottomLeft;
+	}
+
+	function set_bottomLeftRadius(value:Float) {
+		return rounded.radiusBottomLeft = value;
+	}
+
+	public var bottomRightRadius(get, set):Float;
+	function get_bottomRightRadius() {
+		return rounded.radiusBottomRight;
+	}
+
+	function set_bottomRightRadius(value:Float) {
+		return rounded.radiusBottomRight = value;
 	}
 
 	override function set_width(width:Float):Float {

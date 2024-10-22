@@ -128,10 +128,8 @@ class ComponentImpl extends ComponentBase {
 					// filter.depthRange = 0;
 					 trace('here');
 				} else if (parent.isClipped) {
-					filter.depth = this.depth - 2;
 					parent.filter.content.add(filter);
 				} else {
-					filter.depth = this.depth - 1;
 					parent.visual.add(filter);
 				}
 				this.isClipped = true;
@@ -225,7 +223,7 @@ class ComponentImpl extends ComponentBase {
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		child.visual.depth = index;
 		if (child.isClipped) {
-			child.filter.depth = index - 1;
+			//child.filter.depth = index - 1;
 		}
 //		trace(child.visual.depth);
 		mapChildren();
@@ -252,7 +250,7 @@ class ComponentImpl extends ComponentBase {
 			trace(index, child.visual.depth);
 		}
 		if (child.isClipped) {
-			child.filter.depth = index - 1;
+			//child.filter.depth = index - 1;
 		}
 		this.add(child.visual);
 		mapChildren();
@@ -292,6 +290,29 @@ class ComponentImpl extends ComponentBase {
 		var radiusBotRight = style.borderRadiusBottomRight != null;
 
 		var hasRadius = totalRadius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight;
+
+		if (hasRadius) {
+			var value = style.borderRadius;
+			if (radiusTopLeft) {
+				value += style.borderRadiusTopLeft;
+			}
+
+			if (radiusTopRight) {
+				value += style.borderRadiusTopRight;
+			}
+
+			if (radiusBotLeft) {
+				value += style.borderRadiusBottomLeft;
+			}
+
+			if (radiusBotRight) {
+				value += style.borderRadiusBottomRight;
+			}
+
+			if (value == 0) {
+				//hasRadius = false;
+			}
+		}
 		// background
 		var alpha:Int = 0xFF000000;
 		if (style.opacity != null) {
@@ -301,10 +322,38 @@ class ComponentImpl extends ComponentBase {
 		var type = SOLID;
 		if (style.backgroundColorEnd != null) {
 			type = GRADIENT;
+		} else {
+			type = SOLID;
+		}
+		
+		if (hasRadius) {
+			//type = ROUNDED;
 		}
 
 		visual.setType(type);
-		
+
+		if (type == ROUNDED) {
+			if (totalRadius) {
+				visual.radius = style.borderRadius;
+			}
+
+			if (radiusTopLeft) {
+				visual.topLeftRadius = style.borderRadiusTopLeft;
+			}
+
+			if (radiusTopRight) {
+				visual.topRightRadius = style.borderRadiusTopRight;
+			}
+
+			if (radiusBotLeft) {
+				visual.bottomLeftRadius = style.borderRadiusBottomLeft;
+			}
+
+			if (radiusBotRight) {
+				visual.bottomRightRadius = style.borderRadiusBottomRight;
+			}
+		}
+
 		if (style.backgroundOpacity != null) {
 			visual.bgAlpha = style.backgroundOpacity;
 		}
@@ -327,6 +376,7 @@ class ComponentImpl extends ComponentBase {
 				visual.setGradient(type, start, end);
 			} else {
 				visual.color = style.backgroundColor;
+				trace('here', type);
 			}
 		} else {
 			visual.bgAlpha = 0;
@@ -390,6 +440,8 @@ class ComponentImpl extends ComponentBase {
 		if (style.borderOpacity != null) {
 			visual.borderAlpha = style.borderOpacity;
 		}
+
+
 
 		var sliceTop = style.backgroundImageSliceTop != null;
 		var sliceLeft = style.backgroundImageSliceLeft != null;
