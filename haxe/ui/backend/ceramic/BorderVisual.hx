@@ -168,6 +168,9 @@ class BorderVisual extends Visual {
 	}
 
 	function set_borderAlpha(alpha:Float) {
+		if (border == null) {
+			borderActive = true;
+		}
 		return border.alpha = alpha;
 	}
 

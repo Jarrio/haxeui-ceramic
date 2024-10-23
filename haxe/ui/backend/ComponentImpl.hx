@@ -387,7 +387,7 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		trace(type, visual.width, visual.height);
+//		trace(type, visual.width, visual.height);
 
 		// if (this.text == 'Haxe' || this.text == "Java") {
 		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);

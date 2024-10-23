@@ -9,7 +9,7 @@ class ImageDisplayImpl extends ImageBase {
 	public function new() {
 		super();
 		this.visual = new Quad();
-		visual.depthRange = -1;
+		//visual.depthRange = -1;
 		visual.depth = -4;
 		//this.visual.depth = 1000;
 		//this.visual.color = Color.NONE;
