@@ -88,7 +88,7 @@ class TextDisplayImpl extends TextBase {
 			if (_textStyle.fontWeight != null) {
 				var weights = Screen.instance.options.font_weights;
 				var font = null;
-				if (!weights.exists(_textStyle.fontWeight)) {
+				if (weights == null || !weights.exists(_textStyle.fontWeight)) {
 					font = Screen.instance.options.default_text_font;
 				} else {
 					font = weights.get(_textStyle.fontWeight);
