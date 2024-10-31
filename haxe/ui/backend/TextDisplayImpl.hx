@@ -49,16 +49,6 @@ class TextDisplayImpl extends TextBase {
 				text_visual.color = _textStyle.color;
 			}
 
-			if (_textStyle.fontItalic != null && text_visual.hasComponent('italic') != _textStyle.fontItalic) {
-				if (_textStyle.fontItalic) {
-					text_visual.component('italic', new ItalicText());
-					measureTextRequired = true;
-				} else {
-					text_visual.removeComponent('italic');
-				}
-				measureTextRequired = true;
-			}
-
 			if (_textStyle.fontUnderline != null && text_visual.hasComponent('underline') != _textStyle.fontUnderline) {
 				if (_textStyle.fontUnderline) {
 					text_visual.component('underline', new UnderlineText());
@@ -95,6 +85,24 @@ class TextDisplayImpl extends TextBase {
 				}
 
 				text_visual.font = font;
+				measureTextRequired = true;
+			}
+
+			if (_textStyle.fontItalic != null) {
+				var weight = _textStyle.fontWeight ?? 0;
+				if (_textStyle.fontItalic) {
+					var italics = Screen.instance.options.font_italics ?? [];
+					if (weight != null && italics.exists(weight)) {
+						text_visual.font = italics.get(weight);
+					} else {
+						text_visual.component('italic', new ItalicText());
+						measureTextRequired = true;
+					}
+				} else {
+					if (text_visual.hasComponent('italic')) {
+						text_visual.removeComponent('italic');
+					}
+				}
 				measureTextRequired = true;
 			}
 

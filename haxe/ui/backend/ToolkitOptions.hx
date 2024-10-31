@@ -58,9 +58,13 @@ typedef ToolkitOptions = {
 	 */
 	@:optional var prerender_font_size:Float;
 	/**
-	 * The value to pre-render fonts at. The default is set to *1.5
+	 * Add specific font weights to be picked up by haxeui when using font-weight styles
 	 */
 	@:optional var font_weights:Map<FontWeight, BitmapFont>;
+	/**
+	 * Add italic font file support
+	 */
+	@:optional var font_italics:Map<FontWeight, BitmapFont>;
 }
 
 enum abstract AliasMode(String) to String {
