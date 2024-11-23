@@ -92,7 +92,7 @@ class TextDisplayImpl extends TextBase {
 				var weight = _textStyle.fontWeight ?? 0;
 				if (_textStyle.fontItalic) {
 					var italics = Screen.instance.options.font_italics ?? [];
-					if (weight != null && italics.exists(weight)) {
+					if (weight != 0 && italics.exists(weight)) {
 						text_visual.font = italics.get(weight);
 					} else {
 						text_visual.component('italic', new ItalicText());

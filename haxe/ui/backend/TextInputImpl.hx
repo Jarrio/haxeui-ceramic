@@ -52,6 +52,7 @@ class TextInputImpl extends TextBase {
 		if (pw_comp == null) {
 			return '';
 		}
+		//trace(pw_comp.text);
 		return pw_comp.content;
 	}
 

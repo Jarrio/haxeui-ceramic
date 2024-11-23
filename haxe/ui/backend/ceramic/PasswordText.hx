@@ -44,7 +44,7 @@ class PasswordText extends Entity implements Component {
 		}
 	}
 
-	var text(get, set):String;
+	public var text(get, set):String;
 
 	function get_text() {
 		return visual.entity.content;
