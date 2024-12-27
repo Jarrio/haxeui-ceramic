@@ -277,6 +277,14 @@ class ComponentImpl extends ComponentBase {
 		// if (style == null) {
 		// 	return;
 		// }
+		
+		//Prep types
+		//background
+		if (style.backgroundColorEnd != null) {
+			visual.bgType = GRADIENT;
+		} else {
+			visual.bgType = SOLID;
+		}
 
 		// background
 		var alpha:Int = 0xFF000000;
@@ -285,14 +293,14 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		if (style.backgroundOpacity != null) {
-			visual.bg_alpha = style.backgroundOpacity;
+			visual.bgAlpha = style.backgroundOpacity;
 		}
 
 		var alpha:Int = 0xFF000000;
 
 		if (style.backgroundColor != null) {
 			if (style.backgroundOpacity != null) {
-				visual.bg_alpha = style.backgroundOpacity;
+				visual.bgAlpha = style.backgroundOpacity;
 			}
 
 			if (style.backgroundColorEnd != null) {
@@ -303,12 +311,12 @@ class ComponentImpl extends ComponentBase {
 					type = style.backgroundGradientStyle;
 				}
 
-				visual.setGradient(type, start, end);
+				visual.gradient.setGradient(start, end, (type == 'vertical'));
 			} else {
-				visual.bg_color = style.backgroundColor;
+				visual.solid.color = style.backgroundColor;
 			}
 		} else {
-			visual.bg_alpha = 0;
+			visual.bgAlpha = 0;
 		}
 
 		//if (this.text == 'Haxe' || this.text == "Java") {
@@ -318,47 +326,52 @@ class ComponentImpl extends ComponentBase {
 		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
 		// borders
 		var type = style.borderType;
+		var border = visual.border;
 		switch (type) {
 			case None:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
+				visual.borderType = NONE;
 			case Full:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
+				visual.borderType = NONE;
+				visual.borderType = RECTANGLE;
+				border = visual.border;
 				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 				
 				if (style.borderSize != null) {
-					visual.border_size = style.borderSize;
+					border.borderSize = style.borderSize;
 					if (style.borderSize > 0) {
-						visual.border_color = style.borderColor;
+						border.borderColor = style.borderColor;
 					}
 				}
 			case Compound:
+				visual.borderType = NONE;
+				visual.borderType = RECTANGLE;
+				border = visual.border;
+
 				if (style.borderLeftSize != null) {
-					visual.border_left_size = style.borderLeftSize;
+					border.borderLeftSize = style.borderLeftSize;
 					if (style.borderLeftSize > 0) {
-						visual.border_left_color = (style.borderLeftColor);
+						border.borderLeftColor = (style.borderLeftColor);
 					}
 				}
 
 				if (style.borderRightSize != null) {
-					visual.border_right_size = style.borderRightSize;
+					border.borderRightSize = style.borderRightSize;
 					if (style.borderRightSize > 0) {
-						visual.border_right_color = (style.borderRightColor);
+						border.borderRightColor = (style.borderRightColor);
 					}
 				}
 
 				if (style.borderTopSize != null) {
-					visual.border_top_size = style.borderTopSize;
+					border.borderTopSize = style.borderTopSize;
 					if (style.borderTopSize > 0) {
-						visual.border_top_color = (style.borderTopColor);
+						border.borderTopColor = (style.borderTopColor);
 					}
 				}
 
 				if (style.borderBottomSize != null) {
-					visual.border_bottom_size = style.borderBottomSize;
+					border.borderBottomSize = style.borderBottomSize;
 					if (style.borderBottomSize > 0) {
-						visual.border_bottom_color = (style.borderBottomColor);
+						border.borderBottomColor = (style.borderBottomColor);
 					}
 				}
 			default:
@@ -366,7 +379,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		if (style.borderOpacity != null) {
-			visual.border_alpha = style.borderOpacity;
+			visual.border.alpha = style.borderOpacity;
 		}
 
 		var sliceTop = style.backgroundImageSliceTop != null;
@@ -381,36 +394,36 @@ class ComponentImpl extends ComponentBase {
 			var rightSlice = style.backgroundImageSliceRight;
 
 			// var obj:NineSlice;
-			if (!visual.isSlice) {
-				var texture = null;
-				if (imgCache.exists(style.backgroundImage)) {
-					texture = imgCache.get(style.backgroundImage);
-					visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-				} else {
-					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-						if (image == null) {
-							trace(
-								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-							);
-							return;
-						}
-						texture = image.data;
-						visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-						imgCache.set(style.backgroundImage, image.data);
+			// if (!visual.isSlice) {
+			// 	var texture = null;
+			// 	if (imgCache.exists(style.backgroundImage)) {
+			// 		texture = imgCache.get(style.backgroundImage);
+			// 		visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+			// 	} else {
+			// 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			// 			if (image == null) {
+			// 				trace(
+			// 					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+			// 				);
+			// 				return;
+			// 			}
+			// 			texture = image.data;
+			// 			visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
+			// 			imgCache.set(style.backgroundImage, image.data);
 
-						trace('saved image');
-					});
-				}
-			}
+			// 			trace('saved image');
+			// 		});
+			// 	}
+			// }
 
-			if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-				visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
-				// visual.setSlicePos(leftSlice, topSlice);
-				// visual.setSliceSize(rightSlice, botSlice);
-				trace(topSlice, botSlice, leftSlice, rightSlice);
-			} else {
-				trace(topSlice, botSlice, leftSlice, rightSlice);
-			}
+			// if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
+			// 	visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
+			// 	// visual.setSlicePos(leftSlice, topSlice);
+			// 	// visual.setSliceSize(rightSlice, botSlice);
+			// 	trace(topSlice, botSlice, leftSlice, rightSlice);
+			// } else {
+			// 	trace(topSlice, botSlice, leftSlice, rightSlice);
+			// }
 		}
 
 		this.updateRender();

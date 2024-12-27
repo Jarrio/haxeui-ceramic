@@ -26,7 +26,7 @@ class BorderQuad extends Visual {
 			border = new Border();
 			border.inheritAlpha = true;
 			border.size(width, height);
-			border.depth = 1;
+			border.depth = 2;
 			border.borderSize = 0;
 			this.add(border);
 		}
@@ -340,7 +340,7 @@ class BorderQuad extends Visual {
 	function set_border_left_color(color:Color) {
 		if (color == Color.NONE) {
 			if (border != null) {
-				this.border.borderLeftSize = 0;
+				this.border.borderLeftSize = -1;
 			}
 		} else {
 			this.activateBorder();
@@ -379,7 +379,7 @@ class BorderQuad extends Visual {
 	function set_border_right_color(color:Color) {
 		if (color == Color.NONE) {
 			if (border != null) {
-				this.border.borderRightSize = 0;
+				this.border.borderRightSize = -1;
 			}
 		} else {
 			this.activateBorder();
@@ -417,7 +417,7 @@ class BorderQuad extends Visual {
 	function set_border_top_color(color:Color) {
 		if (color == Color.NONE) {
 			if (border != null) {
-				this.border.borderTopSize = 0;
+				this.border.borderTopSize = -1;
 			}
 		} else {
 			this.activateBorder();
@@ -455,18 +455,16 @@ class BorderQuad extends Visual {
 	function set_border_bottom_color(color:Color) {
 		if (color == Color.NONE) {
 			if (border != null) {
-				this.border.borderBottomSize = 0;
+				this.border.borderBottomSize = -1;
 			}
 		} else {
 			this.activateBorder();
-		}		
+		}
+		return this.border.borderBottomColor = color;
+
 		if (border == null) {
 			return color;
 		}
-		
-		return this.border.borderBottomColor = color;
-
-
 	}
 
 	public var border_bottom_size(get, set):Float;
@@ -479,7 +477,6 @@ class BorderQuad extends Visual {
 		if (size > 0) {
 			this.activateBorder();
 		}
-		
 		if (border == null) {
 			return size;
 		}
