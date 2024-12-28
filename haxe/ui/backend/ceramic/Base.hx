@@ -8,6 +8,7 @@ import ceramic.Quad;
 import ceramic.Component;
 import ceramic.Mesh;
 import ceramic.RoundedRect;
+import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.NineSlice;
 
 enum abstract BGType(String) to String {
@@ -33,7 +34,8 @@ class Base extends Visual {
 	
 
 	public var border:Border;
-	
+	public var roundedBorder:RoundedBorder;
+
 
 	public var bgType(default, set):BGType = NONE;
 
@@ -79,6 +81,7 @@ class Base extends Visual {
 
 		var visual = switch (value) {
 			case RECTANGLE: border = new Border();
+			case ROUNDED: roundedBorder = new RoundedBorder();
 			default: null;
 		}
 
@@ -119,6 +122,7 @@ class Base extends Visual {
 	function getBorder():Visual {
 		return switch (borderType) {
 			case RECTANGLE: border;
+			case ROUNDED: roundedBorder;
 			default: null;
 		}
 	}

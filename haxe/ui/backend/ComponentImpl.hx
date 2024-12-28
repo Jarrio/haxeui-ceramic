@@ -290,23 +290,87 @@ class ComponentImpl extends ComponentBase {
 		var sliceBottom = style.backgroundImageSliceBottom != null;
 		var sliceRight = style.backgroundImageSliceRight != null;
 
-		var radius = style.borderRadius != null;
+		var radius = style.borderRadius != null && style.borderRadius > 0;
+		var radiusTopLeft = style.borderRadiusTopLeft != null;
+		var radiusTopRight = style.borderRadiusTopRight != null;
+		var radiusBotLeft = style.borderRadiusBottomLeft != null;
+		var radiusBotRight = style.borderRadiusBottomRight != null;
+
 		if (clipTop || clipLeft || clipBottom || clipRight) {
 			// visual.bgType = NINESLICE;
 		} else if (sliceTop || sliceLeft || sliceBottom || sliceRight) {
 			// visual.bgType = NINESLICE;
+		} else if (radius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight) {
+			visual.bgType = ROUNDED;
+			visual.borderType = ROUNDED;
 		} else if (style.backgroundColorEnd != null) {
 			visual.bgType = GRADIENT;
 		} else {
 			visual.bgType = SOLID;
 		}
 
-		trace(visual.bgType);
+		// trace(visual.bgType);
 		// if (radius != null && visual.bgType == SOLID) {
 		// 	visual.bgType = ROUNDED;
 		// 	visual.rounded.radius(style.borderRadius);
 		// 	visual.rounded.color = style.backgroundColor;
 		// }
+
+		switch (visual.bgType) {
+			case ROUNDED:
+				var bg = visual.rounded;
+				var border = visual.roundedBorder;
+				
+				
+				if (radius) {
+					trace(style.borderRadius, style.borderRadius == null);
+					bg.radius(style.borderRadius);
+					border.radius = style.borderRadius;
+				} else {
+					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
+					if (radiusTopLeft) {
+						bg.radiusTopLeft = style.borderRadiusTopLeft;
+						border.topLeft = style.borderRadiusTopLeft;
+					} else {
+						bg.radiusTopLeft = 0;
+						border.topLeft = 0;
+					}
+
+					if (radiusTopRight) {
+						bg.radiusTopRight = style.borderRadiusTopRight;
+						border.topRight = style.borderRadiusTopRight;
+					} else {
+						bg.radiusTopRight = 0;
+						border.topRight = 0;
+					}
+
+					if (radiusBotLeft) {
+						bg.radiusBottomLeft = style.borderRadiusBottomLeft;
+						border.botLeft = style.borderRadiusBottomLeft;
+					} else {
+						bg.radiusBottomLeft = 0;
+						border.botLeft = 0;
+					}
+
+					if (radiusBotRight) {
+						bg.radiusBottomRight = style.borderRadiusBottomRight;
+						border.botRight = style.borderRadiusBottomRight;
+					} else {
+						bg.radiusBottomRight = 0;
+						border.botRight = 0;
+					}
+				}
+
+				border.color = style.borderColor;
+				border.thickness = style.borderSize;
+
+				bg.color = style.backgroundColor;
+				bg.alpha = style.backgroundOpacity;
+				//border.alpha = style.borderOpacity;
+
+				return;
+			default:
+		}
 
 		// background
 		var alpha:Int = 0xFF000000;
@@ -468,7 +532,7 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 			}
-			
+
 			if (clipTop || clipLeft || clipBottom || clipRight) {
 				var slice = visual.slice.tile;
 				slice.frameX = style.backgroundImageClipLeft;
