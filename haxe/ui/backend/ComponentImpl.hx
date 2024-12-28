@@ -30,6 +30,7 @@ import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import haxe.ui.backend.ScreenImpl;
 import ceramic.NineSlice;
+import ceramic.TextureTile;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -76,7 +77,6 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
-
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
@@ -97,7 +97,7 @@ class ComponentImpl extends ComponentBase {
 		if (width > 0) {
 			this.visual.width = width;
 		}
-		
+
 		this.updateRender();
 	}
 
@@ -221,7 +221,7 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	function mapChildren() {
-		//visual.normalizeChildrenDepth();
+		// visual.normalizeChildrenDepth();
 	}
 
 	var depth_counter = 0;
@@ -233,7 +233,7 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleAddComponent(child:Component):Component {
 		// child.visual.depth = child.depth;
-//		trace(this.depth);
+		//		trace(this.depth);
 		var v = this.depth + 2;
 		// if (v < 2) {
 		// 	v = 2;
@@ -277,14 +277,36 @@ class ComponentImpl extends ComponentBase {
 		// if (style == null) {
 		// 	return;
 		// }
-		
-		//Prep types
-		//background
-		if (style.backgroundColorEnd != null) {
+
+		// Prep types
+		// background
+		var clipTop = style.backgroundImageClipTop != null;
+		var clipLeft = style.backgroundImageClipLeft != null;
+		var clipBottom = style.backgroundImageClipBottom != null;
+		var clipRight = style.backgroundImageClipRight != null;
+
+		var sliceTop = style.backgroundImageSliceTop != null;
+		var sliceLeft = style.backgroundImageSliceLeft != null;
+		var sliceBottom = style.backgroundImageSliceBottom != null;
+		var sliceRight = style.backgroundImageSliceRight != null;
+
+		var radius = style.borderRadius != null;
+		if (clipTop || clipLeft || clipBottom || clipRight) {
+			// visual.bgType = NINESLICE;
+		} else if (sliceTop || sliceLeft || sliceBottom || sliceRight) {
+			// visual.bgType = NINESLICE;
+		} else if (style.backgroundColorEnd != null) {
 			visual.bgType = GRADIENT;
 		} else {
 			visual.bgType = SOLID;
 		}
+
+		trace(visual.bgType);
+		// if (radius != null && visual.bgType == SOLID) {
+		// 	visual.bgType = ROUNDED;
+		// 	visual.rounded.radius(style.borderRadius);
+		// 	visual.rounded.color = style.backgroundColor;
+		// }
 
 		// background
 		var alpha:Int = 0xFF000000;
@@ -319,10 +341,10 @@ class ComponentImpl extends ComponentBase {
 			visual.bgAlpha = 0;
 		}
 
-		//if (this.text == 'Haxe' || this.text == "Java") {
-			//trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-			//trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
-		//}
+		// if (this.text == 'Haxe' || this.text == "Java") {
+		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		// trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
+		// }
 		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
 		// borders
 		var type = style.borderType;
@@ -334,8 +356,8 @@ class ComponentImpl extends ComponentBase {
 				visual.borderType = NONE;
 				visual.borderType = RECTANGLE;
 				border = visual.border;
-				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-				
+				// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+
 				if (style.borderSize != null) {
 					border.borderSize = style.borderSize;
 					if (style.borderSize > 0) {
@@ -382,51 +404,108 @@ class ComponentImpl extends ComponentBase {
 			visual.border.alpha = style.borderOpacity;
 		}
 
-		var sliceTop = style.backgroundImageSliceTop != null;
-		var sliceLeft = style.backgroundImageSliceLeft != null;
-		var sliceBottom = style.backgroundImageSliceBottom != null;
-		var sliceRight = style.backgroundImageSliceRight != null;
+		// var radiusTop = style.borderRadiusTop != null;
+		// var radiusLeft = style.backgroundImageradiusLeft != null;
+		// var radiusBottom = style.backgroundImageradiusBottom != null;
+		// var radiusRight = style.backgroundImageradiusRight != null;
 
-		if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
-			var topSlice = style.backgroundImageSliceTop;
-			var botSlice = style.backgroundImageSliceBottom;
-			var leftSlice = style.backgroundImageSliceLeft;
-			var rightSlice = style.backgroundImageSliceRight;
+		var clipping = false;
 
-			// var obj:NineSlice;
-			// if (!visual.isSlice) {
-			// 	var texture = null;
-			// 	if (imgCache.exists(style.backgroundImage)) {
-			// 		texture = imgCache.get(style.backgroundImage);
-			// 		visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-			// 	} else {
-			// 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-			// 			if (image == null) {
-			// 				trace(
-			// 					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-			// 				);
-			// 				return;
-			// 			}
-			// 			texture = image.data;
-			// 			visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-			// 			imgCache.set(style.backgroundImage, image.data);
+		if (visual.bgType == NINESLICE) {
+			if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
+				// visual.bgType = NINESLICE;
+				var topSlice = style.backgroundImageSliceTop;
+				var botSlice = style.backgroundImageSliceBottom;
+				var leftSlice = style.backgroundImageSliceLeft;
+				var rightSlice = style.backgroundImageSliceRight;
 
-			// 			trace('saved image');
-			// 		});
-			// 	}
-			// }
+				var obj = visual.slice;
+				trace(visual.bgType, visual.slice?.tile);
+				if (imgCache.exists(style.backgroundImage)) {
+					var texture = imgCache.get(style.backgroundImage);
+					if (texture != null) {
+						if (obj.tile?.texture != texture) {
+							trace('set texture');
+							if (obj.tile == null) {
+								obj.tile = new TextureTile(texture, 0, 0, 0, 0);
+							}
+							obj.tile.texture = texture;
+						}
+					}
+					// obj.slice(topSlice, rightSlice, botSlice, leftSlice);
+				} else {
+					loadImage(style.backgroundImage, true);
+				}
 
-			// if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-			// 	visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
-			// 	// visual.setSlicePos(leftSlice, topSlice);
-			// 	// visual.setSliceSize(rightSlice, botSlice);
-			// 	trace(topSlice, botSlice, leftSlice, rightSlice);
-			// } else {
-			// 	trace(topSlice, botSlice, leftSlice, rightSlice);
-			// }
+				if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
+					var fx = obj.tile.frameX;
+					var fy = obj.tile.frameY;
+					var fw = obj.tile.frameWidth;
+					var fh = obj.tile.frameHeight;
+					if (fw > 0) {
+						obj.slice(topSlice, fw - rightSlice, fh - botSlice, leftSlice);
+						trace('fw');
+					} else {
+						trace('no fw');
+						obj.slice(topSlice, rightSlice, botSlice, leftSlice);
+					}
+
+					trace('frame', fx, fy, fw, fh);
+					trace('slice', topSlice, rightSlice, botSlice, leftSlice);
+				} else {
+					trace(topSlice, botSlice, leftSlice, rightSlice);
+				}
+			} else {
+				if (style.backgroundImage != null) {
+					// visual.bgType = SOLID;
+					if (!imgCache.exists(style.backgroundImage)) {
+						loadImage(style.backgroundImage, false);
+					} else {
+						var img = imgCache.get(style.backgroundImage);
+						if (img != null) {
+							visual.solid.texture = img;
+						}
+					}
+				}
+			}
+			
+			if (clipTop || clipLeft || clipBottom || clipRight) {
+				var slice = visual.slice.tile;
+				slice.frameX = style.backgroundImageClipLeft;
+				slice.frameY = style.backgroundImageClipTop;
+				slice.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+				slice.frameHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+			}
 		}
 
 		this.updateRender();
+	}
+
+	function loadImage(source:String, slice:Bool) {
+		if (imgCache.exists(source)) {
+			return;
+		}
+		imgCache.set(style.backgroundImage, null);
+		ImageLoader.instance.load(source, function(image:ImageInfo) {
+			if (image == null) {
+				trace('[haxeui-ceramic] image ${source} could not be loaded');
+				return;
+			}
+			var texture = image.data;
+
+			if (slice) {
+				if (visual.slice.tile == null) {
+					visual.slice.tile = new TextureTile(texture, 0, 0, 0, 0);
+				} else {
+					visual.slice.tile.texture = texture;
+				}
+			} else {
+				visual.solid.texture = texture;
+			}
+			imgCache.set(source, image.data);
+
+			trace('saved image $source');
+		});
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {

@@ -29,12 +29,17 @@ class Base extends Visual {
 	public var slice:NineSlice;
 	public var rounded:RoundedRect;
 	public var gradient:GradientMesh;
+	public var clipQuad:Quad;
+	
 
 	public var border:Border;
+	
 
 	public var bgType(default, set):BGType = NONE;
 
 	function set_bgType(value:BGType) {
+		
+		
 		if (value == bgType) {
 			return bgType;
 		}
