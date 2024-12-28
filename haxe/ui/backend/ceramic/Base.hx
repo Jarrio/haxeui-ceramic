@@ -8,6 +8,7 @@ import ceramic.Quad;
 import ceramic.Component;
 import ceramic.Mesh;
 import ceramic.RoundedRect;
+import haxe.ui.backend.ceramic.RoundedBg;
 import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.NineSlice;
 
@@ -28,7 +29,7 @@ enum abstract BorderType(String) to String {
 class Base extends Visual {
 	public var solid:Quad;
 	public var slice:NineSlice;
-	public var rounded:RoundedRect;
+	public var rounded:RoundedBg;
 	public var gradient:GradientMesh;
 	public var clipQuad:Quad;
 	
@@ -53,7 +54,7 @@ class Base extends Visual {
 		var visual:Visual = switch (value) {
 			case SOLID: solid = new Quad();
 			case GRADIENT: gradient = new GradientMesh();
-			case ROUNDED: rounded = new RoundedRect();
+			case ROUNDED: rounded = new RoundedBg();
 			case NINESLICE: slice = new NineSlice();
 			default: null;
 		}
@@ -97,14 +98,27 @@ class Base extends Visual {
 
 	override function set_width(value) {
 		getBg()?.width = value;
-		getBorder()?.width = value;
+		if (border != null) {
+			border.width = value;
+		}
+
+		if (roundedBorder != null) {
+			roundedBorder.width = value;
+		}
 
 		return super.set_width(value);
 	}
 
 	override function set_height(value) {
 		getBg()?.height = value;
-		getBorder()?.height = value;
+		
+		if (border != null) {
+			border.height = value;
+		}
+
+		if (roundedBorder != null) {
+			roundedBorder.height = value;
+		}
 
 		return super.set_height(value);
 	}

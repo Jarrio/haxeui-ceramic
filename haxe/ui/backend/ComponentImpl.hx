@@ -290,7 +290,7 @@ class ComponentImpl extends ComponentBase {
 		var sliceBottom = style.backgroundImageSliceBottom != null;
 		var sliceRight = style.backgroundImageSliceRight != null;
 
-		var radius = style.borderRadius != null && style.borderRadius > 0;
+		var radius = style.borderRadius != null;
 		var radiusTopLeft = style.borderRadiusTopLeft != null;
 		var radiusTopRight = style.borderRadiusTopRight != null;
 		var radiusBotLeft = style.borderRadiusBottomLeft != null;
@@ -320,59 +320,193 @@ class ComponentImpl extends ComponentBase {
 			case ROUNDED:
 				var bg = visual.rounded;
 				var border = visual.roundedBorder;
-				
-				
+
 				if (radius) {
-					trace(style.borderRadius, style.borderRadius == null);
-					bg.radius(style.borderRadius);
+					bg.radius = style.borderRadius;
 					border.radius = style.borderRadius;
+//					trace(style.borderRadius);
 				} else {
-					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
+//					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
+					var borderLeftSize = style.borderLeftSize != null;
+					var borderRightSize = style.borderRightSize != null;
+					var borderBottomSize = style.borderBottomSize != null;
+					var borderTopSize = style.borderTopSize != null;
+
+					// if (borderLeftSize) {
+					// 	border.left = style.borderLeftSize;
+					// }
+
+					// if (borderRightSize) {
+					// 	border.right = style.borderRightSize;
+					// }
+
+					// if (borderBottomSize) {
+					// 	border.bottom = style.borderBottomSize;
+					// }
+
+					// if (borderTopSize) {
+					// 	border.top = style.borderTopSize;
+					// }
+
 					if (radiusTopLeft) {
-						bg.radiusTopLeft = style.borderRadiusTopLeft;
+						bg.topLeft = style.borderRadiusTopLeft;
 						border.topLeft = style.borderRadiusTopLeft;
 					} else {
-						bg.radiusTopLeft = 0;
+						bg.topLeft = 0;
 						border.topLeft = 0;
 					}
 
 					if (radiusTopRight) {
-						bg.radiusTopRight = style.borderRadiusTopRight;
+						bg.topRight = style.borderRadiusTopRight;
 						border.topRight = style.borderRadiusTopRight;
 					} else {
-						bg.radiusTopRight = 0;
+						bg.topRight = 0;
 						border.topRight = 0;
 					}
 
 					if (radiusBotLeft) {
-						bg.radiusBottomLeft = style.borderRadiusBottomLeft;
-						border.botLeft = style.borderRadiusBottomLeft;
+						bg.bottomLeft = style.borderRadiusBottomLeft;
+						border.bottomLeft = style.borderRadiusBottomLeft;
 					} else {
-						bg.radiusBottomLeft = 0;
-						border.botLeft = 0;
+						bg.bottomLeft = 0;
+						border.bottomLeft = 0;
 					}
 
 					if (radiusBotRight) {
-						bg.radiusBottomRight = style.borderRadiusBottomRight;
-						border.botRight = style.borderRadiusBottomRight;
+						bg.bottomRight = style.borderRadiusBottomRight;
+						border.bottomRight = style.borderRadiusBottomRight;
 					} else {
-						bg.radiusBottomRight = 0;
-						border.botRight = 0;
+						bg.bottomRight = 0;
+						border.bottomRight = 0;
 					}
 				}
 
-				border.color = style.borderColor;
-				border.thickness = style.borderSize;
+				//bg.computeContent();
+				
+				border.color = style.borderColor ?? Color.NONE;
+				border.thickness = style.borderSize ?? 0;
+			// trace(border.thickness);
 
-				bg.color = style.backgroundColor;
-				bg.alpha = style.backgroundOpacity;
-				//border.alpha = style.borderOpacity;
+			// bg.color = style.backgroundColor ?? Color.NONE;
+			// bg.alpha = style.backgroundOpacity ?? 0;
+			// border.alpha = style.borderOpacity;
 
-				return;
+			// return;
 			default:
 		}
 
+		// if (this.text == 'Haxe' || this.text == "Java") {
+		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		// trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
+		// }
+		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
+		// borders
+		var type = style.borderType;
+		var border = visual.border;
+
+		var borderSize = style.borderSize != null && style.borderSize > 0;
+		var borderTop = style.borderTopSize != null;
+		var borderRight = style.borderRightSize != null;
+		var borderBottom = style.borderBottomSize != null;
+		var borderLeft = style.borderLeftSize != null;
+
+		if (borderTop || borderRight || borderLeft || borderBottom || borderSize) {
+			if (visual.border == null) {
+				border = visual.border = new Border();
+				border.depth = 1;
+				border.size(visual.width, visual.height);
+				visual.add(border);
+			}
+			switch (type) {
+				case None:
+					border.destroy();
+				case Full:
+					// visual.borderType = NONE;
+					// visual.borderType = RECTANGLE;
+					// border = visual.border;
+					// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+					if (!radius && !radiusTopLeft && !radiusTopLeft && !radiusBotLeft && !radiusBotRight) {
+//						trace('here');
+						if (style.borderSize != null) {
+							border.borderSize = style.borderSize;
+							if (style.borderSize > 0) {
+								border.borderColor = style.borderColor;
+							}
+						}
+					} else {
+						border.destroy();
+					}
+				case Compound:
+					// visual.borderType = NONE;
+					// visual.borderType = RECTANGLE;
+					// border = visual.border;
+
+					if (!radius) {
+						if (style.borderLeftSize != null) {
+							border.borderLeftSize = style.borderLeftSize;
+							if (style.borderLeftSize > 0) {
+								border.borderLeftColor = (style.borderLeftColor);
+							}
+						}
+
+						if (style.borderRightSize != null) {
+							border.borderRightSize = style.borderRightSize;
+							if (style.borderRightSize > 0) {
+								border.borderRightColor = (style.borderRightColor);
+							}
+						}
+
+						if (style.borderTopSize != null) {
+							border.borderTopSize = style.borderTopSize;
+							if (style.borderTopSize > 0) {
+								border.borderTopColor = (style.borderTopColor);
+							}
+						}
+
+						if (style.borderBottomSize != null) {
+							border.borderBottomSize = style.borderBottomSize;
+							if (style.borderBottomSize > 0) {
+								border.borderBottomColor = (style.borderBottomColor);
+							}
+						}
+					}
+
+					if (radiusTopLeft && radiusTopRight) {
+						border.borderTopSize = 0;
+					}
+
+					if (radiusTopLeft && radiusBotLeft) {
+						border.borderLeftSize = 0;
+					}
+
+					if (radiusTopRight && radiusBotRight) {
+						border.borderRightSize = 0;
+					}
+
+					if (radiusBotLeft && radiusBotRight) {
+						border.borderBottomSize = 0;
+					}
+
+				default:
+					trace(type, this._id, this.id, this.visual.id);
+			}
+
+			var borderLeftSize = style.borderLeftSize != null && style.borderLeftSize > 0;
+			var borderRightSize = style.borderRightSize != null && style.borderRightSize > 0;
+			var borderTopSize = style.borderTopSize != null && style.borderTopSize > 0;
+			var borderBottomSize = style.borderBottomSize != null && style.borderBottomSize > 0;
+
+			if (!borderLeftSize && !borderRightSize && !borderTopSize && !borderBottomSize) {
+				border.destroy();
+			}
+		}
+
 		// background
+		var bg:Mesh = visual.gradient;
+		if (visual.rounded != null) {
+			bg = visual.rounded;
+		}
+
 		var alpha:Int = 0xFF000000;
 		if (style.opacity != null) {
 			visual.alpha = style.opacity;
@@ -396,72 +530,21 @@ class ComponentImpl extends ComponentBase {
 				if (style.backgroundGradientStyle != null) {
 					type = style.backgroundGradientStyle;
 				}
+				if (visual.gradient != null) {
+					visual.gradient.setGradient(start, end, (type == 'vertical'));
+				} else {
+					visual.rounded.setGradient(start, end, (type == 'vertical'));
+				}
 
-				visual.gradient.setGradient(start, end, (type == 'vertical'));
 			} else {
-				visual.solid.color = style.backgroundColor;
+				if (visual.solid != null) {
+					visual.solid.color = style.backgroundColor;
+				} else {
+					bg.color = style.backgroundColor;
+				}
 			}
 		} else {
 			visual.bgAlpha = 0;
-		}
-
-		// if (this.text == 'Haxe' || this.text == "Java") {
-		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-		// trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
-		// }
-		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
-		// borders
-		var type = style.borderType;
-		var border = visual.border;
-		switch (type) {
-			case None:
-				visual.borderType = NONE;
-			case Full:
-				visual.borderType = NONE;
-				visual.borderType = RECTANGLE;
-				border = visual.border;
-				// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-
-				if (style.borderSize != null) {
-					border.borderSize = style.borderSize;
-					if (style.borderSize > 0) {
-						border.borderColor = style.borderColor;
-					}
-				}
-			case Compound:
-				visual.borderType = NONE;
-				visual.borderType = RECTANGLE;
-				border = visual.border;
-
-				if (style.borderLeftSize != null) {
-					border.borderLeftSize = style.borderLeftSize;
-					if (style.borderLeftSize > 0) {
-						border.borderLeftColor = (style.borderLeftColor);
-					}
-				}
-
-				if (style.borderRightSize != null) {
-					border.borderRightSize = style.borderRightSize;
-					if (style.borderRightSize > 0) {
-						border.borderRightColor = (style.borderRightColor);
-					}
-				}
-
-				if (style.borderTopSize != null) {
-					border.borderTopSize = style.borderTopSize;
-					if (style.borderTopSize > 0) {
-						border.borderTopColor = (style.borderTopColor);
-					}
-				}
-
-				if (style.borderBottomSize != null) {
-					border.borderBottomSize = style.borderBottomSize;
-					if (style.borderBottomSize > 0) {
-						border.borderBottomColor = (style.borderBottomColor);
-					}
-				}
-			default:
-				trace(type, this._id, this.id, this.visual.id);
 		}
 
 		if (style.borderOpacity != null) {
