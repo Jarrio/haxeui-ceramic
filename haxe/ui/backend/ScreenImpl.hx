@@ -275,10 +275,11 @@ function onKey(type:String, key:Key) {
 			Timer.interval(options.root, 0.5, onInterval);
 		}
 
+		#if filter_root
 		App.app.screen.onResize(null, Ceramic.forceRender);
-
 		App.app.onUpdate(null, onUpdate);
-
+		#end
+		
 		if (options.root == null) {
 			#if no_filter_root
 			var parent = new Visual();
@@ -299,7 +300,9 @@ function onKey(type:String, key:Key) {
 	function onPointerDown(info) {
 		last_fast_fps = Timer.now;
 		App.app.settings.targetFps = 60;
+		#if filter_root
 		Ceramic.forceRender();
+		#end
 	}
 
 	function onInterval() {
@@ -309,23 +312,26 @@ function onKey(type:String, key:Key) {
 	}
 
 	function onUpdate(_) {
+		#if filter_root
 		Ceramic.redraw();
+		#end
 	}
 
 	inline function rootAdd(visual:Visual) {
 		
-		#if no_filter_root
-		options.root.add(visual);
-		#else
+		#if filter_root
 		options.root.content.add(visual);
+		#else
+		options.root.add(visual);
 		#end
 	}
 
 	inline function rootRemove(visual:Visual) {
-		#if no_filter_root
-		options.root.remove(visual);
-		#else
+		#if filter_root
 		options.root.content.remove(visual);
+		#else
+		options.root.remove(visual);
+		
 		#end
 	}
 }

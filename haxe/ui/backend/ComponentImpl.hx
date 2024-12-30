@@ -50,7 +50,9 @@ class ComponentImpl extends ComponentBase {
 			Screen.instance.last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
+		#if filter_root
 		Ceramic.forceRender();
+		#end
 	}
 
 	private function recursiveReady() {

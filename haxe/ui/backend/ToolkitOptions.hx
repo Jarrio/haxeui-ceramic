@@ -33,7 +33,7 @@ typedef ToolkitOptions = {
 	 */
 	@:optional var performance:PerformanceOptions;
 
-	@:optional var root:#if no_filter_root Visual #else Filter #end;
+	@:optional var root:#if filter_root Filter #else Visual #end;
 	@:optional var assets:Assets;
 
 	/**

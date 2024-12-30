@@ -36,7 +36,7 @@ Screen.instance.addComponent(haxeui_component);
 ### FPS Throttling
 In your `Toolkit.init()` there's a new option called `performance` set this to `FPS` and whenever your app gets into an idle state, it will lower the FPS down to 15 and boost it back up when it is no longer idle
 ### Cached Rendering
-Out of the box this will only update the UI when a change has occured to prevent constantly redrawing the UI. If you want to completely turn this feature off add the `no_filter_root` define to your ceramic.yml. For the most part, I suspect this will be a feature moreso for applications than games, however with the below features it can be for both.
+[Experimental] This will only update the UI when a change has occured to prevent constantly redrawing the UI. If you want to use this feature add the `filter_root` define to your ceramic.yml. For the most part, I suspect this will be a feature moreso for applications than games, however with the below features it can be for both.
 There are 2 ways you can go about this. 
 #### Ceramic.forceRender();
 Call this if you want a quick "pulse" render. The UI will be redrawn at the end of the update phase
@@ -81,7 +81,6 @@ class Foo extends Visual {
 ----
 Not working/Bugged:
 
-- canvas
 - number stepper (text alignment)
 
 Working:
@@ -122,6 +121,7 @@ layouts
 - spliter
 
 misc
+- canvas
 - tooltips
 - drag
 - animations
