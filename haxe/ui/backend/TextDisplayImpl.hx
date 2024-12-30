@@ -164,7 +164,7 @@ class TextDisplayImpl extends TextBase {
 		var w = Std.int(_width);
 
 		if (w > 0 && visual.width != w) {
-			visual.width = w;
+			visual.width = w;	
 			//text_visual.fitWidth = w;
 		}
 

@@ -86,18 +86,21 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (visual.width != width || visual.height != height) {
+		var w = Math.round(width);
+		var h = Math.round(height);
+
+		if (visual.width != w || visual.height != h) {
 			if (style != null) {
 				applyStyle(style);
 			}
 		}
 
-		if (height > 0) {
-			this.visual.height = height;
+		if (h > 0 && h != visual.height) {
+			this.visual.height = h;
 		}
 
-		if (width > 0) {
-			this.visual.width = width;
+		if (w > 0 && w != visual.width) {
+			this.visual.width = w;
 		}
 
 		this.updateRender();
@@ -384,7 +387,7 @@ class ComponentImpl extends ComponentBase {
 				}
 
 				//bg.computeContent();
-				
+
 				border.color = style.borderColor ?? Color.NONE;
 				border.thickness = style.borderSize ?? 0;
 			// trace(border.thickness);
