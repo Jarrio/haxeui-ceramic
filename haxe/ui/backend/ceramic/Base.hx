@@ -97,7 +97,10 @@ class Base extends Visual {
 
 
 	override function set_width(value) {
-		getBg()?.width = value;
+		if (getBg() != null) {
+			getBg().width = value;
+		}
+
 		if (border != null) {
 			border.width = value;
 		}
@@ -110,7 +113,10 @@ class Base extends Visual {
 	}
 
 	override function set_height(value) {
-		getBg()?.height = value;
+		
+		if (getBg() != null) {
+			getBg().height = value;
+		}
 		
 		if (border != null) {
 			border.height = value;
@@ -144,7 +150,11 @@ class Base extends Visual {
 	public var bgAlpha(never, set):Float;
 
 	function set_bgAlpha(value) {
-		return getBg()?.alpha = value;
+		if (solid != null) solid.alpha = value;
+		if (gradient != null) gradient.alpha = value;
+		if (rounded != null) rounded.alpha = value;
+		if (slice != null) slice.alpha = value;
+		return value;
 	}
 }
 
