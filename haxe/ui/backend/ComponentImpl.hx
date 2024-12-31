@@ -225,8 +225,8 @@ class ComponentImpl extends ComponentBase {
 	// Display tree
 	//***********************************************************************************************************
 
-	function mapChildren() {
-		// visual.normalizeChildrenDepth();
+	inline function mapChildren() {
+		visual.sortChildrenByDepth();
 	}
 
 	var depth_counter = 0;
@@ -246,6 +246,8 @@ class ComponentImpl extends ComponentBase {
 
 		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
+		mapChildren();
+		
 		return child;
 	}
 
