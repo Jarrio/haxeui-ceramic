@@ -15,7 +15,7 @@ class GradientMesh extends Mesh {
 			0, 2, 3
 		];
 
-		colorMapping = VERTICES;
+		
 	}
 
 	override function set_width(value) {
@@ -39,6 +39,7 @@ class GradientMesh extends Mesh {
 	}
 
 	public function setGradient(start:Color, end:Color, vertical:Bool = true) {
+		colorMapping = VERTICES;
 		colors = switch (vertical) {
 			case true:  [start, start, end, end];
 			case false: [start, end, start, end];

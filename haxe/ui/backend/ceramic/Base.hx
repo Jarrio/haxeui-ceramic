@@ -129,7 +129,7 @@ class Base extends Visual {
 		return super.set_height(value);
 	}
 
-	function getBg():Visual {
+	public function getBg():Visual {
 		return switch (bgType) {
 			case SOLID: solid;
 			case GRADIENT: gradient;

@@ -55,8 +55,8 @@ class RoundedBg extends Mesh {
 			colors.push(vertical ? end : start);
 		}
 
-		this.colors = colors;
 		colorMapping = VERTICES;
+		this.colors = colors;
 	}
 
 	public function createRoundedRect(topLeft:Float, topRight:Float, bottomRight:Float, bottomLeft:Float):Void {

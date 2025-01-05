@@ -247,7 +247,7 @@ class ComponentImpl extends ComponentBase {
 		child.visual.depth = this.depth + 2;
 		this.add(child.visual);
 		mapChildren();
-		
+
 		return child;
 	}
 
@@ -297,7 +297,7 @@ class ComponentImpl extends ComponentBase {
 		var sliceBottom = style.backgroundImageSliceBottom != null;
 		var sliceRight = style.backgroundImageSliceRight != null;
 
-		var radius = style.borderRadius != null;
+		var radius = style.borderRadius != null && style.borderRadius > 0;
 		var radiusTopLeft = style.borderRadiusTopLeft != null;
 		var radiusTopRight = style.borderRadiusTopRight != null;
 		var radiusBotLeft = style.borderRadiusBottomLeft != null;
@@ -331,9 +331,9 @@ class ComponentImpl extends ComponentBase {
 				if (radius) {
 					bg.radius = style.borderRadius;
 					border.radius = style.borderRadius;
-//					trace(style.borderRadius);
+					//					trace(style.borderRadius);
 				} else {
-//					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
+					//					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
 					var borderLeftSize = style.borderLeftSize != null;
 					var borderRightSize = style.borderRightSize != null;
 					var borderBottomSize = style.borderBottomSize != null;
@@ -388,7 +388,7 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 
-				//bg.computeContent();
+				// bg.computeContent();
 
 				border.color = style.borderColor ?? Color.NONE;
 				border.thickness = style.borderSize ?? 0;
@@ -417,6 +417,11 @@ class ComponentImpl extends ComponentBase {
 		var borderBottom = style.borderBottomSize != null;
 		var borderLeft = style.borderLeftSize != null;
 
+		var solidBorder = true;
+		if (radius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight) {
+			solidBorder = false;
+		}
+
 		if (borderTop || borderRight || borderLeft || borderBottom || borderSize) {
 			if (visual.border == null) {
 				border = visual.border = new Border();
@@ -433,7 +438,7 @@ class ComponentImpl extends ComponentBase {
 					// border = visual.border;
 					// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 					if (!radius && !radiusTopLeft && !radiusTopLeft && !radiusBotLeft && !radiusBotRight) {
-//						trace('here');
+						//						trace('here');
 						if (style.borderSize != null) {
 							border.borderSize = style.borderSize;
 							if (style.borderSize > 0) {
@@ -447,6 +452,10 @@ class ComponentImpl extends ComponentBase {
 					// visual.borderType = NONE;
 					// visual.borderType = RECTANGLE;
 					// border = visual.border;
+					border.borderLeftSize = 0;
+					border.borderRightSize = 0;
+					border.borderTopSize = 0;
+					border.borderBottomSize = 0;
 
 					if (!radius) {
 						if (style.borderLeftSize != null) {
@@ -478,21 +487,21 @@ class ComponentImpl extends ComponentBase {
 						}
 					}
 
-					if (radiusTopLeft && radiusTopRight) {
-						border.borderTopSize = 0;
-					}
+				// if (radiusTopLeft && radiusTopRight) {
+				// 	border.borderTopSize = 0;
+				// }
 
-					if (radiusTopLeft && radiusBotLeft) {
-						border.borderLeftSize = 0;
-					}
+				// if (radiusTopLeft && radiusBotLeft) {
+				// 	border.borderLeftSize = 0;
+				// }
 
-					if (radiusTopRight && radiusBotRight) {
-						border.borderRightSize = 0;
-					}
+				// if (radiusTopRight && radiusBotRight) {
+				// 	border.borderRightSize = 0;
+				// }
 
-					if (radiusBotLeft && radiusBotRight) {
-						border.borderBottomSize = 0;
-					}
+				// if (radiusBotLeft && radiusBotRight) {
+				// 	border.borderBottomSize = 0;
+				// }
 
 				default:
 					trace(type, this._id, this.id, this.visual.id);
@@ -542,11 +551,11 @@ class ComponentImpl extends ComponentBase {
 				} else {
 					visual.rounded.setGradient(start, end, (type == 'vertical'));
 				}
-
 			} else {
 				if (visual.solid != null) {
 					visual.solid.color = style.backgroundColor;
 				} else {
+					bg.colorMapping = MESH;
 					bg.color = style.backgroundColor;
 				}
 			}

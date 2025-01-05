@@ -161,14 +161,14 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validateDisplay() {
-		var w = Std.int(_width);
+		var w = _width;
 
 		if (w > 0 && visual.width != w) {
-			visual.width = w;	
+			visual.width = w;
 			//text_visual.fitWidth = w;
 		}
 
-		var h = Std.int(_height);
+		var h = _height;
 
 		if (h > 0 && visual.height != h) {
 			visual.height = h;
