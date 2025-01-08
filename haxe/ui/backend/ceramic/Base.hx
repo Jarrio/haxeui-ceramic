@@ -32,26 +32,23 @@ class Base extends Visual {
 	public var rounded:RoundedBg;
 	public var gradient:GradientMesh;
 	public var clipQuad:Quad;
-	
 
 	public var border:Border;
 	public var roundedBorder:RoundedBorder;
 
-
 	public var bgType(default, set):BGType = NONE;
 
 	function set_bgType(value:BGType) {
-		
-		
 		if (value == bgType) {
 			return bgType;
 		}
 
+		var visual:Visual = null;
+
 		if (getBg() != null) {
 			getBg().destroy();
 		}
-
-		var visual:Visual = switch (value) {
+		visual = switch (value) {
 			case SOLID: solid = new Quad();
 			case GRADIENT: gradient = new GradientMesh();
 			case ROUNDED: rounded = new RoundedBg();
@@ -61,8 +58,9 @@ class Base extends Visual {
 
 		if (visual != null) {
 			visual.depth = 0;
+			// visual.depthRange = -1;
 			visual.inheritAlpha = true;
-			visual.size(width, height);
+			//visual.size(width, height);
 			add(visual);
 		}
 
@@ -76,30 +74,44 @@ class Base extends Visual {
 			return borderType;
 		}
 
-		if (getBorder() != null) {
-			getBorder().destroy();
-		}
+		var visual = null;
 
-		var visual = switch (value) {
-			case RECTANGLE: border = new Border();
-			case ROUNDED: roundedBorder = new RoundedBorder();
-			default: null;
+		if (getBorder() != null) {
+			getBorder().active = false;
+			visual = switch (value) {
+				case RECTANGLE: border;
+				case ROUNDED: roundedBorder;
+				default: null;
+			}
+			visual.active = true;
+		} else {
+			visual = switch (value) {
+				case RECTANGLE: border = new Border();
+				case ROUNDED: roundedBorder = new RoundedBorder();
+				default: null;
+			}
 		}
 
 		if (visual != null) {
 			visual.depth = 1;
+			// visual.depthRange = -1;
+
 			visual.size(width, height);
-			getBg().add(visual);
+			visual.inheritAlpha = true;
+			add(visual);
 		}
 		return borderType = value;
 	}
 
-
-
 	override function set_width(value) {
-		if (getBg() != null) {
-			getBg().width = value;
-		}
+		if (solid != null)
+			solid.width = value;
+		if (gradient != null)
+			gradient.width = value;
+		if (rounded != null)
+			rounded.width = value;
+		if (slice != null)
+			slice.width = value;
 
 		if (border != null) {
 			border.width = value;
@@ -113,11 +125,15 @@ class Base extends Visual {
 	}
 
 	override function set_height(value) {
-		
-		if (getBg() != null) {
-			getBg().height = value;
-		}
-		
+		if (solid != null)
+			solid.height = value;
+		if (gradient != null)
+			gradient.height = value;
+		if (rounded != null)
+			rounded.height = value;
+		if (slice != null)
+			slice.height = value;
+
 		if (border != null) {
 			border.height = value;
 		}
@@ -150,10 +166,14 @@ class Base extends Visual {
 	public var bgAlpha(never, set):Float;
 
 	function set_bgAlpha(value) {
-		if (solid != null) solid.alpha = value;
-		if (gradient != null) gradient.alpha = value;
-		if (rounded != null) rounded.alpha = value;
-		if (slice != null) slice.alpha = value;
+		if (solid != null)
+			solid.alpha = value;
+		if (gradient != null)
+			gradient.alpha = value;
+		if (rounded != null)
+			rounded.alpha = value;
+		if (slice != null)
+			slice.alpha = value;
 		return value;
 	}
 }

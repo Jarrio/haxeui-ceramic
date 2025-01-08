@@ -304,24 +304,121 @@ class ComponentImpl extends ComponentBase {
 		var radiusBotRight = style.borderRadiusBottomRight != null;
 
 		if (clipTop || clipLeft || clipBottom || clipRight) {
-			// visual.bgType = NINESLICE;
+			visual.bgType = NINESLICE;
 		} else if (sliceTop || sliceLeft || sliceBottom || sliceRight) {
-			// visual.bgType = NINESLICE;
+			visual.bgType = NINESLICE;
 		} else if (radius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight) {
 			visual.bgType = ROUNDED;
 			visual.borderType = ROUNDED;
 		} else if (style.backgroundColorEnd != null) {
 			visual.bgType = GRADIENT;
+			visual.borderType = RECTANGLE;
 		} else {
 			visual.bgType = SOLID;
+			visual.borderType = RECTANGLE;
 		}
 
-		// trace(visual.bgType);
-		// if (radius != null && visual.bgType == SOLID) {
-		// 	visual.bgType = ROUNDED;
-		// 	visual.rounded.radius(style.borderRadius);
-		// 	visual.rounded.color = style.backgroundColor;
-		// }
+		// borders
+		var type = style.borderType;
+		var border = visual.border;
+
+		var borderSize = style.borderSize != null && style.borderSize > 0;
+		var borderTop = style.borderTopSize != null;
+		var borderRight = style.borderRightSize != null;
+		var borderBottom = style.borderBottomSize != null;
+		var borderLeft = style.borderLeftSize != null;
+
+		var borderLeftSize = style.borderLeftSize;
+		var borderRightSize = style.borderRightSize;
+		var borderTopSize = style.borderTopSize;
+		var borderBottomSize = style.borderBottomSize;
+
+		var full = borderLeftSize != null && borderLeftSize == borderRightSize && borderLeftSize == borderTopSize
+			&& borderLeftSize == borderBottomSize;
+		var compound = (borderLeftSize > 0 || borderRightSize > 0 || borderTopSize > 0 || borderBottomSize > 0);
+
+		if (!radius && border != null) {
+			border.borderSize = -1;
+
+			border.borderLeftSize = -1;
+			border.borderLeftColor = Color.NONE;
+			if (borderLeft) {
+				border.borderLeftSize = style.borderLeftSize;
+				border.borderLeftColor = (style.borderLeftColor);
+			}
+
+			border.borderRightSize = -1;
+			border.borderRightColor = Color.NONE;
+			if (borderRight) {
+				border.borderRightSize = style.borderRightSize;
+				border.borderRightColor = (style.borderRightColor);
+			}
+
+			border.borderTopSize = -1;
+			border.borderTopColor = Color.NONE;
+			if (borderTop) {
+				border.borderTopSize = style.borderTopSize;
+				border.borderTopColor = (style.borderTopColor);
+			}
+
+			border.borderBottomSize = -1;
+			border.borderBottomColor = Color.NONE;
+			if (borderBottom) {
+				border.borderBottomSize = style.borderBottomSize;
+				border.borderBottomColor = (style.borderBottomColor);
+			}
+
+			if (style.borderOpacity != null) {
+				border.alpha = style.borderOpacity;
+			}
+		}
+
+		// background
+		var bg:Mesh = visual.gradient;
+		if (visual.rounded != null) {
+			bg = visual.rounded;
+		}
+
+		var alpha:Int = 0xFF000000;
+		if (style.opacity != null) {
+			visual.alpha = style.opacity;
+		}
+
+		if (style.backgroundOpacity != null) {
+			visual.bgAlpha = style.backgroundOpacity;
+		}
+
+		var alpha:Int = 0xFF000000;
+		if (visual.bgType != NINESLICE) {
+			if (style.backgroundColor != null) {
+				if (style.backgroundOpacity != null) {
+					visual.bgAlpha = style.backgroundOpacity;
+				}
+
+				if (style.backgroundColorEnd != null) {
+					var start = (style.backgroundColor | alpha);
+					var end = (style.backgroundColorEnd | alpha);
+					var type = "vertical";
+					if (style.backgroundGradientStyle != null) {
+						type = style.backgroundGradientStyle;
+					}
+					if (visual.gradient != null) {
+						visual.gradient.setGradient(start, end, (type == 'vertical'));
+					} else {
+						visual.rounded.setGradient(start, end, (type == 'vertical'));
+					}
+				} else {
+					if (visual.solid != null) {
+						visual.solid.color = style.backgroundColor;
+					} else {
+						bg.colorMapping = MESH;
+						bg.color = style.backgroundColor;
+					}
+				}
+			} else {
+				visual.bgAlpha = 0;
+			}
+		}
 
 		switch (visual.bgType) {
 			case ROUNDED:
@@ -331,29 +428,11 @@ class ComponentImpl extends ComponentBase {
 				if (radius) {
 					bg.radius = style.borderRadius;
 					border.radius = style.borderRadius;
-					//					trace(style.borderRadius);
 				} else {
-					//					trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
 					var borderLeftSize = style.borderLeftSize != null;
 					var borderRightSize = style.borderRightSize != null;
 					var borderBottomSize = style.borderBottomSize != null;
 					var borderTopSize = style.borderTopSize != null;
-
-					// if (borderLeftSize) {
-					// 	border.left = style.borderLeftSize;
-					// }
-
-					// if (borderRightSize) {
-					// 	border.right = style.borderRightSize;
-					// }
-
-					// if (borderBottomSize) {
-					// 	border.bottom = style.borderBottomSize;
-					// }
-
-					// if (borderTopSize) {
-					// 	border.top = style.borderTopSize;
-					// }
 
 					if (radiusTopLeft) {
 						bg.topLeft = style.borderRadiusTopLeft;
@@ -388,191 +467,15 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 
-				// bg.computeContent();
 
 				border.color = style.borderColor ?? Color.NONE;
 				border.thickness = style.borderSize ?? 0;
-			// trace(border.thickness);
-
-			// bg.color = style.backgroundColor ?? Color.NONE;
-			// bg.alpha = style.backgroundOpacity ?? 0;
-			// border.alpha = style.borderOpacity;
-
-			// return;
 			default:
 		}
 
-		// if (this.text == 'Haxe' || this.text == "Java") {
-		// trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-		// trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
-		// }
-		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
-		// borders
-		var type = style.borderType;
-		var border = visual.border;
-
-		var borderSize = style.borderSize != null && style.borderSize > 0;
-		var borderTop = style.borderTopSize != null;
-		var borderRight = style.borderRightSize != null;
-		var borderBottom = style.borderBottomSize != null;
-		var borderLeft = style.borderLeftSize != null;
-
-		var solidBorder = true;
-		if (radius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight) {
-			solidBorder = false;
-		}
-
-		if (borderTop || borderRight || borderLeft || borderBottom || borderSize) {
-			if (visual.border == null) {
-				border = visual.border = new Border();
-				border.depth = 1;
-				border.size(visual.width, visual.height);
-				visual.add(border);
-			}
-			switch (type) {
-				case None:
-					border.destroy();
-				case Full:
-					// visual.borderType = NONE;
-					// visual.borderType = RECTANGLE;
-					// border = visual.border;
-					// trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-					if (!radius && !radiusTopLeft && !radiusTopLeft && !radiusBotLeft && !radiusBotRight) {
-						//						trace('here');
-						if (style.borderSize != null) {
-							border.borderSize = style.borderSize;
-							if (style.borderSize > 0) {
-								border.borderColor = style.borderColor;
-							}
-						}
-					} else {
-						border.destroy();
-					}
-				case Compound:
-					// visual.borderType = NONE;
-					// visual.borderType = RECTANGLE;
-					// border = visual.border;
-					border.borderLeftSize = 0;
-					border.borderRightSize = 0;
-					border.borderTopSize = 0;
-					border.borderBottomSize = 0;
-
-					if (!radius) {
-						if (style.borderLeftSize != null) {
-							border.borderLeftSize = style.borderLeftSize;
-							if (style.borderLeftSize > 0) {
-								border.borderLeftColor = (style.borderLeftColor);
-							}
-						}
-
-						if (style.borderRightSize != null) {
-							border.borderRightSize = style.borderRightSize;
-							if (style.borderRightSize > 0) {
-								border.borderRightColor = (style.borderRightColor);
-							}
-						}
-
-						if (style.borderTopSize != null) {
-							border.borderTopSize = style.borderTopSize;
-							if (style.borderTopSize > 0) {
-								border.borderTopColor = (style.borderTopColor);
-							}
-						}
-
-						if (style.borderBottomSize != null) {
-							border.borderBottomSize = style.borderBottomSize;
-							if (style.borderBottomSize > 0) {
-								border.borderBottomColor = (style.borderBottomColor);
-							}
-						}
-					}
-
-				// if (radiusTopLeft && radiusTopRight) {
-				// 	border.borderTopSize = 0;
-				// }
-
-				// if (radiusTopLeft && radiusBotLeft) {
-				// 	border.borderLeftSize = 0;
-				// }
-
-				// if (radiusTopRight && radiusBotRight) {
-				// 	border.borderRightSize = 0;
-				// }
-
-				// if (radiusBotLeft && radiusBotRight) {
-				// 	border.borderBottomSize = 0;
-				// }
-
-				default:
-					trace(type, this._id, this.id, this.visual.id);
-			}
-
-			var borderLeftSize = style.borderLeftSize != null && style.borderLeftSize > 0;
-			var borderRightSize = style.borderRightSize != null && style.borderRightSize > 0;
-			var borderTopSize = style.borderTopSize != null && style.borderTopSize > 0;
-			var borderBottomSize = style.borderBottomSize != null && style.borderBottomSize > 0;
-
-			if (!borderLeftSize && !borderRightSize && !borderTopSize && !borderBottomSize) {
-				border.destroy();
-			}
-		}
-
-		// background
-		var bg:Mesh = visual.gradient;
-		if (visual.rounded != null) {
-			bg = visual.rounded;
-		}
-
-		var alpha:Int = 0xFF000000;
-		if (style.opacity != null) {
-			visual.alpha = style.opacity;
-		}
-
-		if (style.backgroundOpacity != null) {
-			visual.bgAlpha = style.backgroundOpacity;
-		}
-
-		var alpha:Int = 0xFF000000;
-
-		if (style.backgroundColor != null) {
-			if (style.backgroundOpacity != null) {
-				visual.bgAlpha = style.backgroundOpacity;
-			}
-
-			if (style.backgroundColorEnd != null) {
-				var start = (style.backgroundColor | alpha);
-				var end = (style.backgroundColorEnd | alpha);
-				var type = "vertical";
-				if (style.backgroundGradientStyle != null) {
-					type = style.backgroundGradientStyle;
-				}
-				if (visual.gradient != null) {
-					visual.gradient.setGradient(start, end, (type == 'vertical'));
-				} else {
-					visual.rounded.setGradient(start, end, (type == 'vertical'));
-				}
-			} else {
-				if (visual.solid != null) {
-					visual.solid.color = style.backgroundColor;
-				} else {
-					bg.colorMapping = MESH;
-					bg.color = style.backgroundColor;
-				}
-			}
-		} else {
-			visual.bgAlpha = 0;
-		}
-
-		if (style.borderOpacity != null) {
-			visual.border.alpha = style.borderOpacity;
-		}
-
-		// var radiusTop = style.borderRadiusTop != null;
-		// var radiusLeft = style.backgroundImageradiusLeft != null;
-		// var radiusBottom = style.backgroundImageradiusBottom != null;
-		// var radiusRight = style.backgroundImageradiusRight != null;
-
 		var clipping = false;
+
+		var tile = (clipTop || clipBottom || clipLeft || clipRight) && (sliceTop || sliceLeft || sliceBottom || sliceRight);
 
 		if (visual.bgType == NINESLICE) {
 			if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
@@ -583,61 +486,47 @@ class ComponentImpl extends ComponentBase {
 				var rightSlice = style.backgroundImageSliceRight;
 
 				var obj = visual.slice;
-				trace(visual.bgType, visual.slice?.tile);
-				if (imgCache.exists(style.backgroundImage)) {
-					var texture = imgCache.get(style.backgroundImage);
-					if (texture != null) {
-						if (obj.tile?.texture != texture) {
-							trace('set texture');
-							if (obj.tile == null) {
-								obj.tile = new TextureTile(texture, 0, 0, 0, 0);
-							}
-							obj.tile.texture = texture;
-						}
-					}
-					// obj.slice(topSlice, rightSlice, botSlice, leftSlice);
-				} else {
-					loadImage(style.backgroundImage, true);
-				}
 
-				if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-					var fx = obj.tile.frameX;
-					var fy = obj.tile.frameY;
-					var fw = obj.tile.frameWidth;
-					var fh = obj.tile.frameHeight;
-					if (fw > 0) {
-						obj.slice(topSlice, fw - rightSlice, fh - botSlice, leftSlice);
-						trace('fw');
+				ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+					if (image == null) {
+						trace(
+							'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+						);
+						return;
+					}
+					var texture = image.data;
+
+					if (tile) {
+						trace(1);
+						visual.slice.tile = new TextureTile(texture, 0, 0, 65, 26);
 					} else {
-						trace('no fw');
-						obj.slice(topSlice, rightSlice, botSlice, leftSlice);
+						trace(3);
+						visual.slice.texture = texture;
 					}
 
-					trace('frame', fx, fy, fw, fh);
-					trace('slice', topSlice, rightSlice, botSlice, leftSlice);
-				} else {
-					trace(topSlice, botSlice, leftSlice, rightSlice);
-				}
-			} else {
-				if (style.backgroundImage != null) {
-					// visual.bgType = SOLID;
-					if (!imgCache.exists(style.backgroundImage)) {
-						loadImage(style.backgroundImage, false);
-					} else {
-						var img = imgCache.get(style.backgroundImage);
-						if (img != null) {
-							visual.solid.texture = img;
-						}
-					}
-				}
+					applySliceAndClip(tile);
+				});
 			}
-
-			if (clipTop || clipLeft || clipBottom || clipRight) {
-				var slice = visual.slice.tile;
-				slice.frameX = style.backgroundImageClipLeft;
-				slice.frameY = style.backgroundImageClipTop;
-				slice.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
-				slice.frameHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+		} else {
+			if (style.backgroundImage != null && visual.bgType == SOLID) {
+				// visual.bgType = SOLID;
+				if (!imgCache.exists(style.backgroundImage)) {
+					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+						if (image == null) {
+							trace(
+								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+							);
+							return;
+						}
+						imgCache.set(style.backgroundImage, image.data);
+						visual.solid.texture = image.data;
+					});
+				} else {
+					var img = imgCache.get(style.backgroundImage);
+					if (img != null) {
+						visual.solid.texture = img;
+					}
+				}
 			}
 		}
 
@@ -658,17 +547,43 @@ class ComponentImpl extends ComponentBase {
 
 			if (slice) {
 				if (visual.slice.tile == null) {
-					visual.slice.tile = new TextureTile(texture, 0, 0, 0, 0);
+					visual.slice.tile = new TextureTile(texture, 0, 0, 65, 26);
 				} else {
 					visual.slice.tile.texture = texture;
 				}
 			} else {
 				visual.solid.texture = texture;
 			}
+
 			imgCache.set(source, image.data);
 
+			applySliceAndClip(slice);
 			trace('saved image $source');
 		});
+	}
+
+	function applySliceAndClip(framed:Bool) {
+		var slice = visual.slice;
+		
+		var top = style.backgroundImageSliceTop;
+		var left = style.backgroundImageSliceLeft;
+
+		var right = (style.backgroundImageClipRight - style.backgroundImageClipLeft) - style.backgroundImageSliceRight;
+		var bot = style.backgroundImageClipBottom - style.backgroundImageSliceBottom;
+
+		if (framed) {
+			var tile = visual.slice.tile;
+			tile.frameX = style.backgroundImageClipLeft;
+			tile.frameY = style.backgroundImageClipTop;
+			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+			tile.frameHeight = style.backgroundImageClipBottom;
+			
+			slice.slice(top, Math.abs(right), Math.abs(bot), left);
+		} else {
+			slice.slice(top, right, bot, left);
+		}
+		
+		slice.size(width, height);
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
