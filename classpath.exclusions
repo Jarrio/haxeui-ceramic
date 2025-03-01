@@ -1,0 +1,31 @@
+; exclude paths from classpath when searching for haxeui arifacts (module.xml, native.xml, etc)
+; speeds up build
+
+\/ceramic\/git\/
+\/out\/
+\/gen\/
+\/db-core\/
+\/db-mysql\/
+\/db-ecs\/
+\/entities\/
+\/http\/
+\/hxwebsockets\/
+\/logging\/
+\/mysql\/
+\/promises\/
+\/electron\/
+\/websockets\/
+\/queues-core\/
+\/haxe-manager\/
+\/libmysqlclient\/
+\/ceramic\/plugins\/
+\/ceramic\/runtime\/
+
+
+
+\/.haxelib\/safety\/
+\/.haxelib\/bits\/
+\/.haxelib\/ecs\/
+\/.haxelib\/hx4compat\/
+\/.haxelib\/nodejs\/
+\/.haxelib\/hxwebsockets\/
