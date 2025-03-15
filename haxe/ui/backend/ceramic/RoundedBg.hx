@@ -12,7 +12,7 @@ class RoundedBg extends Mesh {
 
 	@content public var segments:Int = 32;
 
-	public var radius(never, set):Float;
+	public var radius(default, set):Float;
 
 	function set_radius(value) {
 		topLeft = value;

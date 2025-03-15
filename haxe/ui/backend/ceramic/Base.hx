@@ -60,7 +60,7 @@ class Base extends Visual {
 			visual.depth = 0;
 			// visual.depthRange = -1;
 			visual.inheritAlpha = true;
-			//visual.size(width, height);
+			// visual.size(width, height);
 			add(visual);
 		}
 
@@ -163,7 +163,7 @@ class Base extends Visual {
 		}
 	}
 
-	public var bgAlpha(never, set):Float;
+	public var bgAlpha(default, set):Float;
 
 	function set_bgAlpha(value) {
 		if (solid != null)

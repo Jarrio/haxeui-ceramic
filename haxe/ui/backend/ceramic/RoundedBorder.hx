@@ -12,7 +12,7 @@ class RoundedBorder extends Mesh {
 
 	@content public var segments:Int = 32;
 
-	public var radius(never, set):Float;
+	public var radius(default, set):Float;
 
 	function set_radius(value) {
 		topLeft = value;
@@ -64,14 +64,20 @@ class RoundedBorder extends Mesh {
 
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
-			vertices.push(x + width - this.bottomRight + Math.cos(angle) * this.bottomRight);
-			vertices.push(y + height - this.bottomRight + Math.sin(angle) * this.bottomRight);
+			vertices.push(
+				x + width - this.bottomRight + Math.cos(angle) * this.bottomRight
+			);
+			vertices.push(
+				y + height - this.bottomRight + Math.sin(angle) * this.bottomRight
+			);
 		}
 
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
 			vertices.push(x + this.bottomLeft - Math.sin(angle) * this.bottomLeft);
-			vertices.push(y + height - this.bottomLeft + Math.cos(angle) * this.bottomLeft);
+			vertices.push(
+				y + height - this.bottomLeft + Math.cos(angle) * this.bottomLeft
+			);
 		}
 
 		return vertices;
