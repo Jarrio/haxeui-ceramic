@@ -71,10 +71,11 @@ class TextInputImpl extends TextBase {
 		}
 
 		visual.clipText(0, 0, _width, _height);
+		field.onSubmit(visual, this.onSubmit);
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
 		field.onStop(visual, this.onStop);
-
+		
 		Toolkit.callLater(function() {
 			visual.visible = true;
 		});
@@ -170,6 +171,13 @@ class TextInputImpl extends TextBase {
 		if (_text != null && _text != visual.content) {
 			visual.content = _text;
 		}
+	}
+
+	function onSubmit() {
+		if (parentComponent != null) {
+			parentComponent.dispatch(new UIEvent(UIEvent.SUBMIT));
+		}
+		field.startInput();
 	}
 
 	function onTextChanged(text:String) {
