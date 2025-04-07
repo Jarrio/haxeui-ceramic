@@ -48,6 +48,7 @@ class Base extends Visual {
 		if (getBg() != null) {
 			getBg().destroy();
 		}
+
 		visual = switch (value) {
 			case SOLID:
 				solid = new Quad();
@@ -59,20 +60,13 @@ class Base extends Visual {
 				slice = new NineSlice();
 			default: null;
 		}
-		if (visual != null) {
+
+			if (visual != null) {
 			visual.depth = 0;
 			// visual.depthRange = -1;
 			visual.inheritAlpha = true;
 			visual.size(width, height);
 			add(visual);
-		}
-
-		if (this.getBg() != null) {
-			this.getBg().depth = 0;
-		}
-
-		if (this.getBorder() != null) {
-			this.getBorder().depth = 1;
 		}
 
 		return bgType = value;
