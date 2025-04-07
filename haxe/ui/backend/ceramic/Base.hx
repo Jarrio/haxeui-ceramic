@@ -67,7 +67,7 @@ class Base extends Visual {
 		if (this.getBg() != null) {
 			this.getBg().depth = 0;
 		}
-		
+
 		if (this.getBorder() != null) {
 			this.getBorder().depth = 1;
 		}
@@ -116,8 +116,10 @@ class Base extends Visual {
 			solid.width = value;
 		if (gradient != null)
 			gradient.width = value;
-		if (rounded != null)
+		if (rounded != null) {
 			rounded.width = value;
+			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
+		}
 		if (slice != null)
 			slice.width = value;
 
