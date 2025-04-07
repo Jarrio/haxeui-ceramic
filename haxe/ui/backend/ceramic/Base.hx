@@ -1,13 +1,8 @@
 package haxe.ui.backend.ceramic;
 
 import ceramic.Visual;
-import ceramic.Entity;
 import ceramic.Border;
-import ceramic.Color;
 import ceramic.Quad;
-import ceramic.Component;
-import ceramic.Mesh;
-import ceramic.RoundedRect;
 import haxe.ui.backend.ceramic.RoundedBg;
 import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.NineSlice;
@@ -46,26 +41,33 @@ class Base extends Visual {
 		var visual:Visual = null;
 
 		if (getBg() != null) {
-			getBg().destroy();
+			var bg = getBg();
+			if (bg.parent != null) {
+				bg.parent.remove(bg);
+			}
+
+			if (bgType == NINESLICE && slice != null) {
+				if (slice.tile != null) {
+					slice.tile = null;
+				}
+				slice.texture = null;
+			}
+
+			bg.destroy();
 		}
 
 		visual = switch (value) {
-			case SOLID:
-				solid = new Quad();
-			case GRADIENT:
-				gradient = new GradientMesh();
-			case ROUNDED:
-				rounded = new RoundedBg();
-			case NINESLICE:
-				slice = new NineSlice();
+			case SOLID: solid = new Quad();
+			case GRADIENT: gradient = new GradientMesh();
+			case ROUNDED: rounded = new RoundedBg();
+			case NINESLICE: slice = new NineSlice();
 			default: null;
 		}
 
-			if (visual != null) {
+		if (visual != null) {
 			visual.depth = 0;
-			// visual.depthRange = -1;
-			visual.inheritAlpha = true;
 			visual.size(width, height);
+			visual.inheritAlpha = true;
 			add(visual);
 		}
 
@@ -99,7 +101,6 @@ class Base extends Visual {
 
 		if (visual != null) {
 			visual.depth = 1;
-			// visual.depthRange = -1;
 
 			visual.size(width, height);
 			visual.inheritAlpha = true;
@@ -117,6 +118,7 @@ class Base extends Visual {
 			rounded.width = value;
 			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
 		}
+
 		if (slice != null)
 			slice.width = value;
 
