@@ -64,6 +64,14 @@ class Base extends Visual {
 			add(visual);
 		}
 
+		if (this.getBg() != null) {
+			this.getBg().depth = 0;
+		}
+		
+		if (this.getBorder() != null) {
+			this.getBorder().depth = 1;
+		}
+
 		return bgType = value;
 	}
 

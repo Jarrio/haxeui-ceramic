@@ -226,6 +226,13 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	inline function mapChildren() {
+		var components = this.childComponents.copy();
+		components.sort((a, b) -> Std.int(a.visual.depth - b.visual.depth));
+
+		for (i in 0...components.length) {
+			components[i].visual.depth = i + 2;
+		}
+
 		visual.sortChildrenByDepth();
 	}
 
@@ -237,17 +244,10 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleAddComponent(child:Component):Component {
-		// child.visual.depth = child.depth;
-		//		trace(this.depth);
-		var v = this.depth + 2;
-		// if (v < 2) {
-		// 	v = 2;
-		// }
-
-		child.visual.depth = this.depth + 2;
+		child.visual.depth = depth_counter + 2;
+		depth_counter++;
 		this.add(child.visual);
 		mapChildren();
-
 		return child;
 	}
 
@@ -259,6 +259,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
+		depth_counter--;
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
 		child.visual.active = false;
 		if (dispose) {
