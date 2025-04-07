@@ -49,18 +49,21 @@ class Base extends Visual {
 			getBg().destroy();
 		}
 		visual = switch (value) {
-			case SOLID: solid = new Quad();
-			case GRADIENT: gradient = new GradientMesh();
-			case ROUNDED: rounded = new RoundedBg();
-			case NINESLICE: slice = new NineSlice();
+			case SOLID:
+				solid = new Quad();
+			case GRADIENT:
+				gradient = new GradientMesh();
+			case ROUNDED:
+				rounded = new RoundedBg();
+			case NINESLICE:
+				slice = new NineSlice();
 			default: null;
 		}
-
 		if (visual != null) {
 			visual.depth = 0;
 			// visual.depthRange = -1;
 			visual.inheritAlpha = true;
-			// visual.size(width, height);
+			visual.size(width, height);
 			add(visual);
 		}
 
