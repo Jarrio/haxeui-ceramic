@@ -128,6 +128,7 @@ class Base extends Visual {
 
 		if (roundedBorder != null) {
 			roundedBorder.width = value;
+			roundedBorder.computeContent();
 		}
 
 		return super.set_width(value);
@@ -136,10 +137,13 @@ class Base extends Visual {
 	override function set_height(value) {
 		if (solid != null)
 			solid.height = value;
-		if (gradient != null)
+		if (gradient != null) {
 			gradient.height = value;
-		if (rounded != null)
+		}
+		if (rounded != null) {
 			rounded.height = value;
+			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
+		}
 		if (slice != null)
 			slice.height = value;
 
@@ -149,6 +153,7 @@ class Base extends Visual {
 
 		if (roundedBorder != null) {
 			roundedBorder.height = value;
+			roundedBorder.computeContent();
 		}
 
 		return super.set_height(value);
