@@ -530,7 +530,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (hasClip || hasSlice) {
 			newType = NINESLICE;
-		} else if (hasRadius || hasSpecificRadius) {
+		} else if (hasRadius) {
 			newType = ROUNDED;
 		} else if (style.backgroundColorEnd != null) {
 			newType = GRADIENT;
@@ -549,7 +549,7 @@ class ComponentImpl extends ComponentBase {
 			visual.bgType = newType;
 		}
 
-		if (hasRadius || hasSpecificRadius) {
+		if (hasRadius) {
 			visual.borderType = ROUNDED;
 		} else {
 			visual.borderType = RECTANGLE;

@@ -1,5 +1,6 @@
 package haxe.ui.backend.ceramic;
 
+import ceramic.AlphaColor;
 import ceramic.Entity;
 import ceramic.Component;
 import ceramic.Visual;
@@ -7,6 +8,9 @@ import ceramic.Mesh;
 import ceramic.Color;
 
 class GradientMesh extends Mesh {
+	
+	@content public var segments:Int = 32;
+
 	public function new() {
 		super();
 		
@@ -38,11 +42,30 @@ class GradientMesh extends Mesh {
 		return super.set_height(value);
 	}
 
-	public function setGradient(start:Color, end:Color, vertical:Bool = true) {
-		colorMapping = VERTICES;
-		colors = switch (vertical) {
-			case true:  [start, start, end, end];
-			case false: [start, end, start, end];
+	public function setGradient(start:AlphaColor, end:AlphaColor, vertical:Bool) {
+		var colors = [];
+
+		// Top-left corner
+		for (i in 0...segments) {
+			colors.push(vertical ? start : start);
 		}
+
+		// Top-right corner
+		for (i in 0...segments) {
+			colors.push(vertical ? start : end);
+		}
+
+		// Bottom-right corner
+		for (i in 0...segments) {
+			colors.push(vertical ? end : end);
+		}
+
+		// Bottom-left corner
+		for (i in 0...segments) {
+			colors.push(vertical ? end : start);
+		}
+
+		colorMapping = VERTICES;
+		this.colors = colors;
 	}
 }

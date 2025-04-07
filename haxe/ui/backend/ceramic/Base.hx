@@ -101,11 +101,11 @@ class Base extends Visual {
 
 		if (visual != null) {
 			visual.depth = 1;
-
 			visual.size(width, height);
 			visual.inheritAlpha = true;
 			add(visual);
 		}
+
 		return borderType = value;
 	}
 
@@ -118,14 +118,12 @@ class Base extends Visual {
 			rounded.width = value;
 			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
 		}
-
 		if (slice != null)
 			slice.width = value;
 
 		if (border != null) {
 			border.width = value;
 		}
-
 		if (roundedBorder != null) {
 			roundedBorder.width = value;
 			roundedBorder.computeContent();
@@ -169,7 +167,7 @@ class Base extends Visual {
 		}
 	}
 
-	function getBorder():Visual {
+	public function getBorder():Visual {
 		return switch (borderType) {
 			case RECTANGLE: border;
 			case ROUNDED: roundedBorder;
@@ -188,7 +186,7 @@ class Base extends Visual {
 			rounded.alpha = value;
 		if (slice != null)
 			slice.alpha = value;
-		return value;
+		return bgAlpha = value;
 	}
 }
 

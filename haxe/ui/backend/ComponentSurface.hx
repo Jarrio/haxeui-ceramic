@@ -43,8 +43,15 @@ class ComponentSurface {
 	}
 
 	public inline function add(visual:Visual) {
-		//visual.depthRange = -1;
+		visual.inheritAlpha = true;
+
+		if (visual.depth <= 0) {
+			visual.depth = depth_tracker++;
+		}
+
 		this.visual.add(visual);
+
+		this.visual.sortChildrenByDepth();
 	}
 
 	public inline function remove(visual:Visual) {
