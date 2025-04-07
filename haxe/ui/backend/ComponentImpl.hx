@@ -1,5 +1,8 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ceramic.Base.BGType;
+import haxe.ui.backend.ceramic.RoundedBg;
+import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
@@ -282,290 +285,280 @@ class ComponentImpl extends ComponentBase {
 	var imgCache:Map<String, Texture> = [];
 
 	private override function applyStyle(style:Style) {
-		// if (style == null) {
-		// 	return;
-		// }
+		if (style == null)
+			return;
 
-		// Prep types
-		// background
-		var clipTop = style.backgroundImageClipTop != null;
-		var clipLeft = style.backgroundImageClipLeft != null;
-		var clipBottom = style.backgroundImageClipBottom != null;
-		var clipRight = style.backgroundImageClipRight != null;
+		determineVisualType(style);
 
-		var sliceTop = style.backgroundImageSliceTop != null;
-		var sliceLeft = style.backgroundImageSliceLeft != null;
-		var sliceBottom = style.backgroundImageSliceBottom != null;
-		var sliceRight = style.backgroundImageSliceRight != null;
+		applyBorderStyles(style);
 
-		var radius = style.borderRadius != null && style.borderRadius > 0;
-		var radiusTopLeft = style.borderRadiusTopLeft != null;
-		var radiusTopRight = style.borderRadiusTopRight != null;
-		var radiusBotLeft = style.borderRadiusBottomLeft != null;
-		var radiusBotRight = style.borderRadiusBottomRight != null;
+		applyBackgroundStyles(style);
 
-		if (clipTop || clipLeft || clipBottom || clipRight) {
-			visual.bgType = NINESLICE;
-		} else if (sliceTop || sliceLeft || sliceBottom || sliceRight) {
-			visual.bgType = NINESLICE;
-		} else if (radius || radiusTopLeft || radiusTopRight || radiusBotLeft || radiusBotRight) {
-			visual.bgType = ROUNDED;
-			visual.borderType = ROUNDED;
-		} else if (style.backgroundColorEnd != null) {
-			visual.bgType = GRADIENT;
-			visual.borderType = RECTANGLE;
-		} else {
-			visual.bgType = SOLID;
-			visual.borderType = RECTANGLE;
-		}
-
-		// borders
-		var type = style.borderType;
-		var border = visual.border;
-
-		var borderSize = style.borderSize != null && style.borderSize > 0;
-		var borderTop = style.borderTopSize != null;
-		var borderRight = style.borderRightSize != null;
-		var borderBottom = style.borderBottomSize != null;
-		var borderLeft = style.borderLeftSize != null;
-
-		var borderLeftSize = style.borderLeftSize;
-		var borderRightSize = style.borderRightSize;
-		var borderTopSize = style.borderTopSize;
-		var borderBottomSize = style.borderBottomSize;
-
-		var full = borderLeftSize != null && borderLeftSize == borderRightSize && borderLeftSize == borderTopSize
-			&& borderLeftSize == borderBottomSize;
-		var compound = (borderLeftSize > 0 || borderRightSize > 0 || borderTopSize > 0 || borderBottomSize > 0);
-
-		if (!radius && border != null) {
-			border.borderSize = -1;
-
-			border.borderLeftSize = -1;
-			border.borderLeftColor = Color.NONE;
-			if (borderLeft) {
-				border.borderLeftSize = style.borderLeftSize;
-				border.borderLeftColor = (style.borderLeftColor);
-			}
-
-			border.borderRightSize = -1;
-			border.borderRightColor = Color.NONE;
-			if (borderRight) {
-				border.borderRightSize = style.borderRightSize;
-				border.borderRightColor = (style.borderRightColor);
-			}
-
-			border.borderTopSize = -1;
-			border.borderTopColor = Color.NONE;
-			if (borderTop) {
-				border.borderTopSize = style.borderTopSize;
-				border.borderTopColor = (style.borderTopColor);
-			}
-
-			border.borderBottomSize = -1;
-			border.borderBottomColor = Color.NONE;
-			if (borderBottom) {
-				border.borderBottomSize = style.borderBottomSize;
-				border.borderBottomColor = (style.borderBottomColor);
-			}
-
-			if (style.borderOpacity != null) {
-				border.alpha = style.borderOpacity;
-			}
-		}
-
-		// background
-		var bg:Mesh = visual.gradient;
-		if (visual.rounded != null) {
-			bg = visual.rounded;
-		}
-
-		var alpha:Int = 0xFF000000;
-		if (style.opacity != null) {
-			visual.alpha = style.opacity;
-		}
-
-		if (style.backgroundOpacity != null) {
-			visual.bgAlpha = style.backgroundOpacity;
-		}
-
-		var alpha:Int = 0xFF000000;
-		if (visual.bgType != NINESLICE) {
-			if (style.backgroundColor != null) {
-				if (style.backgroundOpacity != null) {
-					visual.bgAlpha = style.backgroundOpacity;
-				}
-
-				if (style.backgroundColorEnd != null) {
-					var start = (style.backgroundColor | alpha);
-					var end = (style.backgroundColorEnd | alpha);
-					var type = "vertical";
-					if (style.backgroundGradientStyle != null) {
-						type = style.backgroundGradientStyle;
-					}
-					if (visual.gradient != null) {
-						visual.gradient.setGradient(start, end, (type == 'vertical'));
-					} else {
-						visual.rounded.setGradient(start, end, (type == 'vertical'));
-					}
-				} else {
-					if (visual.solid != null) {
-						visual.solid.color = style.backgroundColor;
-					} else {
-						bg.colorMapping = MESH;
-						bg.color = style.backgroundColor;
-					}
-				}
-			} else {
-				visual.bgAlpha = 0;
-			}
-		}
-
-		switch (visual.bgType) {
-			case ROUNDED:
-				var bg = visual.rounded;
-				var border = visual.roundedBorder;
-
-				if (radius) {
-					bg.radius = style.borderRadius;
-					border.radius = style.borderRadius;
-				} else {
-					var borderLeftSize = style.borderLeftSize != null;
-					var borderRightSize = style.borderRightSize != null;
-					var borderBottomSize = style.borderBottomSize != null;
-					var borderTopSize = style.borderTopSize != null;
-
-					if (radiusTopLeft) {
-						bg.topLeft = style.borderRadiusTopLeft;
-						border.topLeft = style.borderRadiusTopLeft;
-					} else {
-						bg.topLeft = 0;
-						border.topLeft = 0;
-					}
-
-					if (radiusTopRight) {
-						bg.topRight = style.borderRadiusTopRight;
-						border.topRight = style.borderRadiusTopRight;
-					} else {
-						bg.topRight = 0;
-						border.topRight = 0;
-					}
-
-					if (radiusBotLeft) {
-						bg.bottomLeft = style.borderRadiusBottomLeft;
-						border.bottomLeft = style.borderRadiusBottomLeft;
-					} else {
-						bg.bottomLeft = 0;
-						border.bottomLeft = 0;
-					}
-
-					if (radiusBotRight) {
-						bg.bottomRight = style.borderRadiusBottomRight;
-						border.bottomRight = style.borderRadiusBottomRight;
-					} else {
-						bg.bottomRight = 0;
-						border.bottomRight = 0;
-					}
-				}
-
-
-				border.color = style.borderColor ?? Color.NONE;
-				border.thickness = style.borderSize ?? 0;
-			default:
-		}
-
-		var clipping = false;
-
-		var tile = (clipTop || clipBottom || clipLeft || clipRight) && (sliceTop || sliceLeft || sliceBottom || sliceRight);
-
-		if (visual.bgType == NINESLICE) {
-			if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
-				// visual.bgType = NINESLICE;
-				var topSlice = style.backgroundImageSliceTop;
-				var botSlice = style.backgroundImageSliceBottom;
-				var leftSlice = style.backgroundImageSliceLeft;
-				var rightSlice = style.backgroundImageSliceRight;
-
-				var obj = visual.slice;
-
-				ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-					if (image == null) {
-						trace(
-							'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-						);
-						return;
-					}
-					var texture = image.data;
-
-					if (tile) {
-						trace(1);
-						visual.slice.tile = new TextureTile(texture, 0, 0, 65, 26);
-					} else {
-						trace(3);
-						visual.slice.texture = texture;
-					}
-
-					applySliceAndClip(tile);
-				});
-			}
-		} else {
-			if (style.backgroundImage != null && visual.bgType == SOLID) {
-				// visual.bgType = SOLID;
-				if (!imgCache.exists(style.backgroundImage)) {
-					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-						if (image == null) {
-							trace(
-								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-							);
-							return;
-						}
-						imgCache.set(style.backgroundImage, image.data);
-						visual.solid.texture = image.data;
-					});
-				} else {
-					var img = imgCache.get(style.backgroundImage);
-					if (img != null) {
-						visual.solid.texture = img;
-					}
-				}
+		if (style.backgroundImage != null) {
+			if (visual.bgType == NINESLICE) {
+				applyNineSliceBackground(style);
+			} else if (visual.bgType == SOLID) {
+				applySolidBackground(style);
 			}
 		}
 
 		this.updateRender();
 	}
 
-	function loadImage(source:String, slice:Bool) {
-		if (imgCache.exists(source)) {
+	private function applyBorderStyles(style:Style) {
+		if (style.opacity != null) {
+			visual.alpha = style.opacity;
+		}
+
+		if (visual.bgType == ROUNDED) {
+			applyRoundedBorderStyles(style);
+		} else if (visual.borderType == RECTANGLE && visual.border != null) {
+			applyRectangleBorderStyles(style);
+		}
+	}
+
+	private function applyRoundedBorderStyles(style:Style) {
+		var bg = visual.rounded;
+		var border = visual.roundedBorder;
+
+		if (style.borderRadius != null && style.borderRadius > 0) {
+			bg.radius = style.borderRadius;
+			border.radius = style.borderRadius;
+		} else {
+			applyCornerRadius(style.borderRadiusTopLeft, bg, "topLeft", border);
+			applyCornerRadius(style.borderRadiusTopRight, bg, "topRight", border);
+			applyCornerRadius(style.borderRadiusBottomLeft, bg, "bottomLeft", border);
+			applyCornerRadius(style.borderRadiusBottomRight, bg, "bottomRight", border);
+		}
+
+		border.color = style.borderColor ?? Color.NONE;
+		border.thickness = style.borderSize ?? 0;
+	}
+
+	private function applyBackgroundStyles(style:Style) {
+		if (style.backgroundOpacity != null) {
+			visual.bgAlpha = style.backgroundOpacity;
+		} else {
+			visual.bgAlpha = 1;
+		}
+
+		if (visual.bgType == NINESLICE)
+			return;
+
+		if (style.backgroundColor != null) {
+			if (style.backgroundColorEnd != null) {
+				applyGradient(style);
+			} else if (visual.solid != null) {
+				visual.solid.color = style.backgroundColor;
+			} else if (visual.bgType == ROUNDED || visual.bgType == GRADIENT) {
+				var bg = (visual.bgType == ROUNDED) ? visual.rounded : visual.gradient;
+				bg.colorMapping = MESH;
+				bg.color = style.backgroundColor;
+			}
+		} else {
+			visual.bgAlpha = 0;
+		}
+	}
+
+	private function applyNineSliceBackground(style:Style) {
+		if (visual == null || visual.slice == null || !visual.active) {
 			return;
 		}
-		imgCache.set(style.backgroundImage, null);
-		ImageLoader.instance.load(source, function(image:ImageInfo) {
-			if (image == null) {
-				trace('[haxeui-ceramic] image ${source} could not be loaded');
+
+		var hasSlice = style.backgroundImageSliceTop != null
+			|| style.backgroundImageSliceLeft != null
+			|| style.backgroundImageSliceBottom != null
+			|| style.backgroundImageSliceRight != null;
+
+		if (!hasSlice)
+			return;
+
+		var hasTile = style.backgroundImageClipTop != null
+			&& style.backgroundImageClipLeft != null
+			&& style.backgroundImageClipBottom != null
+			&& style.backgroundImageClipRight != null;
+
+		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			if (visual == null || visual.slice == null || !visual.active) {
 				return;
 			}
-			var texture = image.data;
 
-			if (slice) {
-				if (visual.slice.tile == null) {
-					visual.slice.tile = new TextureTile(texture, 0, 0, 65, 26);
-				} else {
-					visual.slice.tile.texture = texture;
-				}
-			} else {
-				visual.solid.texture = texture;
+			if (image == null) {
+				trace(
+					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+				);
+				return;
 			}
 
-			imgCache.set(source, image.data);
+			try {
+				var texture = image.data;
 
-			applySliceAndClip(slice);
-			trace('saved image $source');
+				if (hasTile) {
+					var clipWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+					var clipHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+
+					var newTile = new TextureTile(texture, style.backgroundImageClipLeft, style.backgroundImageClipTop, clipWidth, clipHeight);
+					visual.slice.tile = newTile;
+				} else {
+					visual.slice.texture = texture;
+				}
+				trace(visual.slice.visible, visual.slice.width, visual.slice.height);
+				applySliceAndClip(hasTile);
+			} catch (e:Dynamic ) {
+				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
+			}
 		});
+	}
+
+	private function applySolidBackground(style:Style) {
+		if (visual == null || visual.solid == null) {
+			trace("[ERROR] Visual or solid is null");
+			return;
+		}
+
+		trace("Loading image: " + style.backgroundImage);
+
+		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			if (image == null) {
+				trace("Image failed to load: " + style.backgroundImage);
+				return;
+			}
+
+			trace("Image loaded successfully: " + style.backgroundImage);
+
+			if (visual == null || visual.solid == null) {
+				trace("Visual or solid became null after loading");
+				return;
+			}
+
+			try {
+				imgCache.set(style.backgroundImage, image.data);
+				visual.solid.texture = image.data;
+				visual.solid.alpha = 1;
+			} catch (e:Dynamic ) {
+				trace("Error applying texture: " + e);
+			}
+		});
+	}
+
+	private function applyGradient(style:Style) {
+		var alpha:Int = 0xFF000000;
+		var start = (style.backgroundColor | alpha);
+		var end = (style.backgroundColorEnd | alpha);
+		var vertical = style.backgroundGradientStyle != "horizontal";
+
+		if (visual.gradient != null) {
+			visual.gradient.setGradient(start, end, vertical);
+		} else if (visual.rounded != null) {
+			visual.rounded.setGradient(start, end, vertical);
+		}
+	}
+
+	private function applyCornerRadius(radius:Null<Float>, bg:RoundedBg, corner:String, border:RoundedBorder) {
+		if (radius == null) {
+			radius = 0;
+		}
+
+		switch (corner) {
+			case "topLeft":
+				bg.topLeft = radius;
+			case "topRight":
+				bg.topRight = radius;
+			case "botLeft":
+				bg.bottomLeft = radius;
+			case "bottomRight":
+				bg.bottomRight = radius;
+		}
+	}
+
+	private function applyRectangleBorderStyles(style:Style) {
+		var border = visual.border;
+		border.borderSize = -1;
+
+		border.borderLeftSize = -1;
+		border.borderLeftColor = Color.NONE;
+		if (style.borderLeftSize != null) {
+			border.borderLeftSize = style.borderLeftSize;
+			border.borderLeftColor = style.borderLeftColor;
+		}
+
+		border.borderRightSize = -1;
+		border.borderRightColor = Color.NONE;
+		if (style.borderRightSize != null) {
+			border.borderRightSize = style.borderRightSize;
+			border.borderRightColor = style.borderRightColor;
+		}
+
+		border.borderTopSize = -1;
+		border.borderTopColor = Color.NONE;
+		if (style.borderTopSize != null) {
+			border.borderTopSize = style.borderTopSize;
+			border.borderTopColor = style.borderTopColor;
+		}
+
+		border.borderBottomSize = -1;
+		border.borderBottomColor = Color.NONE;
+		if (style.borderBottomSize != null) {
+			border.borderBottomSize = style.borderBottomSize;
+			border.borderBottomColor = style.borderBottomColor;
+		}
+
+		if (style.borderOpacity != null) {
+			border.alpha = style.borderOpacity;
+		}
+	}
+
+	private function determineVisualType(style:Style) {
+		var hasRadius = style.borderRadius != null && style.borderRadius > 0;
+		var hasSpecificRadius = style.borderRadiusTopLeft != null
+			|| style.borderRadiusTopRight != null
+			|| style.borderRadiusBottomLeft != null
+			|| style.borderRadiusBottomRight != null;
+
+		var hasClip = style.backgroundImageClipTop != null
+			|| style.backgroundImageClipLeft != null
+			|| style.backgroundImageClipBottom != null
+			|| style.backgroundImageClipRight != null;
+
+		var hasSlice = style.backgroundImageSliceTop != null
+			|| style.backgroundImageSliceLeft != null
+			|| style.backgroundImageSliceBottom != null
+			|| style.backgroundImageSliceRight != null;
+
+		var oldType = visual.bgType;
+		var newType:BGType;
+
+		if (hasClip || hasSlice) {
+			newType = NINESLICE;
+		} else if (hasRadius || hasSpecificRadius) {
+			newType = ROUNDED;
+		} else if (style.backgroundColorEnd != null) {
+			newType = GRADIENT;
+		} else {
+			newType = SOLID;
+		}
+
+		if (oldType != newType) {
+			if (oldType == NINESLICE && visual.slice != null) {
+				if (visual.slice.tile != null) {
+					visual.slice.tile = null;
+				}
+				visual.slice.texture = null;
+			}
+
+			visual.bgType = newType;
+		}
+
+		if (hasRadius || hasSpecificRadius) {
+			visual.borderType = ROUNDED;
+		} else {
+			visual.borderType = RECTANGLE;
+		}
 	}
 
 	function applySliceAndClip(framed:Bool) {
 		var slice = visual.slice;
-		
+
 		var top = style.backgroundImageSliceTop;
 		var left = style.backgroundImageSliceLeft;
 
@@ -578,17 +571,16 @@ class ComponentImpl extends ComponentBase {
 			tile.frameY = style.backgroundImageClipTop;
 			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
 			tile.frameHeight = style.backgroundImageClipBottom;
-			
+
 			slice.slice(top, Math.abs(right), Math.abs(bot), left);
 		} else {
 			slice.slice(top, right, bot, left);
 		}
-		
+
 		slice.size(width, height);
 	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
-		// trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
 			this.eventMap[type](event);
 		}
