@@ -641,11 +641,11 @@ class ComponentImpl extends ComponentBase {
 		return array;
 	}
 
-		public function inBounds(x:Float, y:Float):Bool {
+	public function inBounds(x:Float, y:Float):Bool {
 		if (cast(this, Component).hidden) {
 			return false;
 		}
-		
+
 		if (!cast(this, Component).hitTest(x, y)) {
 			return false;
 		}
@@ -933,6 +933,25 @@ class ComponentImpl extends ComponentBase {
 		event.shiftKey = App.app.input.keyPressed(LSHIFT) || App.app.input.keyPressed(RSHIFT);
 		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			this.eventMap[type](event);
+		}
+	}
+
+	public function dispatchMouseEvent(type:String, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+
+		var componentsAtPoint = getComponentsAtPoint(info.x, info.y, false);
+
+		for (component in componentsAtPoint) {
+			if (component.eventMap.exists(type)) {
+				var listener = component.eventMap.get(type);
+				listener(event);
+
+				if (event.canceled) {
+					break;
+				}
+			}
 		}
 	}
 
