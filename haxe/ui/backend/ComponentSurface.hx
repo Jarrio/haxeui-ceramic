@@ -36,8 +36,6 @@ class ComponentSurface {
 	}
 
 	public inline function size(width:Float, height:Float) {
-
-		//trace('here');
 		this.visual.width = Std.int(width);
 		this.visual.height = Std.int(height);
 	}
@@ -55,6 +53,7 @@ class ComponentSurface {
 	}
 
 	public inline function remove(visual:Visual) {
+		depth_tracker--;
 		this.visual.remove(visual);
 	}
 
