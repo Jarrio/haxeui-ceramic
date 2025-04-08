@@ -641,6 +641,26 @@ class ComponentImpl extends ComponentBase {
 		return array;
 	}
 
+		public function inBounds(x:Float, y:Float):Bool {
+		if (cast(this, Component).hidden) {
+			return false;
+		}
+		
+		if (!cast(this, Component).hitTest(x, y)) {
+			return false;
+		}
+
+		if (this.isClipped) {
+			var clipX = x - filter.x;
+			var clipY = y - filter.y;
+			if (clipX < 0 || clipY < 0 || clipX > filter.width || clipY > filter.height) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private function findChildrenAtPoint(child:Component, x:Float, y:Float, array:Array<Component>) {
 		if (child.hitTest(x, y)) {
 			array.push(child);
