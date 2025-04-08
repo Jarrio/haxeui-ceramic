@@ -365,6 +365,10 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		var hasSlice = style.backgroundImageSliceTop != null
+			|| style.backgroundImageSliceLeft != null
+			|| style.backgroundImageSliceBottom != null
+			|| style.backgroundImageSliceRight != null;
 
 		var hasTile = style.backgroundImageClipTop != null
 			&& style.backgroundImageClipLeft != null
@@ -403,39 +407,6 @@ class ComponentImpl extends ComponentBase {
 		});
 	}
 
-	function applySliceAndClip(framed:Bool) {
-		
-		var hasSlice = style.backgroundImageSliceTop != null
-			|| style.backgroundImageSliceLeft != null
-			|| style.backgroundImageSliceBottom != null
-			|| style.backgroundImageSliceRight != null;
-		
-		if (hasSlice) {
-			return;
-		}
-
-		var slice = visual.slice;
-		var top = style.backgroundImageSliceTop;
-		var left = style.backgroundImageSliceLeft;
-
-		var right = (style.backgroundImageClipRight - style.backgroundImageClipLeft) - style.backgroundImageSliceRight;
-		var bot = style.backgroundImageClipBottom - style.backgroundImageSliceBottom;
-
-		if (framed) {
-			var tile = visual.slice.tile;
-			tile.frameX = style.backgroundImageClipLeft;
-			tile.frameY = style.backgroundImageClipTop;
-			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
-			tile.frameHeight = style.backgroundImageClipBottom;
-
-			slice.slice(top, Math.abs(right), Math.abs(bot), left);
-		} else {
-			slice.slice(top, right, bot, left);
-		}
-
-		slice.size(width, height);
-	}
-
 	private function applySolidBackground(style:Style) {
 		if (visual == null || visual.solid == null) {
 			trace("[ERROR] Visual or solid is null");
@@ -449,8 +420,6 @@ class ComponentImpl extends ComponentBase {
 				trace("Image failed to load: " + style.backgroundImage);
 				return;
 			}
-
-			trace("Image loaded successfully: " + style.backgroundImage);
 
 			if (visual == null || visual.solid == null) {
 				trace("Visual or solid became null after loading");
@@ -582,7 +551,29 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	function applySliceAndClip(framed:Bool) {
+		var slice = visual.slice;
 
+		var top = style.backgroundImageSliceTop;
+		var left = style.backgroundImageSliceLeft;
+
+		var right = (style.backgroundImageClipRight - style.backgroundImageClipLeft) - style.backgroundImageSliceRight;
+		var bot = style.backgroundImageClipBottom - style.backgroundImageSliceBottom;
+
+		if (framed) {
+			var tile = visual.slice.tile;
+			tile.frameX = style.backgroundImageClipLeft;
+			tile.frameY = style.backgroundImageClipTop;
+			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+			tile.frameHeight = style.backgroundImageClipBottom;
+
+			slice.slice(top, Math.abs(right), Math.abs(bot), left);
+		} else {
+			slice.slice(top, right, bot, left);
+		}
+
+		slice.size(width, height);
+	}
 
 	public function checkRedispatch(type:String, event:MouseEvent) {
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
