@@ -6,7 +6,6 @@ import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import haxe.ui.backend.ceramic.BorderQuad.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;

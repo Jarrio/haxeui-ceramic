@@ -6,8 +6,6 @@ import ceramic.Filter;
 import ceramic.Visual;
 import ceramic.Entity;
 import ceramic.Component;
-
-import haxe.ui.backend.ceramic.BorderQuad;
 import haxe.ui.backend.ceramic.Base;
 
 
