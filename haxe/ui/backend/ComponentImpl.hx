@@ -601,12 +601,27 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	private function hasComponentOver(ref:Component, x:Float, y:Float, reverse:Bool = false):Bool {
-		var array:Array<Component> = getVisibleComponentsAtPoint(x, y, reverse);
-		if (array.length == 0) {
+		var array = getVisibleComponentsAtPoint(x, y, reverse);
+		if (array.length == 0)
 			return false;
+
+		var topComponent = array[array.length - 1];
+
+		if (ref == topComponent)
+			return false;
+
+		if (hasChildRecursive(cast ref, cast topComponent))
+			return false;
+
+		for (component in array) {
+			if (component == ref)
+				return false;
+
+			if (!hasChildRecursive(cast ref, cast component))
+				return true;
 		}
 
-		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
+		return true;
 	}
 
 	private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
@@ -724,17 +739,13 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
-		if (hittest) {
+		if (hittest && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 			over = true;
 			if (style != null && style.cursor != null && (this is InteractiveComponent)) {
 				Cursor.setTo(CursorType.fromString(style.cursor));
 			}
 		}
-		// if (!over) {
-		// 	this.over = true;
-		// 	listener(event);
-		// }
 	}
 
 	function onMouseLeftUp(info:TouchInfo) {
