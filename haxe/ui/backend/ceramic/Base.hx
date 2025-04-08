@@ -46,13 +46,6 @@ class Base extends Visual {
 				bg.parent.remove(bg);
 			}
 
-			if (bgType == NINESLICE && slice != null) {
-				if (slice.tile != null) {
-					slice.tile = null;
-				}
-				slice.texture = null;
-			}
-
 			bg.destroy();
 		}
 
@@ -84,19 +77,12 @@ class Base extends Visual {
 		var visual = null;
 
 		if (getBorder() != null) {
-			getBorder().active = false;
-			visual = switch (value) {
-				case RECTANGLE: border;
-				case ROUNDED: roundedBorder;
-				default: null;
-			}
-			visual.active = true;
-		} else {
-			visual = switch (value) {
-				case RECTANGLE: border = new Border();
-				case ROUNDED: roundedBorder = new RoundedBorder();
-				default: null;
-			}
+			getBorder().destroy();
+		}
+		visual = switch (value) {
+			case RECTANGLE: border = new Border();
+			case ROUNDED: roundedBorder = new RoundedBorder();
+			default: null;
 		}
 
 		if (visual != null) {

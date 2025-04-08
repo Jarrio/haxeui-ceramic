@@ -957,7 +957,9 @@ class ComponentImpl extends ComponentBase {
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
-
+		if (visual.destroyed) {
+			return;
+		}
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (!eventMap.exists(MouseEvent.CLICK)) {
@@ -990,7 +992,6 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					// visual.onPointerOut(visual, _onMouseOut);
 					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
