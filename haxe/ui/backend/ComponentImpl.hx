@@ -320,19 +320,45 @@ class ComponentImpl extends ComponentBase {
 	private function applyRoundedBorderStyles(style:Style) {
 		var bg = visual.rounded;
 		var border = visual.roundedBorder;
+		if (border == null) {
+			return;
+		}
+		
+		border.color = style.borderColor ?? Color.NONE;
+		border.thickness = style.borderSize ?? 0;
 
 		if (style.borderRadius != null && style.borderRadius > 0) {
 			bg.radius = style.borderRadius;
 			border.radius = style.borderRadius;
 		} else {
+			trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
 			applyCornerRadius(style.borderRadiusTopLeft, bg, "topLeft", border);
 			applyCornerRadius(style.borderRadiusTopRight, bg, "topRight", border);
 			applyCornerRadius(style.borderRadiusBottomLeft, bg, "bottomLeft", border);
 			applyCornerRadius(style.borderRadiusBottomRight, bg, "bottomRight", border);
 		}
 
-		border.color = style.borderColor ?? Color.NONE;
-		border.thickness = style.borderSize ?? 0;
+	}
+
+	private function applyCornerRadius(radius:Null<Float>, bg:RoundedBg, corner:String, border:RoundedBorder) {
+		if (radius == null) {
+			radius = 0;
+		}
+
+		switch (corner) {
+			case "topLeft":
+				bg.topLeft = radius;
+				border.topLeft = radius;
+			case "topRight":
+				bg.topRight = radius;
+				border.topRight = radius;
+			case "botLeft":
+				bg.bottomLeft = radius;
+				border.bottomLeft = radius;
+			case "bottomRight":
+				bg.bottomRight = radius;
+				border.bottomRight = radius;
+		}
 	}
 
 	private function applyBackgroundStyles(style:Style) {
@@ -446,23 +472,6 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	private function applyCornerRadius(radius:Null<Float>, bg:RoundedBg, corner:String, border:RoundedBorder) {
-		if (radius == null) {
-			radius = 0;
-		}
-
-		switch (corner) {
-			case "topLeft":
-				bg.topLeft = radius;
-			case "topRight":
-				bg.topRight = radius;
-			case "botLeft":
-				bg.bottomLeft = radius;
-			case "bottomRight":
-				bg.bottomRight = radius;
-		}
-	}
-
 	private function applyRectangleBorderStyles(style:Style) {
 		var border = visual.border;
 		border.borderSize = -1;
@@ -522,7 +531,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (hasClip || hasSlice) {
 			newType = NINESLICE;
-		} else if (hasRadius) {
+		} else if (hasRadius || hasSpecificRadius) {
 			newType = ROUNDED;
 		} else if (style.backgroundColorEnd != null) {
 			newType = GRADIENT;
@@ -541,7 +550,7 @@ class ComponentImpl extends ComponentBase {
 			visual.bgType = newType;
 		}
 
-		if (hasRadius) {
+		if (hasRadius || hasSpecificRadius) {
 			visual.borderType = ROUNDED;
 		} else {
 			visual.borderType = RECTANGLE;
@@ -736,11 +745,6 @@ class ComponentImpl extends ComponentBase {
 				Cursor.setTo(CursorType.DEFAULT);
 			}
 		}
-
-		// if (over) {
-		// 	listener(event);
-		// 	over = false;
-		// }
 	}
 
 	function _onMouseOver(info:TouchInfo) {

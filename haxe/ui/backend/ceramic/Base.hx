@@ -45,7 +45,6 @@ class Base extends Visual {
 			if (bg.parent != null) {
 				bg.parent.remove(bg);
 			}
-
 			bg.destroy();
 		}
 
@@ -96,20 +95,27 @@ class Base extends Visual {
 	}
 
 	override function set_width(value) {
-		if (solid != null)
+		if (solid != null) {
 			solid.width = value;
-		if (gradient != null)
+		}
+		
+		if (gradient != null) {
 			gradient.width = value;
+		}
+
 		if (rounded != null) {
 			rounded.width = value;
 			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
 		}
-		if (slice != null)
+
+		if (slice != null) {
 			slice.width = value;
+		}
 
 		if (border != null) {
 			border.width = value;
 		}
+
 		if (roundedBorder != null) {
 			roundedBorder.width = value;
 			roundedBorder.computeContent();
