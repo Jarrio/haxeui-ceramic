@@ -413,8 +413,6 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		trace("Loading image: " + style.backgroundImage);
-
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
 			if (image == null) {
 				trace("Image failed to load: " + style.backgroundImage);
