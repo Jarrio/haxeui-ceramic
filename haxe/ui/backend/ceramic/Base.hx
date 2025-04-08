@@ -80,7 +80,8 @@ class Base extends Visual {
 		}
 		visual = switch (value) {
 			case RECTANGLE: border = new Border();
-			case ROUNDED: roundedBorder = new RoundedBorder();
+			case ROUNDED: 
+				roundedBorder = new RoundedBorder();
 			default: null;
 		}
 

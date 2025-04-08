@@ -319,45 +319,102 @@ class ComponentImpl extends ComponentBase {
 	private function applyRoundedBorderStyles(style:Style) {
 		var bg = visual.rounded;
 		var border = visual.roundedBorder;
-		if (border == null) {
-			return;
-		}
-		
-		border.color = style.borderColor ?? Color.NONE;
-		border.thickness = style.borderSize ?? 0;
 
-		if (style.borderRadius != null && style.borderRadius > 0) {
-			bg.radius = style.borderRadius;
+		
+		if (border == null)
+			return;
+
+		
+		if (style.borderRadius != null) {
 			border.radius = style.borderRadius;
 		} else {
-			trace(style.borderRadiusTopLeft, style.borderRadiusTopRight, style.borderRadiusBottomLeft, style.borderRadiusBottomRight);
-			applyCornerRadius(style.borderRadiusTopLeft, bg, "topLeft", border);
-			applyCornerRadius(style.borderRadiusTopRight, bg, "topRight", border);
-			applyCornerRadius(style.borderRadiusBottomLeft, bg, "bottomLeft", border);
-			applyCornerRadius(style.borderRadiusBottomRight, bg, "bottomRight", border);
+			if (style.borderRadiusTopLeft != null)
+				border.topLeft = style.borderRadiusTopLeft;
+			if (style.borderRadiusTopRight != null)
+				border.topRight = style.borderRadiusTopRight;
+			if (style.borderRadiusBottomLeft != null)
+				border.bottomLeft = style.borderRadiusBottomLeft;
+			if (style.borderRadiusBottomRight != null)
+				border.bottomRight = style.borderRadiusBottomRight;
 		}
 
-	}
-
-	private function applyCornerRadius(radius:Null<Float>, bg:RoundedBg, corner:String, border:RoundedBorder) {
-		if (radius == null) {
-			radius = 0;
+		
+		if (bg != null) {
+			if (style.borderRadius != null) {
+				bg.radius = style.borderRadius;
+			} else {
+				if (style.borderRadiusTopLeft != null)
+					bg.topLeft = style.borderRadiusTopLeft;
+				if (style.borderRadiusTopRight != null)
+					bg.topRight = style.borderRadiusTopRight;
+				if (style.borderRadiusBottomLeft != null)
+					bg.bottomLeft = style.borderRadiusBottomLeft;
+				if (style.borderRadiusBottomRight != null)
+					bg.bottomRight = style.borderRadiusBottomRight;
+			}
 		}
 
-		switch (corner) {
-			case "topLeft":
-				bg.topLeft = radius;
-				border.topLeft = radius;
-			case "topRight":
-				bg.topRight = radius;
-				border.topRight = radius;
-			case "botLeft":
-				bg.bottomLeft = radius;
-				border.bottomLeft = radius;
-			case "bottomRight":
-				bg.bottomRight = radius;
-				border.bottomRight = radius;
+		
+		if (style.borderSize != null && style.borderSize > 0 && style.borderColor != null) {
+			
+			border.thickness = style.borderSize;
+			border.setAllBordersVisible(true);
+			border.setAllBordersColor(style.borderColor);
 		}
+		
+		else {
+			
+			var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
+			border.setBorderSideVisible(BorderSide.TOP, hasTop);
+			if (hasTop) {
+				
+				border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
+				if (style.borderTopColor != null) {
+					border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
+				}
+			}
+
+			
+			var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
+			border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
+			if (hasRight) {
+				
+				border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
+				if (style.borderRightColor != null) {
+					border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
+				}
+			}
+
+			
+			var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
+			border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
+			if (hasBottom) {
+				
+				border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
+				if (style.borderBottomColor != null) {
+					border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
+				}
+			}
+
+			
+			var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
+			border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
+			if (hasLeft) {
+				
+				border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
+				if (style.borderLeftColor != null) {
+					border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
+				}
+			}
+		}
+
+		
+		if (style.borderOpacity != null) {
+			border.alpha = style.borderOpacity;
+		}
+
+		
+		border.rebuild();
 	}
 
 	private function applyBackgroundStyles(style:Style) {
