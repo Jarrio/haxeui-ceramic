@@ -399,7 +399,6 @@ class ComponentImpl extends ComponentBase {
 				} else {
 					visual.slice.texture = texture;
 				}
-				trace(visual.slice.visible, visual.slice.width, visual.slice.height);
 				applySliceAndClip(hasTile);
 			} catch (e:Dynamic ) {
 				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
