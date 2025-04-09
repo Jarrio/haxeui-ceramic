@@ -1,18 +1,17 @@
 package haxe.ui.backend;
 
-import assets.Fonts;
-import ceramic.Assets;
 import haxe.ui.backend.ceramic.ItalicText;
 import ceramic.Text;
 import haxe.ui.core.Screen;
 import ceramic.Visual;
 import ceramic.App;
-import haxe.ui.backend.AppImpl;
 import haxe.ui.backend.ceramic.UnderlineText;
 
 class TextDisplayImpl extends TextBase {
 	public var visual:Visual;
 	public var text_visual:Text;
+
+	var presize:Float;
 
 	public function new() {
 		super();
@@ -22,12 +21,15 @@ class TextDisplayImpl extends TextBase {
 		visual.inheritAlpha = true;
 
 		text_visual = new Text();
-
 		var font = Screen.instance.options.default_text_font;
-		// font = AppImpl.assets.font(Fonts.ROBOTO_REGULAR);
 
 		if (font != null) {
 			text_visual.font = font;
+		}
+
+		var presize = Screen.instance.options.prerender_font_size;
+		if (presize == null) {
+			presize = 1.5;
 		}
 
 		visual.add(text_visual);
@@ -37,7 +39,7 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validateData() {
-		if (_text != null) {
+		if (_text != null && text_visual.content != _text) {
 			text_visual.content = _text;
 		}
 	}
@@ -52,7 +54,6 @@ class TextDisplayImpl extends TextBase {
 			if (_textStyle.fontUnderline != null && text_visual.hasComponent('underline') != _textStyle.fontUnderline) {
 				if (_textStyle.fontUnderline) {
 					text_visual.component('underline', new UnderlineText());
-					measureTextRequired = true;
 				} else {
 					text_visual.removeComponent('underline');
 				}
@@ -64,9 +65,8 @@ class TextDisplayImpl extends TextBase {
 			}
 
 			if (_textStyle.fontSize != null) {
-				var presize = Screen.instance.options.prerender_font_size;
 				text_visual.preRenderedSize = Std.int(_textStyle.fontSize * presize);
-				text_visual.pointSize = Std.int(_textStyle.fontSize);
+				text_visual.pointSize = _textStyle.fontSize;
 				measureTextRequired = true;
 			}
 
@@ -84,8 +84,10 @@ class TextDisplayImpl extends TextBase {
 					font = weights.get(_textStyle.fontWeight);
 				}
 
-				text_visual.font = font;
-				measureTextRequired = true;
+				if (font != null) {
+					text_visual.font = font;
+					measureTextRequired = true;
+				}
 			}
 
 			if (_textStyle.fontItalic != null) {
@@ -94,9 +96,8 @@ class TextDisplayImpl extends TextBase {
 					var italics = Screen.instance.options.font_italics ?? [];
 					if (weight != 0 && italics.exists(weight)) {
 						text_visual.font = italics.get(weight);
-					} else {
+					} else if (!text_visual.hasComponent('italic')) {
 						text_visual.component('italic', new ItalicText());
-						measureTextRequired = true;
 					}
 				} else {
 					if (text_visual.hasComponent('italic')) {
@@ -118,12 +119,12 @@ class TextDisplayImpl extends TextBase {
 
 				if (font != null) {
 					text_visual.font = font;
+					measureTextRequired = true;
 				} else {
 					trace(
 						'[Haxeui-Ceramic] - Font ${font_name} does not exist in the assets object'
 					);
 				}
-				measureTextRequired = true;
 			}
 
 			if (_textStyle.textAlign != null) {
@@ -140,56 +141,78 @@ class TextDisplayImpl extends TextBase {
 	}
 
 	private override function validatePosition() {
+		var alignX = _left;
+
 		switch (text_visual.align) {
 			case CENTER:
-				text_visual.x = (_left + (_width / 2) - (text_visual.width / 2));
+				alignX = Math.round(_left + (_width / 2) - (text_visual.width / 2));
 			case RIGHT:
-				text_visual.x = (_width - text_visual.width);
+				alignX = Math.round(_left + _width - text_visual.width);
 			case LEFT:
-				text_visual.x = (_left);
+				alignX = Math.round(_left);
 		}
 
-		visual.y = _top;
+		if (alignX != text_visual.x) {
+			text_visual.x = alignX;
+		}
+
+		if (_top != visual.y) {
+			visual.y = _top;
+		}
 
 		if (text_visual.numLines == 1) {
 			var offset = Screen.instance.options.text_offset;
 			if (offset == null) {
 				offset = Math.floor(text_visual.height - text_visual.pointSize);
+				if (offset < 0) {
+					offset = 0;
+				}
 			}
-			visual.y = _top + offset;
+			if (_top + offset != visual.y) {
+				visual.y = _top + offset;
+			}
 		}
 	}
 
-	private override function validateDisplay() {
-		var w = _width;
+	private var autoWidth(get, null):Bool;
 
-		if (w > 0 && visual.width != w) {
-			visual.width = w;
-			text_visual.fitWidth = w;
+	inline function get_autoWidth():Bool {
+		return parentComponent.autoWidth;
+	}
+
+	private override function validateDisplay() {
+		if (_width > 0) {
+			if (visual.width != _width) {
+				visual.width = _width;
+			}
+
+			if (!parentComponent.autoWidth) {
+				text_visual.fitWidth = _width;
+			}
 		}
 
-		var h = _height;
-
-		if (h > 0 && visual.height != h) {
-			visual.height = h;
+		if (_height > 0 && visual.height != _height) {
+			visual.height = _height;
 		}
 	}
 
 	private override function measureText() {
-		visual.computeContent();
-
-		var w = (text_visual.width);
-		var h = (text_visual.pointSize);
-
-		if (Screen.instance.options.text_offset != null) {
-			h = text_visual.height;
+		if (text_visual.contentDirty) {
+			text_visual.computeContent();
 		}
 
-		if (text_visual.numLines > 1) {
-			h = text_visual.height;
+		var w = text_visual.width;
+		var h = text_visual.height;
+
+		if (text_visual.numLines == 1) {
+			h = text_visual.pointSize;
+
+			if (Screen.instance.options.text_offset != null) {
+				h = text_visual.height;
+			}
 		}
 
-		_textWidth = w;
-		_textHeight = h;
+		_textWidth = Math.round(w);
+		_textHeight = Math.round(h);
 	}
 }
