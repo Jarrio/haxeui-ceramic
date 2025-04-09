@@ -29,7 +29,6 @@ class RoundedBorder extends Mesh {
 	@content public var rightColor:Color = Color.BLACK;
 	@content public var bottomColor:Color = Color.BLACK;
 	@content public var leftColor:Color = Color.BLACK;
-	
 	// Bezier curve control points factor (0.55 is a good approximation for circles)
 	// See: https://spencermortensen.com/articles/bezier-circle/
 	@content public var bezierFactor:Float = 0.55;
@@ -327,6 +326,19 @@ class RoundedBorder extends Mesh {
 			case LEFT:
 				showLeft = visible;
 		}
+	}
+
+	public function setAllBorders(radius:Float, thickness:Float, color:Color) {
+		this.radius = radius;
+		this.thickness = thickness;
+		this.topThickness = thickness;
+		this.rightThickness = thickness;
+		this.bottomThickness = thickness;
+		this.leftThickness = thickness;
+
+		setAllBordersColor(color);
+		setAllBordersVisible(true);
+		rebuild();
 	}
 
 	public function setBorderSideColor(side:BorderSide, color:Color) {

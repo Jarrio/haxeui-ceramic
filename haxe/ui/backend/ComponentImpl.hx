@@ -320,11 +320,9 @@ class ComponentImpl extends ComponentBase {
 		var bg = visual.rounded;
 		var border = visual.roundedBorder;
 
-		
 		if (border == null)
 			return;
 
-		
 		if (style.borderRadius != null) {
 			border.radius = style.borderRadius;
 		} else {
@@ -338,7 +336,6 @@ class ComponentImpl extends ComponentBase {
 				border.bottomRight = style.borderRadiusBottomRight;
 		}
 
-		
 		if (bg != null) {
 			if (style.borderRadius != null) {
 				bg.radius = style.borderRadius;
@@ -354,53 +351,44 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		
-		if (style.borderSize != null && style.borderSize > 0 && style.borderColor != null) {
-			
-			border.thickness = style.borderSize;
-			border.setAllBordersVisible(true);
-			border.setAllBordersColor(style.borderColor);
-		}
-		
-		else {
-			
+		var hasSpecificRadius = style.borderRadiusTopLeft != null
+			|| style.borderRadiusTopRight != null
+			|| style.borderRadiusBottomLeft != null
+			|| style.borderRadiusBottomRight != null;
+
+		if (style.borderSize != null && style.borderSize > 0 && !hasSpecificRadius) {
+			border.setAllBorders(style.borderRadius, style.borderSize, style.borderColor);
+		} else {
 			var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
 			border.setBorderSideVisible(BorderSide.TOP, hasTop);
 			if (hasTop) {
-				
 				border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
 				if (style.borderTopColor != null) {
 					border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
 				}
 			}
 
-			
 			var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
 			border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
 			if (hasRight) {
-				
 				border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
 				if (style.borderRightColor != null) {
 					border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
 				}
 			}
 
-			
 			var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
 			border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
 			if (hasBottom) {
-				
 				border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
 				if (style.borderBottomColor != null) {
 					border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
 				}
 			}
 
-			
 			var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
 			border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
 			if (hasLeft) {
-				
 				border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
 				if (style.borderLeftColor != null) {
 					border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
@@ -408,12 +396,10 @@ class ComponentImpl extends ComponentBase {
 			}
 		}
 
-		
 		if (style.borderOpacity != null) {
 			border.alpha = style.borderOpacity;
 		}
 
-		
 		border.rebuild();
 	}
 
