@@ -117,7 +117,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		var parent = this.parentComponent;
-		// return;
+
 		if (value == null) {
 			if (parent == null) {
 				visual.parent.remove(filter);
@@ -133,54 +133,30 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			if (this.filter == null) {
 				this.filter = new ceramic.Filter();
-
 				filter.textureFilter = NEAREST;
 				filter.density = App.app.screen.nativeDensity;
 				filter.antialiasing = Screen.instance.options.antialiasing;
+
+				filter.depth = visual.depth + 0.01;
+
 				if (parent == null) {
 					visual.parent.add(filter);
-					// filter.depthRange = 0;
-					// trace('here');
 				} else if (parent.isClipped) {
 					parent.filter.content.add(filter);
 				} else {
 					parent.visual.add(filter);
 				}
+
 				this.isClipped = true;
-				// this.parentComponent.visual.remove(this.visual);
 				filter.content.add(this.visual);
 			}
-			// filter.color = Color.BLACK;
-			// this.visual.x = -value.left;
-			// this.visual.y = -value.top;
-			// this.filter.x = left;
-			// this.filter.y = top;
-			// this.filter.width = value.width;
-			// this.filter.height = value.height;
+
 			var l = (left);
-			if (l % 2 != 0) {
-				// l++;
-			}
 			var t = (top);
-			if (t % 2 != 0) {
-				// t++;
-			}
 			var lr = (value.left);
-			if (lr % 2 != 0) {
-				// lr++;
-			}
 			var tr = (value.top);
-			if (tr % 2 != 0) {
-				// tr++;
-			}
 			var w = (value.width);
-			if (w % 2 != 0) {
-				// w++;
-			}
 			var h = (value.height);
-			if (h % 2 != 0) {
-				// h++;
-			}
 
 			this.visual.x = -lr;
 			this.visual.y = -tr;
@@ -188,11 +164,8 @@ class ComponentImpl extends ComponentBase {
 			this.filter.y = t;
 			this.filter.width = w;
 			this.filter.height = h;
-			// filter.size(value.width, value.height);
-			// filter.pos(value.left, value.top + this.parentComponent.y);
-
-			// filter.pos(value.left, value.top + this.parentComponent.y);
 		}
+
 		this.updateRender();
 	}
 
@@ -231,13 +204,24 @@ class ComponentImpl extends ComponentBase {
 		var components = this.childComponents.copy();
 		components.sort((a, b) -> Std.int(a.visual.depth - b.visual.depth));
 
+		// Set depth with consistent values to ensure proper layering
 		for (i in 0...components.length) {
+			// Use a multiplier to prevent depth overlaps from different parent components
 			components[i].visual.depth = i + 2;
+
+			// Make sure parent-child relation is preserved in depth
+			if (components[i].isClipped || components[i].filter != null) {
+				for (child in components[i].childComponents) {
+					if (child.visual != null) {
+						child.visual.depth = components[i].visual.depth + 10; // Higher than parent
+					}
+				}
+			}
 		}
 
+		// Force ceramic to respect the new depth order
 		visual.sortChildrenByDepth();
 	}
-
 	var depth_counter = 0;
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
