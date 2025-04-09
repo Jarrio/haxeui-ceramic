@@ -459,15 +459,42 @@ class ComponentImpl extends ComponentBase {
 				var texture = image.data;
 
 				if (hasTile) {
-					var clipWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
-					var clipHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+					var clipLeft = style.backgroundImageClipLeft;
+					var clipTop = style.backgroundImageClipTop;
+					var clipRight = style.backgroundImageClipRight;
+					var clipBottom = style.backgroundImageClipBottom;
 
-					var newTile = new TextureTile(texture, style.backgroundImageClipLeft, style.backgroundImageClipTop, clipWidth, clipHeight);
+					var clipWidth = clipRight - clipLeft;
+					var clipHeight = clipBottom - clipTop;
+
+					var newTile = new TextureTile(texture, clipLeft, clipTop, clipWidth, clipHeight);
 					visual.slice.tile = newTile;
 				} else {
 					visual.slice.texture = texture;
 				}
-				applySliceAndClip(hasTile);
+
+				var top = style.backgroundImageSliceTop != null ? style.backgroundImageSliceTop : 0;
+				var right = style.backgroundImageSliceRight != null ? style.backgroundImageSliceRight : 0;
+				var bottom = style.backgroundImageSliceBottom != null ? style.backgroundImageSliceBottom : 0;
+				var left = style.backgroundImageSliceLeft != null ? style.backgroundImageSliceLeft : 0;
+
+				if (hasTile) {
+					var clipWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+					var clipHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+
+					if (right > 0) {
+						right = clipWidth - right;
+					}
+					if (bottom > 0) {
+						bottom = clipHeight - bottom;
+					}
+
+					visual.slice.slice(top, right, bottom, left);
+				} else {
+					visual.slice.slice(top, right, bottom, left);
+				}
+
+				visual.slice.size(width, height);
 			} catch (e:Dynamic ) {
 				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
 			}
