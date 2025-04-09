@@ -96,6 +96,7 @@ class Base extends Visual {
 	}
 
 	override function set_width(value) {
+		
 		if (solid != null) {
 			solid.width = value;
 		}
