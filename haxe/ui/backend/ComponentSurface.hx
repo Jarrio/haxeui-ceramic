@@ -1,13 +1,23 @@
 package haxe.ui.backend;
 
 import ceramic.Quad;
+import ceramic.Border;
 import ceramic.Filter;
 import ceramic.Visual;
-import haxe.ui.backend.ceramic.BorderQuad;
+import ceramic.Entity;
+import ceramic.Component;
+import haxe.ui.backend.ceramic.Base;
+
+
 
 class ComponentSurface {
-	public var visual:BorderQuad;
+	public var visual:Base;
+	
+	/**
+	 * We add all components onto this
+	 */
 	public var filter:Filter;
+
 	var depth_tracker = 2;
 	var visible(get, set):Bool;
 	var clipX(get, set):Float;
@@ -18,24 +28,30 @@ class ComponentSurface {
 	var vertices:Array<Float> = [];
 	
 	public function new() {
-		this.visual = new BorderQuad();
+		this.visual = new Base();
 		//visual.depthRange = -1;
 		this.visual.inheritAlpha = true;
 	}
 
 	public inline function size(width:Float, height:Float) {
-
-		//trace('here');
 		this.visual.width = Std.int(width);
 		this.visual.height = Std.int(height);
 	}
 
 	public inline function add(visual:Visual) {
-		//visual.depthRange = -1;
+		visual.inheritAlpha = true;
+
+		if (visual.depth <= 0) {
+			visual.depth = depth_tracker++;
+		}
+
 		this.visual.add(visual);
+
+		this.visual.sortChildrenByDepth();
 	}
 
 	public inline function remove(visual:Visual) {
+		depth_tracker--;
 		this.visual.remove(visual);
 	}
 

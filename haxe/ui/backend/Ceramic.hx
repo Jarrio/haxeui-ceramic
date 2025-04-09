@@ -4,9 +4,9 @@ import haxe.ui.core.Screen;
 
 @:keep
 class Ceramic {
-	public static var root(get, never):#if no_filter_root ceramic.Visual #else ceramic.Filter #end;
+	public static var root(get, never):#if filter_root ceramic.Filter #else ceramic.Visual #end;
 
-	static function get_root():#if no_filter_root ceramic.Visual #else ceramic.Filter #end {
+	static function get_root():#if filter_root ceramic.Filter #else ceramic.Visual #end {
 		return Screen.instance.options.root;
 	}
 
@@ -25,9 +25,9 @@ class Ceramic {
 	public static function endForceDraw() {
 		draw = false;
 	}
-
+	
+	#if filter_root
 	public static function redraw() {
-		#if !no_filter_root
 		if (options == null || root == null) {
 			return;
 		}
@@ -36,11 +36,10 @@ class Ceramic {
 			//trace('redrawing');
 			root.render();
 		}
-		#end
 	}
-
+	
+	
 	public static function forceRender() {
-		#if !no_filter_root
 		if (options == null || root == null) {
 			return;
 		}
@@ -48,6 +47,6 @@ class Ceramic {
 		if (!draw) {
 			root.render();
 		}
-		#end
 	}
+	#end
 }

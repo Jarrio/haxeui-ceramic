@@ -1,9 +1,11 @@
 package haxe.ui.backend;
 
+import haxe.ui.backend.ceramic.Base.BGType;
+import haxe.ui.backend.ceramic.RoundedBg;
+import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import haxe.ui.backend.ceramic.BorderQuad.Direction;
 import ceramic.AlphaColor;
 import ceramic.Color;
 import ceramic.Border;
@@ -30,6 +32,7 @@ import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import haxe.ui.backend.ScreenImpl;
 import ceramic.NineSlice;
+import ceramic.TextureTile;
 
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
@@ -49,7 +52,9 @@ class ComponentImpl extends ComponentBase {
 			Screen.instance.last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
+		#if filter_root
 		Ceramic.forceRender();
+		#end
 	}
 
 	private function recursiveReady() {
@@ -76,7 +81,6 @@ class ComponentImpl extends ComponentBase {
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
-
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
@@ -84,20 +88,23 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		if (visual.width != width || visual.height != height) {
+		var w = Math.round(width);
+		var h = Math.round(height);
+
+		if (visual.width != w || visual.height != h) {
 			if (style != null) {
 				applyStyle(style);
 			}
 		}
 
-		if (height > 0) {
-			this.visual.height = height;
+		if (h > 0 && h != visual.height) {
+			this.visual.height = h;
 		}
 
-		if (width > 0) {
-			this.visual.width = width;
+		if (w > 0 && w != visual.width) {
+			this.visual.width = w;
 		}
-		
+
 		this.updateRender();
 	}
 
@@ -220,8 +227,15 @@ class ComponentImpl extends ComponentBase {
 	// Display tree
 	//***********************************************************************************************************
 
-	function mapChildren() {
-		//visual.normalizeChildrenDepth();
+	inline function mapChildren() {
+		var components = this.childComponents.copy();
+		components.sort((a, b) -> Std.int(a.visual.depth - b.visual.depth));
+
+		for (i in 0...components.length) {
+			components[i].visual.depth = i + 2;
+		}
+
+		visual.sortChildrenByDepth();
 	}
 
 	var depth_counter = 0;
@@ -232,15 +246,10 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleAddComponent(child:Component):Component {
-		// child.visual.depth = child.depth;
-//		trace(this.depth);
-		var v = this.depth + 2;
-		// if (v < 2) {
-		// 	v = 2;
-		// }
-
-		child.visual.depth = this.depth + 2;
+		child.visual.depth = depth_counter + 2;
+		depth_counter++;
 		this.add(child.visual);
+		mapChildren();
 		return child;
 	}
 
@@ -252,6 +261,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
+		depth_counter--;
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
 		child.visual.active = false;
 		if (dispose) {
@@ -274,150 +284,360 @@ class ComponentImpl extends ComponentBase {
 	var imgCache:Map<String, Texture> = [];
 
 	private override function applyStyle(style:Style) {
-		// if (style == null) {
-		// 	return;
-		// }
+		if (style == null)
+			return;
 
-		// background
-		var alpha:Int = 0xFF000000;
-		if (style.opacity != null) {
-			visual.alpha = style.opacity;
-		}
+		determineVisualType(style);
 
-		if (style.backgroundOpacity != null) {
-			visual.bg_alpha = style.backgroundOpacity;
-		}
+		applyBorderStyles(style);
 
-		var alpha:Int = 0xFF000000;
+		applyBackgroundStyles(style);
 
-		if (style.backgroundColor != null) {
-			if (style.backgroundOpacity != null) {
-				visual.bg_alpha = style.backgroundOpacity;
-			}
-
-			if (style.backgroundColorEnd != null) {
-				var start = (style.backgroundColor | alpha);
-				var end = (style.backgroundColorEnd | alpha);
-				var type = "vertical";
-				if (style.backgroundGradientStyle != null) {
-					type = style.backgroundGradientStyle;
-				}
-
-				visual.setGradient(type, start, end);
-			} else {
-				visual.bg_color = style.backgroundColor;
-			}
-		} else {
-			visual.bg_alpha = 0;
-		}
-
-		//if (this.text == 'Haxe' || this.text == "Java") {
-			//trace(this.text, style.borderType, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-			//trace(Color.fromInt(style.borderTopColor).toHexString(), Color.fromInt(style.borderBottomColor).toHexString());
-		//}
-		// 0x83AAD4, 0xFFFFFF 0xD2D2D2
-		// borders
-		var type = style.borderType;
-		switch (type) {
-			case None:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
-			case Full:
-				visual.border_size = 0;
-				visual.border_color = Color.NONE;
-				//trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
-				
-				if (style.borderSize != null) {
-					visual.border_size = style.borderSize;
-					if (style.borderSize > 0) {
-						visual.border_color = style.borderColor;
-					}
-				}
-			case Compound:
-				if (style.borderLeftSize != null) {
-					visual.border_left_size = style.borderLeftSize;
-					if (style.borderLeftSize > 0) {
-						visual.border_left_color = (style.borderLeftColor);
-					}
-				}
-
-				if (style.borderRightSize != null) {
-					visual.border_right_size = style.borderRightSize;
-					if (style.borderRightSize > 0) {
-						visual.border_right_color = (style.borderRightColor);
-					}
-				}
-
-				if (style.borderTopSize != null) {
-					visual.border_top_size = style.borderTopSize;
-					if (style.borderTopSize > 0) {
-						visual.border_top_color = (style.borderTopColor);
-					}
-				}
-
-				if (style.borderBottomSize != null) {
-					visual.border_bottom_size = style.borderBottomSize;
-					if (style.borderBottomSize > 0) {
-						visual.border_bottom_color = (style.borderBottomColor);
-					}
-				}
-			default:
-				trace(type, this._id, this.id, this.visual.id);
-		}
-
-		if (style.borderOpacity != null) {
-			visual.border_alpha = style.borderOpacity;
-		}
-
-		var sliceTop = style.backgroundImageSliceTop != null;
-		var sliceLeft = style.backgroundImageSliceLeft != null;
-		var sliceBottom = style.backgroundImageSliceBottom != null;
-		var sliceRight = style.backgroundImageSliceRight != null;
-
-		if (style.backgroundImage != null && (sliceTop || sliceLeft || sliceBottom || sliceRight)) {
-			var topSlice = style.backgroundImageSliceTop;
-			var botSlice = style.backgroundImageSliceBottom;
-			var leftSlice = style.backgroundImageSliceLeft;
-			var rightSlice = style.backgroundImageSliceRight;
-
-			// var obj:NineSlice;
-			if (!visual.isSlice) {
-				var texture = null;
-				if (imgCache.exists(style.backgroundImage)) {
-					texture = imgCache.get(style.backgroundImage);
-					visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-				} else {
-					ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-						if (image == null) {
-							trace(
-								'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
-							);
-							return;
-						}
-						texture = image.data;
-						visual.setNineSlice(texture, topSlice, botSlice, leftSlice, rightSlice);
-						imgCache.set(style.backgroundImage, image.data);
-
-						trace('saved image');
-					});
-				}
-			}
-
-			if (sliceTop && sliceLeft && sliceBottom && sliceRight) {
-				visual.setSlice(topSlice, botSlice, leftSlice, rightSlice);
-				// visual.setSlicePos(leftSlice, topSlice);
-				// visual.setSliceSize(rightSlice, botSlice);
-				trace(topSlice, botSlice, leftSlice, rightSlice);
-			} else {
-				trace(topSlice, botSlice, leftSlice, rightSlice);
+		if (style.backgroundImage != null) {
+			if (visual.bgType == NINESLICE) {
+				applyNineSliceBackground(style);
+			} else if (visual.bgType == SOLID) {
+				applySolidBackground(style);
 			}
 		}
 
 		this.updateRender();
 	}
 
+	private function applyBorderStyles(style:Style) {
+		if (style.opacity != null) {
+			visual.alpha = style.opacity;
+		}
+
+		if (visual.bgType == ROUNDED) {
+			applyRoundedBorderStyles(style);
+		} else if (visual.borderType == RECTANGLE && visual.border != null) {
+			applyRectangleBorderStyles(style);
+		}
+	}
+
+	private function applyRoundedBorderStyles(style:Style) {
+		var bg = visual.rounded;
+		var border = visual.roundedBorder;
+
+		
+		if (border == null)
+			return;
+
+		
+		if (style.borderRadius != null) {
+			border.radius = style.borderRadius;
+		} else {
+			if (style.borderRadiusTopLeft != null)
+				border.topLeft = style.borderRadiusTopLeft;
+			if (style.borderRadiusTopRight != null)
+				border.topRight = style.borderRadiusTopRight;
+			if (style.borderRadiusBottomLeft != null)
+				border.bottomLeft = style.borderRadiusBottomLeft;
+			if (style.borderRadiusBottomRight != null)
+				border.bottomRight = style.borderRadiusBottomRight;
+		}
+
+		
+		if (bg != null) {
+			if (style.borderRadius != null) {
+				bg.radius = style.borderRadius;
+			} else {
+				if (style.borderRadiusTopLeft != null)
+					bg.topLeft = style.borderRadiusTopLeft;
+				if (style.borderRadiusTopRight != null)
+					bg.topRight = style.borderRadiusTopRight;
+				if (style.borderRadiusBottomLeft != null)
+					bg.bottomLeft = style.borderRadiusBottomLeft;
+				if (style.borderRadiusBottomRight != null)
+					bg.bottomRight = style.borderRadiusBottomRight;
+			}
+		}
+
+		
+		if (style.borderSize != null && style.borderSize > 0 && style.borderColor != null) {
+			
+			border.thickness = style.borderSize;
+			border.setAllBordersVisible(true);
+			border.setAllBordersColor(style.borderColor);
+		}
+		
+		else {
+			
+			var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
+			border.setBorderSideVisible(BorderSide.TOP, hasTop);
+			if (hasTop) {
+				
+				border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
+				if (style.borderTopColor != null) {
+					border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
+				}
+			}
+
+			
+			var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
+			border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
+			if (hasRight) {
+				
+				border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
+				if (style.borderRightColor != null) {
+					border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
+				}
+			}
+
+			
+			var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
+			border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
+			if (hasBottom) {
+				
+				border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
+				if (style.borderBottomColor != null) {
+					border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
+				}
+			}
+
+			
+			var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
+			border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
+			if (hasLeft) {
+				
+				border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
+				if (style.borderLeftColor != null) {
+					border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
+				}
+			}
+		}
+
+		
+		if (style.borderOpacity != null) {
+			border.alpha = style.borderOpacity;
+		}
+
+		
+		border.rebuild();
+	}
+
+	private function applyBackgroundStyles(style:Style) {
+		if (style.backgroundOpacity != null) {
+			visual.bgAlpha = style.backgroundOpacity;
+		} else {
+			visual.bgAlpha = 1;
+		}
+
+		if (visual.bgType == NINESLICE)
+			return;
+
+		if (style.backgroundColor != null) {
+			if (style.backgroundColorEnd != null) {
+				applyGradient(style);
+			} else if (visual.solid != null) {
+				visual.solid.color = style.backgroundColor;
+			} else if (visual.bgType == ROUNDED || visual.bgType == GRADIENT) {
+				var bg = (visual.bgType == ROUNDED) ? visual.rounded : visual.gradient;
+				bg.colorMapping = MESH;
+				bg.color = style.backgroundColor;
+			}
+		} else {
+			visual.bgAlpha = 0;
+		}
+	}
+
+	private function applyNineSliceBackground(style:Style) {
+		if (visual == null || visual.slice == null || !visual.active) {
+			return;
+		}
+
+		var hasSlice = style.backgroundImageSliceTop != null
+			|| style.backgroundImageSliceLeft != null
+			|| style.backgroundImageSliceBottom != null
+			|| style.backgroundImageSliceRight != null;
+
+		var hasTile = style.backgroundImageClipTop != null
+			&& style.backgroundImageClipLeft != null
+			&& style.backgroundImageClipBottom != null
+			&& style.backgroundImageClipRight != null;
+
+		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			if (visual == null || visual.slice == null || !visual.active) {
+				return;
+			}
+
+			if (image == null) {
+				trace(
+					'[haxeui-ceramic] image ${style.backgroundImage} could not be loaded'
+				);
+				return;
+			}
+
+			try {
+				var texture = image.data;
+
+				if (hasTile) {
+					var clipWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+					var clipHeight = style.backgroundImageClipBottom - style.backgroundImageClipTop;
+
+					var newTile = new TextureTile(texture, style.backgroundImageClipLeft, style.backgroundImageClipTop, clipWidth, clipHeight);
+					visual.slice.tile = newTile;
+				} else {
+					visual.slice.texture = texture;
+				}
+				applySliceAndClip(hasTile);
+			} catch (e:Dynamic ) {
+				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
+			}
+		});
+	}
+
+	private function applySolidBackground(style:Style) {
+		if (visual == null || visual.solid == null) {
+			trace("[ERROR] Visual or solid is null");
+			return;
+		}
+
+		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
+			if (image == null) {
+				trace("Image failed to load: " + style.backgroundImage);
+				return;
+			}
+
+			if (visual == null || visual.solid == null) {
+				trace("Visual or solid became null after loading");
+				return;
+			}
+
+			try {
+				imgCache.set(style.backgroundImage, image.data);
+				visual.solid.texture = image.data;
+				visual.solid.alpha = 1;
+			} catch (e:Dynamic ) {
+				trace("Error applying texture: " + e);
+			}
+		});
+	}
+
+	private function applyGradient(style:Style) {
+		var alpha:Int = 0xFF000000;
+		var start = (style.backgroundColor | alpha);
+		var end = (style.backgroundColorEnd | alpha);
+		var vertical = style.backgroundGradientStyle != "horizontal";
+
+		if (visual.gradient != null) {
+			visual.gradient.setGradient(start, end, vertical);
+		} else if (visual.rounded != null) {
+			visual.rounded.setGradient(start, end, vertical);
+		}
+	}
+
+	private function applyRectangleBorderStyles(style:Style) {
+		var border = visual.border;
+		border.borderSize = -1;
+
+		border.borderLeftSize = -1;
+		border.borderLeftColor = Color.NONE;
+		if (style.borderLeftSize != null) {
+			border.borderLeftSize = style.borderLeftSize;
+			border.borderLeftColor = style.borderLeftColor;
+		}
+
+		border.borderRightSize = -1;
+		border.borderRightColor = Color.NONE;
+		if (style.borderRightSize != null) {
+			border.borderRightSize = style.borderRightSize;
+			border.borderRightColor = style.borderRightColor;
+		}
+
+		border.borderTopSize = -1;
+		border.borderTopColor = Color.NONE;
+		if (style.borderTopSize != null) {
+			border.borderTopSize = style.borderTopSize;
+			border.borderTopColor = style.borderTopColor;
+		}
+
+		border.borderBottomSize = -1;
+		border.borderBottomColor = Color.NONE;
+		if (style.borderBottomSize != null) {
+			border.borderBottomSize = style.borderBottomSize;
+			border.borderBottomColor = style.borderBottomColor;
+		}
+
+		if (style.borderOpacity != null) {
+			border.alpha = style.borderOpacity;
+		}
+	}
+
+	private function determineVisualType(style:Style) {
+		var hasRadius = style.borderRadius != null && style.borderRadius > 0;
+		var hasSpecificRadius = style.borderRadiusTopLeft != null
+			|| style.borderRadiusTopRight != null
+			|| style.borderRadiusBottomLeft != null
+			|| style.borderRadiusBottomRight != null;
+
+		var hasClip = style.backgroundImageClipTop != null
+			|| style.backgroundImageClipLeft != null
+			|| style.backgroundImageClipBottom != null
+			|| style.backgroundImageClipRight != null;
+
+		var hasSlice = style.backgroundImageSliceTop != null
+			|| style.backgroundImageSliceLeft != null
+			|| style.backgroundImageSliceBottom != null
+			|| style.backgroundImageSliceRight != null;
+
+		var oldType = visual.bgType;
+		var newType:BGType;
+
+		if (hasClip || hasSlice) {
+			newType = NINESLICE;
+		} else if (hasRadius || hasSpecificRadius) {
+			newType = ROUNDED;
+		} else if (style.backgroundColorEnd != null) {
+			newType = GRADIENT;
+		} else {
+			newType = SOLID;
+		}
+
+		if (oldType != newType) {
+			if (oldType == NINESLICE && visual.slice != null) {
+				if (visual.slice.tile != null) {
+					visual.slice.tile = null;
+				}
+				visual.slice.texture = null;
+			}
+
+			visual.bgType = newType;
+		}
+
+		if (hasRadius || hasSpecificRadius) {
+			visual.borderType = ROUNDED;
+		} else {
+			visual.borderType = RECTANGLE;
+		}
+	}
+
+	function applySliceAndClip(framed:Bool) {
+		var slice = visual.slice;
+
+		var top = style.backgroundImageSliceTop;
+		var left = style.backgroundImageSliceLeft;
+
+		var right = (style.backgroundImageClipRight - style.backgroundImageClipLeft) - style.backgroundImageSliceRight;
+		var bot = style.backgroundImageClipBottom - style.backgroundImageSliceBottom;
+
+		if (framed) {
+			var tile = visual.slice.tile;
+			tile.frameX = style.backgroundImageClipLeft;
+			tile.frameY = style.backgroundImageClipTop;
+			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
+			tile.frameHeight = style.backgroundImageClipBottom;
+
+			slice.slice(top, Math.abs(right), Math.abs(bot), left);
+		} else {
+			slice.slice(top, right, bot, left);
+		}
+
+		slice.size(width, height);
+	}
+
 	public function checkRedispatch(type:String, event:MouseEvent) {
-		// trace(type);
 		if (this.hasEvent(type) && this.hitTest(event.screenX, event.screenY)) {
 			this.eventMap[type](event);
 		}
@@ -446,12 +666,27 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 
 	private function hasComponentOver(ref:Component, x:Float, y:Float, reverse:Bool = false):Bool {
-		var array:Array<Component> = getVisibleComponentsAtPoint(x, y, reverse);
-		if (array.length == 0) {
+		var array = getVisibleComponentsAtPoint(x, y, reverse);
+		if (array.length == 0)
 			return false;
+
+		var topComponent = array[array.length - 1];
+
+		if (ref == topComponent)
+			return false;
+
+		if (hasChildRecursive(cast ref, cast topComponent))
+			return false;
+
+		for (component in array) {
+			if (component == ref)
+				return false;
+
+			if (!hasChildRecursive(cast ref, cast component))
+				return true;
 		}
 
-		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
+		return true;
 	}
 
 	private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
@@ -469,6 +704,26 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		return array;
+	}
+
+	public function inBounds(x:Float, y:Float):Bool {
+		if (cast(this, Component).hidden) {
+			return false;
+		}
+
+		if (!cast(this, Component).hitTest(x, y)) {
+			return false;
+		}
+
+		if (this.isClipped) {
+			var clipX = x - filter.x;
+			var clipY = y - filter.y;
+			if (clipX < 0 || clipY < 0 || clipX > filter.width || clipY > filter.height) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private function findChildrenAtPoint(child:Component, x:Float, y:Float, array:Array<Component>) {
@@ -546,11 +801,6 @@ class ComponentImpl extends ComponentBase {
 				Cursor.setTo(CursorType.DEFAULT);
 			}
 		}
-
-		// if (over) {
-		// 	listener(event);
-		// 	over = false;
-		// }
 	}
 
 	function _onMouseOver(info:TouchInfo) {
@@ -569,17 +819,13 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
-		if (hittest) {
+		if (hittest && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 			over = true;
 			if (style != null && style.cursor != null && (this is InteractiveComponent)) {
 				Cursor.setTo(CursorType.fromString(style.cursor));
 			}
 		}
-		// if (!over) {
-		// 	this.over = true;
-		// 	listener(event);
-		// }
 	}
 
 	function onMouseLeftUp(info:TouchInfo) {
@@ -750,9 +996,30 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	public function dispatchMouseEvent(type:String, info:TouchInfo) {
+		var event = new MouseEvent(type);
+		event.screenX = info.x;
+		event.screenY = info.y;
+
+		var componentsAtPoint = getComponentsAtPoint(info.x, info.y, false);
+
+		for (component in componentsAtPoint) {
+			if (component.eventMap.exists(type)) {
+				var listener = component.eventMap.get(type);
+				listener(event);
+
+				if (event.canceled) {
+					break;
+				}
+			}
+		}
+	}
+
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
-
+		if (visual.destroyed) {
+			return;
+		}
 		switch (type) {
 			case MouseEvent.CLICK:
 				if (!eventMap.exists(MouseEvent.CLICK)) {
@@ -785,7 +1052,6 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					// visual.onPointerOut(visual, _onMouseOut);
 					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
