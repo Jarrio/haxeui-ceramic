@@ -3,6 +3,7 @@ package haxe.ui.backend.ceramic;
 import ceramic.Mesh;
 import ceramic.Color;
 import ceramic.AlphaColor;
+import ceramic.BezierEasing;
 
 class RoundedBorder extends Mesh {
 	@content public var topLeft:Float = 0;
@@ -10,14 +11,14 @@ class RoundedBorder extends Mesh {
 	@content public var bottomLeft:Float = 0;
 	@content public var bottomRight:Float = 0;
 
-	@content public var thickness:Float;
+	@content public var thickness:Float = 1;
 
 	@content public var topThickness:Float = 1;
 	@content public var rightThickness:Float = 1;
 	@content public var bottomThickness:Float = 1;
 	@content public var leftThickness:Float = 1;
 
-	public var segments:Int = 10;
+	@content public var curveSegments:Int = 8;
 
 	@content public var showTop:Bool = true;
 	@content public var showRight:Bool = true;
@@ -28,6 +29,10 @@ class RoundedBorder extends Mesh {
 	@content public var rightColor:Color = Color.BLACK;
 	@content public var bottomColor:Color = Color.BLACK;
 	@content public var leftColor:Color = Color.BLACK;
+	
+	// Bezier curve control points factor (0.55 is a good approximation for circles)
+	// See: https://spencermortensen.com/articles/bezier-circle/
+	@content public var bezierFactor:Float = 0.55;
 
 	public var radius(default, set):Float;
 
@@ -63,18 +68,12 @@ class RoundedBorder extends Mesh {
 
 	public function rebuild() {
 		if (width <= 0 || height <= 0) {
-			//trace('Invalid dimensions: ${width}x${height}');
 			return;
 		}
 
 		if (thickness <= 0) {
-			//trace('Invalid thickness: ${thickness}');
 			return;
 		}
-
-		// trace(
-		// 	'thickness: main=${thickness}, top=${topThickness}, right=${rightThickness}, bottom=${bottomThickness}, left=${leftThickness}'
-		// );
 
 		vertices = [];
 		indices = [];
@@ -115,8 +114,6 @@ class RoundedBorder extends Mesh {
 		var w = width;
 		var h = height;
 		var t = sideThickness;
-
-		// trace('Drawing side: ${side}, thickness: ${t}, color: ${color}');
 
 		var maxRadius = Math.min(w / 2, h / 2);
 		var tlRadius = Math.min(topLeft, maxRadius);
@@ -214,19 +211,19 @@ class RoundedBorder extends Mesh {
 		var blThickness = Math.max(bottomThickness, leftThickness);
 
 		if (tlRadius > 0 && (showTop || showLeft))
-			drawCornerArc(0, 0, tlRadius, Math.PI, Math.PI * 1.5, tlColor, tlThickness);
+			drawBezierCorner(0, 0, tlRadius, Math.PI, Math.PI * 1.5, tlColor, tlThickness);
 
 		if (trRadius > 0 && (showTop || showRight))
-			drawCornerArc(w, 0, trRadius, Math.PI * 1.5, Math.PI * 2, trColor, trThickness);
+			drawBezierCorner(w, 0, trRadius, Math.PI * 1.5, Math.PI * 2, trColor, trThickness);
 
 		if (brRadius > 0 && (showBottom || showRight))
-			drawCornerArc(w, h, brRadius, 0, Math.PI * 0.5, brColor, brThickness);
+			drawBezierCorner(w, h, brRadius, 0, Math.PI * 0.5, brColor, brThickness);
 
 		if (blRadius > 0 && (showBottom || showLeft))
-			drawCornerArc(0, h, blRadius, Math.PI * 0.5, Math.PI, blColor, blThickness);
+			drawBezierCorner(0, h, blRadius, Math.PI * 0.5, Math.PI, blColor, blThickness);
 	}
 
-	private function drawCornerArc(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, cornerThickness:Float) {
+	private function drawBezierCorner(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, cornerThickness:Float) {
 		if (radius <= 0)
 			return;
 
@@ -236,48 +233,87 @@ class RoundedBorder extends Mesh {
 		var arcCenterY:Float;
 
 		if (cx == 0 && cy == 0) {
+			// Top-left corner
 			arcCenterX = radius;
 			arcCenterY = radius;
 		} else if (cx > 0 && cy == 0) {
+			// Top-right corner
 			arcCenterX = cx - radius;
 			arcCenterY = radius;
 		} else if (cx > 0 && cy > 0) {
+			// Bottom-right corner
 			arcCenterX = cx - radius;
 			arcCenterY = cy - radius;
 		} else {
+			// Bottom-left corner
 			arcCenterX = radius;
 			arcCenterY = cy - radius;
 		}
 
-		var angleStep = (endAngle - startAngle) / segments;
+		var angleRange = endAngle - startAngle;
 		var startIdx = Std.int(vertices.length / 2);
 		var alphaColor = color.toAlphaColor();
 
-		for (i in 0...segments + 1) {
-			var angle = startAngle + i * angleStep;
+		var outerPoints:Array<{x:Float, y:Float}> = [];
+		
+		var innerPoints:Array<{x:Float, y:Float}> = [];
 
-			var outerX = arcCenterX + Math.cos(angle) * radius;
-			var outerY = arcCenterY + Math.sin(angle) * radius;
-			vertices.push(outerX);
-			vertices.push(outerY);
-			colors.push(alphaColor);
+		for (i in 0...curveSegments + 1) {
+			var t = i / curveSegments;
+			var angle = startAngle + t * angleRange;
 
-			var innerX = arcCenterX + Math.cos(angle) * innerRadius;
-			var innerY = arcCenterY + Math.sin(angle) * innerRadius;
-			vertices.push(innerX);
-			vertices.push(innerY);
-			colors.push(alphaColor);
+			var easing = BezierEasing.get(0, 0, 1, 1);
+			var easedT = easing.ease(t);
+			var smoothAngle = startAngle + easedT * angleRange;
 
-			if (i > 0) {
-				indices.push(startIdx + (i - 1) * 2);
-				indices.push(startIdx + i * 2);
-				indices.push(startIdx + (i - 1) * 2 + 1);
+			var outerX = arcCenterX + Math.cos(smoothAngle) * radius;
+			var outerY = arcCenterY + Math.sin(smoothAngle) * radius;
+			outerPoints.push({x: outerX, y: outerY});
 
-				indices.push(startIdx + (i - 1) * 2 + 1);
-				indices.push(startIdx + i * 2);
-				indices.push(startIdx + i * 2 + 1);
-			}
+			var innerX = arcCenterX + Math.cos(smoothAngle) * innerRadius;
+			var innerY = arcCenterY + Math.sin(smoothAngle) * innerRadius;
+			innerPoints.push({x: innerX, y: innerY});
 		}
+
+		for (i in 0...outerPoints.length) {
+			// Outer point
+			vertices.push(outerPoints[i].x);
+			vertices.push(outerPoints[i].y);
+			colors.push(alphaColor);
+
+			// Inner point
+			vertices.push(innerPoints[i].x);
+			vertices.push(innerPoints[i].y);
+			colors.push(alphaColor);
+		}
+
+		for (i in 0...outerPoints.length - 1) {
+			var outerIdx1 = startIdx + i * 2;
+			var innerIdx1 = outerIdx1 + 1;
+			var outerIdx2 = startIdx + (i + 1) * 2;
+			var innerIdx2 = outerIdx2 + 1;
+
+			indices.push(outerIdx1);
+			indices.push(outerIdx2);
+			indices.push(innerIdx1);
+
+			indices.push(innerIdx1);
+			indices.push(outerIdx2);
+			indices.push(innerIdx2);
+		}
+	}
+
+	/**
+	 * Helper function to calculate a point on a cubic Bezier curve
+	 */
+	private function cubicBezier(t:Float, p0:Float, p1:Float, p2:Float, p3:Float):Float {
+		var oneMinusT = 1 - t;
+		var oneMinusTSquared = oneMinusT * oneMinusT;
+		var oneMinusTCubed = oneMinusTSquared * oneMinusT;
+		var tSquared = t * t;
+		var tCubed = tSquared * t;
+
+		return oneMinusTCubed * p0 + 3 * oneMinusTSquared * t * p1 + 3 * oneMinusT * tSquared * p2 + tCubed * p3;
 	}
 
 	public function setBorderSideVisible(side:BorderSide, visible:Bool) {
@@ -291,7 +327,6 @@ class RoundedBorder extends Mesh {
 			case LEFT:
 				showLeft = visible;
 		}
-		rebuild();
 	}
 
 	public function setBorderSideColor(side:BorderSide, color:Color) {
@@ -311,7 +346,6 @@ class RoundedBorder extends Mesh {
 		switch (side) {
 			case TOP:
 				topThickness = thickness;
-
 				if (thickness > 0)
 					showTop = true;
 			case RIGHT:
@@ -327,7 +361,6 @@ class RoundedBorder extends Mesh {
 				if (thickness > 0)
 					showLeft = true;
 		}
-
 	}
 
 	public function setAllBordersVisible(visible:Bool) {
@@ -342,6 +375,15 @@ class RoundedBorder extends Mesh {
 		rightColor = color;
 		bottomColor = color;
 		leftColor = color;
+	}
+
+	public function setCurveQuality(segments:Int) {
+		if (segments < 4)
+			segments = 4; // Minimum quality
+		if (segments > 32)
+			segments = 32; // Reasonable maximum
+
+		this.curveSegments = segments;
 	}
 }
 
