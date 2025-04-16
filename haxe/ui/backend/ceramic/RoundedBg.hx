@@ -60,44 +60,60 @@ class RoundedBg extends Mesh {
 	}
 
 	public function createRoundedRect(topLeft:Float, topRight:Float, bottomRight:Float, bottomLeft:Float):Void {
+		if (width <= 0 || height <= 0) {
+			return;
+		}
+
 		this.topLeft = topLeft;
 		this.topRight = topRight;
 		this.bottomLeft = bottomLeft;
 		this.bottomRight = bottomRight;
 
 		this.vertices = generateVertices(0, 0, width, height);
-		this.indices = generateFillIndices(Std.int(this.vertices.length / 2));
+
+		if (this.vertices.length >= 6) {
+			this.indices = generateFillIndices(Std.int(this.vertices.length / 2));
+		} else {
+			this.indices = [];
+		}
 	}
 
 	function generateVertices(x:Float, y:Float, width:Float, height:Float):Array<Float> {
 		var vertices = [];
 
+		var maxRadiusX = Math.min(width / 2, height / 2);
+
+		var tlRadius = Math.min(topLeft, maxRadiusX);
+		var trRadius = Math.min(topRight, maxRadiusX);
+		var brRadius = Math.min(bottomRight, maxRadiusX);
+		var blRadius = Math.min(bottomLeft, maxRadiusX);
+
 		// Top-left corner
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
-			vertices.push(x + topLeft - Math.cos(angle) * topLeft);
-			vertices.push(y + topLeft - Math.sin(angle) * topLeft);
+			vertices.push(x + tlRadius - Math.cos(angle) * tlRadius);
+			vertices.push(y + tlRadius - Math.sin(angle) * tlRadius);
 		}
 
 		// Top-right corner
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
-			vertices.push(x + width - topRight + Math.sin(angle) * topRight);
-			vertices.push(y + topRight - Math.cos(angle) * topRight);
+			vertices.push(x + width - trRadius + Math.sin(angle) * trRadius);
+			vertices.push(y + trRadius - Math.cos(angle) * trRadius);
 		}
 
 		// Bottom-right corner
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
-			vertices.push(x + width - bottomRight + Math.cos(angle) * bottomRight);
-			vertices.push(y + height - bottomRight + Math.sin(angle) * bottomRight);
+			vertices.push(x + width - brRadius + Math.cos(angle) * brRadius);
+			vertices.push(y + height - brRadius + Math.sin(angle) * brRadius);
 		}
 
 		// Bottom-left corner
 		for (i in 0...segments) {
 			var angle = Math.PI / 2 * (i / segments);
-			vertices.push(x + bottomLeft - Math.sin(angle) * bottomLeft);
-			vertices.push(y + height - bottomLeft + Math.cos(angle) * bottomLeft);
+			vertices.push(x + blRadius - Math.sin(angle) * blRadius);
+			vertices.push(y + height - blRadius + Math.cos(angle) * blRadius);
 		}
 
 		return vertices;
