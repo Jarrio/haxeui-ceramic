@@ -147,6 +147,8 @@ class ComponentImpl extends ComponentBase {
 					parent.visual.add(filter);
 				}
 
+				if (this.visual.getBorder() != null) {}
+
 				this.isClipped = true;
 				filter.content.add(this.visual);
 			}
@@ -354,6 +356,7 @@ class ComponentImpl extends ComponentBase {
 
 		if (bg != null) {
 			if (style.borderRadius != null) {
+				bg.color = style.backgroundColor;
 				bg.radius = style.borderRadius;
 			} else {
 				if (style.borderRadiusTopLeft != null)
@@ -368,6 +371,7 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		if (style.borderOpacity != null) {
+			bg.alpha = style.backgroundOpacity;
 			border.alpha = style.borderOpacity;
 		}
 
@@ -515,33 +519,47 @@ class ComponentImpl extends ComponentBase {
 	private function applyRectangleBorderStyles(style:Style) {
 		var border = visual.border;
 		border.borderSize = -1;
+		var scaleFactor = App.app.screen.nativeDensity;
+		trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		var hasBorder = style.borderSize != null && style.borderSize > 0;
+		var hasCompound = style.borderTopSize != null
+			|| style.borderLeftSize != null
+			|| style.borderBottomSize != null
+			|| style.borderRightSize != null;
 
-		border.borderLeftSize = -1;
-		border.borderLeftColor = Color.NONE;
-		if (style.borderLeftSize != null) {
-			border.borderLeftSize = style.borderLeftSize;
-			border.borderLeftColor = style.borderLeftColor;
+		if (hasBorder) {
+			border.borderSize = style.borderSize;
+			border.borderColor = style.borderColor;
 		}
+		
+		if (hasCompound) {
+			border.borderLeftSize = 0;
+			border.borderLeftColor = Color.NONE;
+			if (style.borderLeftSize != null) {
+				border.borderLeftSize = style.borderLeftSize;
+				border.borderLeftColor = style.borderLeftColor;
+			}
 
-		border.borderRightSize = -1;
-		border.borderRightColor = Color.NONE;
-		if (style.borderRightSize != null) {
-			border.borderRightSize = style.borderRightSize;
-			border.borderRightColor = style.borderRightColor;
-		}
+			border.borderRightSize = 0;
+			border.borderRightColor = Color.NONE;
+			if (style.borderRightSize != null) {
+				border.borderRightSize = style.borderRightSize;
+				border.borderRightColor = style.borderRightColor;
+			}
 
-		border.borderTopSize = -1;
-		border.borderTopColor = Color.NONE;
-		if (style.borderTopSize != null) {
-			border.borderTopSize = style.borderTopSize;
-			border.borderTopColor = style.borderTopColor;
-		}
+			border.borderTopSize = 0;
+			border.borderTopColor = Color.NONE;
+			if (style.borderTopSize != null) {
+				border.borderTopSize = style.borderTopSize;
+				border.borderTopColor = style.borderTopColor;
+			}
 
-		border.borderBottomSize = -1;
-		border.borderBottomColor = Color.NONE;
-		if (style.borderBottomSize != null) {
-			border.borderBottomSize = style.borderBottomSize;
-			border.borderBottomColor = style.borderBottomColor;
+			border.borderBottomSize = 0;
+			border.borderBottomColor = Color.NONE;
+			if (style.borderBottomSize != null) {
+				border.borderBottomSize = style.borderBottomSize;
+				border.borderBottomColor = style.borderBottomColor;
+			}
 		}
 
 		if (style.borderOpacity != null) {
