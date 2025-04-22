@@ -11,7 +11,7 @@ class TextDisplayImpl extends TextBase {
 	public var visual:Visual;
 	public var text_visual:Text;
 
-	var presize:Float;
+	var presize:Float = 1.5;
 
 	public function new() {
 		super();
@@ -27,13 +27,13 @@ class TextDisplayImpl extends TextBase {
 			text_visual.font = font;
 		}
 
-		var presize = Screen.instance.options.prerender_font_size;
-		if (presize == null) {
-			presize = 1.5;
-		}
-
 		visual.add(text_visual);
 		Toolkit.callLater(function() {
+			var presize = Screen.instance.options.prerender_font_size;
+			if (presize != null) {
+				presize = 1.5;
+			}
+
 			visual.visible = true;
 		});
 	}
