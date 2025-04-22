@@ -263,15 +263,15 @@ class ComponentImpl extends ComponentBase {
 
 		determineVisualType(style);
 
-		applyBorderStyles(style);
+			applyBorderStyles(style);
 
-		applyBackgroundStyles(style);
+			applyBackgroundStyles(style);
 
-		if (style.backgroundImage != null) {
-			if (visual.bgType == NINESLICE) {
-				applyNineSliceBackground(style);
-			} else if (visual.bgType == SOLID) {
-				applySolidBackground(style);
+			if (style.backgroundImage != null) {
+				if (visual.bgType == NINESLICE) {
+					applyNineSliceBackground(style);
+				} else if (visual.bgType == SOLID) {
+					applySolidBackground(style);
 			}
 		}
 
@@ -520,18 +520,16 @@ class ComponentImpl extends ComponentBase {
 		var border = visual.border;
 		border.borderSize = -1;
 		var scaleFactor = App.app.screen.nativeDensity;
-		trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
+		//		trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 		var hasBorder = style.borderSize != null && style.borderSize > 0;
-		var hasCompound = style.borderTopSize != null
-			|| style.borderLeftSize != null
-			|| style.borderBottomSize != null
+		var hasCompound = style.borderTopSize != null || style.borderLeftSize != null || style.borderBottomSize != null
 			|| style.borderRightSize != null;
 
 		if (hasBorder) {
 			border.borderSize = style.borderSize;
 			border.borderColor = style.borderColor;
 		}
-		
+
 		if (hasCompound) {
 			border.borderLeftSize = 0;
 			border.borderLeftColor = Color.NONE;
@@ -1054,6 +1052,7 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
+					// visual.onPointerOut(visual, _onMouseOut);
 					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
@@ -1130,11 +1129,13 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
 					screen.offPointerMove(_onMouseOver);
+					// visual.offPointerOver(_onMouseOver);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					screen.offPointerMove(_onMouseOut);
+					// visual.offPointerOut(_onMouseOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
 				}
 			case MouseEvent.MOUSE_UP:

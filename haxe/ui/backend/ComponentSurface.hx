@@ -47,7 +47,7 @@ class ComponentSurface {
 
 		this.visual.add(visual);
 
-		this.visual.sortChildrenByDepth();
+		//this.visual.sortChildrenByDepth();
 	}
 
 	public inline function remove(visual:Visual) {
