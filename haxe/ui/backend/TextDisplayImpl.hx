@@ -31,7 +31,7 @@ class TextDisplayImpl extends TextBase {
 		Toolkit.callLater(function() {
 			var presize = Screen.instance.options.prerender_font_size;
 			if (presize != null) {
-				presize = 1.5;
+				this.presize = presize;
 			}
 
 			visual.visible = true;

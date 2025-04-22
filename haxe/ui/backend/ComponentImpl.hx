@@ -84,6 +84,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
+		static var sizeChanged = false;
 		if (visual == null) {
 			return;
 		}
@@ -91,23 +92,47 @@ class ComponentImpl extends ComponentBase {
 		var w = Math.round(width);
 		var h = Math.round(height);
 
-		if (visual.width != w || visual.height != h) {
-			if (style != null) {
-				applyStyle(style);
-			}
-		}
+		
 
 		if (h > 0 && h != visual.height) {
-			this.visual.height = h;
+			sizeChanged = true;
 		}
 
 		if (w > 0 && w != visual.width) {
-			this.visual.width = w;
+			sizeChanged = true;
 		}
 
-		this.updateRender();
+		if (sizeChanged) {
+			visual.width = w;
+			visual.height = h;
+
+			if (style != null) {
+				applyStyle(style);
+			}
+
+			this.updateRender();
+		}
 	}
 
+	// private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
+	// 	if (visual == null) {
+	// 		return;
+	// 	}
+	// 	var w = Math.round(width);
+	// 	var h = Math.round(height);
+	// 	if (visual.width != w || visual.height != h) {
+	// 		if (style != null) {
+	// 			applyStyle(style);
+	// 		}
+	// 	}
+	// 	if (h > 0 && h != visual.height) {
+	// 		this.visual.height = h;
+	// 	}
+	// 	if (w > 0 && w != visual.width) {
+	// 		this.visual.width = w;
+	// 	}
+	// 	this.updateRender();
+	// }
 	var v = false;
 
 	override function handleClipRect(value:Rectangle):Void {
@@ -263,15 +288,15 @@ class ComponentImpl extends ComponentBase {
 
 		determineVisualType(style);
 
-			applyBorderStyles(style);
+		applyBorderStyles(style);
 
-			applyBackgroundStyles(style);
+		applyBackgroundStyles(style);
 
-			if (style.backgroundImage != null) {
-				if (visual.bgType == NINESLICE) {
-					applyNineSliceBackground(style);
-				} else if (visual.bgType == SOLID) {
-					applySolidBackground(style);
+		if (style.backgroundImage != null) {
+			if (visual.bgType == NINESLICE) {
+				applyNineSliceBackground(style);
+			} else if (visual.bgType == SOLID) {
+				applySolidBackground(style);
 			}
 		}
 
