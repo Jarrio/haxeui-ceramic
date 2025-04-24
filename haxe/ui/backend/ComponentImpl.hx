@@ -72,18 +72,15 @@ class ComponentImpl extends ComponentBase {
 		if (left == null || top == null) {
 			return;
 		}
+		
 		this.visual.x = left;
-
-		if (_imageDisplay != null && parentComponent != null && parentComponent.visual == _imageDisplay.visual.parent) {
-			_imageDisplay.left = left;
-			_imageDisplay.top = top;
-		}
 
 		if (this.isClipped) {
 			this.filter.x = left;
 		}
 
 		this.visual.y = top;
+
 		if (this.isClipped) {
 			this.filter.y = top;
 		}
@@ -216,11 +213,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createImageDisplay():ImageDisplay {
 		if (_imageDisplay == null) {
 			super.createImageDisplay();
-			if (parentComponent != null) {
-				parentComponent.visual.add(_imageDisplay.visual);
-			} else {
-				visual.add(_imageDisplay.visual);
-			}
+			visual.add(_imageDisplay.visual);
 		}
 
 		return _imageDisplay;
@@ -265,6 +258,7 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
 		child.visual.depth = index + 2;
+		handleAddComponent(child);
 		mapChildren();
 		return child;
 	}
