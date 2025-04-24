@@ -209,7 +209,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createImageDisplay():ImageDisplay {
 		if (_imageDisplay == null) {
 			super.createImageDisplay();
-			this.add(_imageDisplay.visual);
+			this.visual.add(_imageDisplay.visual);
 		}
 
 		return _imageDisplay;
@@ -217,7 +217,6 @@ class ComponentImpl extends ComponentBase {
 
 	public override function removeImageDisplay():Void {
 		if (_imageDisplay != null) {
-			this.visual.remove(_imageDisplay.visual);
 			_imageDisplay.visual.dispose();
 			_imageDisplay = null;
 		}
@@ -295,8 +294,8 @@ class ComponentImpl extends ComponentBase {
 		if (style.backgroundImage != null) {
 			if (visual.bgType == NINESLICE) {
 				applyNineSliceBackground(style);
-			} else if (visual.bgType == SOLID) {
-				applySolidBackground(style);
+			} else {
+				addBgImage(style);
 			}
 		}
 
@@ -442,7 +441,7 @@ class ComponentImpl extends ComponentBase {
 			&& style.backgroundImageClipLeft != null
 			&& style.backgroundImageClipBottom != null
 			&& style.backgroundImageClipRight != null;
-
+		
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
 			if (visual == null || visual.slice == null || !visual.active) {
 				return;
@@ -507,20 +506,31 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		addBgImage(style);
+	}
+
+	function addBgImage(style:Style) {
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
 			if (image == null) {
 				trace("Image failed to load: " + style.backgroundImage);
 				return;
 			}
-
-			if (visual == null || visual.solid == null) {
-				trace("Visual or solid became null after loading");
+			var vis = visual.getBg();
+			if (visual == null || vis == null) {
+				trace("Visual or bg is null");
 				return;
+			}
+
+			var quad = visual.bgImage;
+			if (quad == null) {
+				quad = new Quad();
+				quad.size(image.width, image.height);
+				vis.add(quad);
 			}
 
 			try {
 				imgCache.set(style.backgroundImage, image.data);
-				visual.solid.texture = image.data;
+				quad.texture = image.data;
 				visual.solid.alpha = 1;
 			} catch (e:Dynamic ) {
 				trace("Error applying texture: " + e);
@@ -630,6 +640,7 @@ class ComponentImpl extends ComponentBase {
 
 			visual.bgType = newType;
 		}
+		
 
 		if (hasRadius || hasSpecificRadius) {
 			visual.borderType = ROUNDED;

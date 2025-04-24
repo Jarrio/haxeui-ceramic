@@ -27,6 +27,7 @@ class Base extends Visual {
 	public var rounded:RoundedBg;
 	public var gradient:GradientMesh;
 	public var clipQuad:Quad;
+	public var bgImage:Quad;
 
 	public var border:Border;
 	public var roundedBorder:RoundedBorder;
