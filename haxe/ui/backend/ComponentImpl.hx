@@ -91,14 +91,15 @@ class ComponentImpl extends ComponentBase {
 
 	private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
 		static var sizeChanged = false;
+
 		if (visual == null) {
 			return;
 		}
 
+		sizeChanged = false;
+
 		var w = Math.round(width);
 		var h = Math.round(height);
-
-		
 
 		if (h > 0 && h != visual.height) {
 			sizeChanged = true;
@@ -451,7 +452,7 @@ class ComponentImpl extends ComponentBase {
 			&& style.backgroundImageClipLeft != null
 			&& style.backgroundImageClipBottom != null
 			&& style.backgroundImageClipRight != null;
-		
+
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
 			if (visual == null || visual.slice == null || !visual.active) {
 				return;
@@ -533,7 +534,6 @@ class ComponentImpl extends ComponentBase {
 				return;
 			}
 
-			
 			if (quad == null) {
 				quad = new Quad();
 				quad.size(image.width, image.height);
@@ -652,7 +652,6 @@ class ComponentImpl extends ComponentBase {
 
 			visual.bgType = newType;
 		}
-		
 
 		if (hasRadius || hasSpecificRadius) {
 			visual.borderType = ROUNDED;
