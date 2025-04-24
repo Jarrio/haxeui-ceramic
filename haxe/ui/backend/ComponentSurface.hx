@@ -45,6 +45,9 @@ class ComponentSurface {
 			visual.depth = depth_tracker++;
 		}
 
+		// if (visual is Quad) {
+		// 	trace(visual.asQuad.texture == null);
+		// }
 		this.visual.add(visual);
 
 		//this.visual.sortChildrenByDepth();

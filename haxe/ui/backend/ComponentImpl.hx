@@ -73,6 +73,12 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 		this.visual.x = left;
+
+		if (_imageDisplay != null && parentComponent != null && parentComponent.visual == _imageDisplay.visual.parent) {
+			_imageDisplay.left = left;
+			_imageDisplay.top = top;
+		}
+
 		if (this.isClipped) {
 			this.filter.x = left;
 		}
@@ -209,7 +215,11 @@ class ComponentImpl extends ComponentBase {
 	public override function createImageDisplay():ImageDisplay {
 		if (_imageDisplay == null) {
 			super.createImageDisplay();
-			this.visual.add(_imageDisplay.visual);
+			if (parentComponent != null) {
+				parentComponent.visual.add(_imageDisplay.visual);
+			} else {
+				visual.add(_imageDisplay.visual);
+			}
 		}
 
 		return _imageDisplay;
@@ -510,6 +520,8 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	function addBgImage(style:Style) {
+		var quad = visual.bgImage;
+
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
 			if (image == null) {
 				trace("Image failed to load: " + style.backgroundImage);
@@ -521,7 +533,7 @@ class ComponentImpl extends ComponentBase {
 				return;
 			}
 
-			var quad = visual.bgImage;
+			
 			if (quad == null) {
 				quad = new Quad();
 				quad.size(image.width, image.height);
@@ -531,7 +543,7 @@ class ComponentImpl extends ComponentBase {
 			try {
 				imgCache.set(style.backgroundImage, image.data);
 				quad.texture = image.data;
-				visual.solid.alpha = 1;
+				vis.alpha = 1;
 			} catch (e:Dynamic ) {
 				trace("Error applying texture: " + e);
 			}
