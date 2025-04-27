@@ -289,7 +289,8 @@ class ComponentImpl extends ComponentBase {
 	private override function applyStyle(style:Style) {
 		if (style == null)
 			return;
-
+		
+		
 		determineVisualType(style);
 
 		applyBorderStyles(style);
@@ -301,6 +302,17 @@ class ComponentImpl extends ComponentBase {
 				applyNineSliceBackground(style);
 			} else {
 				addBgImage(style);
+			}
+		}
+
+		if (style.filter != null && style.filter.length > 0) {
+			for (f in style.filter) {
+				if (f is haxe.ui.filters.Tint) {
+					var tint = cast(f, haxe.ui.filters.Tint);
+					if (this._imageDisplay != null) {
+						this._imageDisplay.visual.color = tint.color;
+					}
+				}
 			}
 		}
 
@@ -427,6 +439,7 @@ class ComponentImpl extends ComponentBase {
 				bg.colorMapping = MESH;
 				bg.color = style.backgroundColor;
 			}
+			
 		} else {
 			visual.bgAlpha = 0;
 		}
