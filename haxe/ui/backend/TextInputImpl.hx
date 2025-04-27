@@ -8,6 +8,7 @@ import ceramic.EditText;
 import haxe.ui.core.Screen;
 import haxe.ui.backend.TextBase;
 import haxe.ui.backend.ceramic.PasswordText;
+import haxe.ui.components.TextField;
 
 class TextInputImpl extends TextBase {
 	public var field:EditText;
@@ -31,11 +32,11 @@ class TextInputImpl extends TextBase {
 				if (pw_comp == null) {
 					pw_comp = new PasswordText();
 				}
-				
+
 				field.component('password', pw_comp);
 			} else {
 				if (field.hasComponent('password')) {
-//					field.offUpdate(pw_comp.applyChange);
+					//					field.offUpdate(pw_comp.applyChange);
 					field.removeComponent('password');
 					pw_comp.destroy();
 					pw_comp = null;
@@ -52,12 +53,14 @@ class TextInputImpl extends TextBase {
 		if (pw_comp == null) {
 			return '';
 		}
-		//trace(pw_comp.text);
+
+		// trace(pw_comp.text);
 		return pw_comp.content;
 	}
 
 	public function new() {
 		super();
+
 		visual = new Text();
 		visual.active = true;
 		visual.visible = false;
@@ -75,7 +78,7 @@ class TextInputImpl extends TextBase {
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
 		field.onStop(visual, this.onStop);
-		
+
 		Toolkit.callLater(function() {
 			visual.visible = true;
 		});
@@ -181,6 +184,10 @@ class TextInputImpl extends TextBase {
 	}
 
 	function onTextChanged(text:String) {
+		var field = cast(parentComponent, TextField);
+		if (focused && text == field.placeholder) {
+			text = '';
+		}
 		_text = text;
 		visual.content = text;
 		measureText();
