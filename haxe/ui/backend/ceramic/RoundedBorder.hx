@@ -29,9 +29,11 @@ class RoundedBorder extends Mesh {
 	@content public var rightColor:Color = Color.BLACK;
 	@content public var bottomColor:Color = Color.BLACK;
 	@content public var leftColor:Color = Color.BLACK;
+
 	// Bezier curve control points factor (0.55 is a good approximation for circles)
 	// See: https://spencermortensen.com/articles/bezier-circle/
 	@content public var bezierFactor:Float = 0.55;
+	@content public var taperAmount:Float = 0.7;
 
 	public var radius(default, set):Float;
 
@@ -199,34 +201,119 @@ class RoundedBorder extends Mesh {
 		var brRadius = Math.min(bottomRight, maxRadius);
 		var blRadius = Math.min(bottomLeft, maxRadius);
 
-		var tlColor = showTop ? topColor : (showLeft ? leftColor : Color.BLACK);
-		var trColor = showTop ? topColor : (showRight ? rightColor : Color.BLACK);
-		var brColor = showBottom ? bottomColor : (showRight ? rightColor : Color.BLACK);
-		var blColor = showBottom ? bottomColor : (showLeft ? leftColor : Color.BLACK);
+		// Top-left corner
+		if (tlRadius > 0) {
+			var drawTL = true;
+			var tlColor = topColor;
+			var tlThickness = topThickness;
 
-		var tlThickness = Math.max(topThickness, leftThickness);
-		var trThickness = Math.max(topThickness, rightThickness);
-		var brThickness = Math.max(bottomThickness, rightThickness);
-		var blThickness = Math.max(bottomThickness, leftThickness);
+			if (!showTop && !showLeft) {
+				drawTL = false;
+			} else if (!showTop) {
+				tlColor = leftColor;
+				tlThickness = leftThickness;
+			} else if (!showLeft) {
+				tlColor = topColor;
+				tlThickness = topThickness;
+			} else {
+				tlThickness = Math.max(topThickness, leftThickness);
+				tlColor = (leftThickness > topThickness) ? leftColor : topColor;
+			}
 
-		if (tlRadius > 0 && (showTop || showLeft))
-			drawBezierCorner(0, 0, tlRadius, Math.PI, Math.PI * 1.5, tlColor, tlThickness);
+			if (drawTL) {
+				drawCornerWithTaper(0, 0, tlRadius, Math.PI, Math.PI * 1.5, tlColor, tlThickness, !showLeft, !showTop);
+			}
+		}
 
-		if (trRadius > 0 && (showTop || showRight))
-			drawBezierCorner(w, 0, trRadius, Math.PI * 1.5, Math.PI * 2, trColor, trThickness);
+		// Top-right corner
+		if (trRadius > 0) {
+			var drawTR = true;
+			var trColor = topColor;
+			var trThickness = topThickness;
 
-		if (brRadius > 0 && (showBottom || showRight))
-			drawBezierCorner(w, h, brRadius, 0, Math.PI * 0.5, brColor, brThickness);
+			if (!showTop && !showRight) {
+				drawTR = false;
+			} else if (!showTop) {
+				trColor = rightColor;
+				trThickness = rightThickness;
+			} else if (!showRight) {
+				trColor = topColor;
+				trThickness = topThickness;
+			} else {
+				trThickness = Math.max(topThickness, rightThickness);
+				trColor = (rightThickness > topThickness) ? rightColor : topColor;
+			}
 
-		if (blRadius > 0 && (showBottom || showLeft))
-			drawBezierCorner(0, h, blRadius, Math.PI * 0.5, Math.PI, blColor, blThickness);
+			if (drawTR) {
+				drawCornerWithTaper(w, 0, trRadius, Math.PI * 1.5, Math.PI * 2, trColor, trThickness, !showTop, !showRight);
+			}
+		}
+
+		// Bottom-right corner
+		if (brRadius > 0) {
+			var drawBR = true;
+			var brColor = bottomColor;
+			var brThickness = bottomThickness;
+
+			if (!showBottom && !showRight) {
+				drawBR = false;
+			} else if (!showBottom) {
+				brColor = rightColor;
+				brThickness = rightThickness;
+			} else if (!showRight) {
+				brColor = bottomColor;
+				brThickness = bottomThickness;
+			} else {
+				brThickness = Math.max(bottomThickness, rightThickness);
+				brColor = (rightThickness > bottomThickness) ? rightColor : bottomColor;
+			}
+
+			if (drawBR) {
+				drawCornerWithTaper(w, h, brRadius, 0, Math.PI * 0.5, brColor, brThickness, !showRight, !showBottom);
+			}
+		}
+
+		// Bottom-left corner
+		if (blRadius > 0) {
+			var drawBL = true;
+			var blColor = bottomColor;
+			var blThickness = bottomThickness;
+
+			if (!showBottom && !showLeft) {
+				drawBL = false;
+			} else if (!showBottom) {
+				blColor = leftColor;
+				blThickness = leftThickness;
+			} else if (!showLeft) {
+				blColor = bottomColor;
+				blThickness = bottomThickness;
+			} else {
+				blThickness = Math.max(bottomThickness, leftThickness);
+				blColor = (leftThickness > bottomThickness) ? leftColor : bottomColor;
+			}
+
+			if (drawBL) {
+				drawCornerWithTaper(0, h, blRadius, Math.PI * 0.5, Math.PI, blColor, blThickness, !showBottom, !showLeft);
+			}
+		}
 	}
 
-	private function drawBezierCorner(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, cornerThickness:Float) {
+	/**
+	 * Draws a corner with optional tapering on one or both ends
+	 * @param cx X-coordinate of the corner
+	 * @param cy Y-coordinate of the corner
+	 * @param radius Corner radius
+	 * @param startAngle Start angle in radians
+	 * @param endAngle End angle in radians
+	 * @param color Corner color
+	 * @param cornerThickness Corner thickness
+	 * @param taperStart Whether to taper the start of the corner
+	 * @param taperEnd Whether to taper the end of the corner
+	 */
+	private function drawCornerWithTaper(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, cornerThickness:Float,
+			taperStart:Bool, taperEnd:Bool) {
 		if (radius <= 0)
 			return;
-
-		var innerRadius = Math.max(0, radius - cornerThickness);
 
 		var arcCenterX:Float;
 		var arcCenterY:Float;
@@ -254,65 +341,77 @@ class RoundedBorder extends Mesh {
 		var alphaColor = color.toAlphaColor();
 
 		var outerPoints:Array<{x:Float, y:Float}> = [];
-		
 		var innerPoints:Array<{x:Float, y:Float}> = [];
+		var thicknesses:Array<Float> = [];
 
+		// Use a sinusoidal function for smoother tapering
 		for (i in 0...curveSegments + 1) {
 			var t = i / curveSegments;
 			var angle = startAngle + t * angleRange;
 
-			var easing = BezierEasing.get(0, 0, 1, 1);
-			var easedT = easing.ease(t);
-			var smoothAngle = startAngle + easedT * angleRange;
+			// Calculate the thickness at this point based on tapering
+			var pointThickness = cornerThickness;
 
-			var outerX = arcCenterX + Math.cos(smoothAngle) * radius;
-			var outerY = arcCenterY + Math.sin(smoothAngle) * radius;
+			// Apply tapering if needed - use a sinusoidal curve for smoother transition
+			if (taperStart && !taperEnd) {
+				// Taper only at start (first half of the curve)
+				var taperFactor = Math.sin(t * Math.PI / 2); // 0->1 sinusoidal curve
+				pointThickness = cornerThickness * taperFactor;
+			} else if (!taperStart && taperEnd) {
+				// Taper only at end (second half of the curve)
+				var taperFactor = Math.sin((1 - t) * Math.PI / 2); // 1->0 sinusoidal curve
+				pointThickness = cornerThickness * taperFactor;
+			} else if (taperStart && taperEnd) {
+				// Taper at both ends - peak in the middle
+				var taperFactor = Math.sin(t * Math.PI); // 0->1->0 sinusoidal curve
+				pointThickness = cornerThickness * taperFactor;
+			}
+
+			thicknesses.push(pointThickness);
+
+			var outerX = arcCenterX + Math.cos(angle) * radius;
+			var outerY = arcCenterY + Math.sin(angle) * radius;
 			outerPoints.push({x: outerX, y: outerY});
 
-			var innerX = arcCenterX + Math.cos(smoothAngle) * innerRadius;
-			var innerY = arcCenterY + Math.sin(smoothAngle) * innerRadius;
+			var innerRadius = Math.max(0, radius - pointThickness);
+			var innerX = arcCenterX + Math.cos(angle) * innerRadius;
+			var innerY = arcCenterY + Math.sin(angle) * innerRadius;
 			innerPoints.push({x: innerX, y: innerY});
 		}
 
 		for (i in 0...outerPoints.length) {
-			// Outer point
-			vertices.push(outerPoints[i].x);
-			vertices.push(outerPoints[i].y);
-			colors.push(alphaColor);
+			// Only add points if they have thickness
+			if (thicknesses[i] > 0) {
+				// Outer point
+				vertices.push(outerPoints[i].x);
+				vertices.push(outerPoints[i].y);
+				colors.push(alphaColor);
 
-			// Inner point
-			vertices.push(innerPoints[i].x);
-			vertices.push(innerPoints[i].y);
-			colors.push(alphaColor);
+				// Inner point
+				vertices.push(innerPoints[i].x);
+				vertices.push(innerPoints[i].y);
+				colors.push(alphaColor);
+			}
 		}
 
+		// Create triangles between the points
 		for (i in 0...outerPoints.length - 1) {
-			var outerIdx1 = startIdx + i * 2;
-			var innerIdx1 = outerIdx1 + 1;
-			var outerIdx2 = startIdx + (i + 1) * 2;
-			var innerIdx2 = outerIdx2 + 1;
+			// Only create triangles if both segments have thickness
+			if (thicknesses[i] > 0 && thicknesses[i + 1] > 0) {
+				var outerIdx1 = startIdx + i * 2;
+				var innerIdx1 = outerIdx1 + 1;
+				var outerIdx2 = startIdx + (i + 1) * 2;
+				var innerIdx2 = outerIdx2 + 1;
 
-			indices.push(outerIdx1);
-			indices.push(outerIdx2);
-			indices.push(innerIdx1);
+				indices.push(outerIdx1);
+				indices.push(outerIdx2);
+				indices.push(innerIdx1);
 
-			indices.push(innerIdx1);
-			indices.push(outerIdx2);
-			indices.push(innerIdx2);
+				indices.push(innerIdx1);
+				indices.push(outerIdx2);
+				indices.push(innerIdx2);
+			}
 		}
-	}
-
-	/**
-	 * Helper function to calculate a point on a cubic Bezier curve
-	 */
-	private function cubicBezier(t:Float, p0:Float, p1:Float, p2:Float, p3:Float):Float {
-		var oneMinusT = 1 - t;
-		var oneMinusTSquared = oneMinusT * oneMinusT;
-		var oneMinusTCubed = oneMinusTSquared * oneMinusT;
-		var tSquared = t * t;
-		var tCubed = tSquared * t;
-
-		return oneMinusTCubed * p0 + 3 * oneMinusTSquared * t * p1 + 3 * oneMinusT * tSquared * p2 + tCubed * p3;
 	}
 
 	public function setBorderSideVisible(side:BorderSide, visible:Bool) {

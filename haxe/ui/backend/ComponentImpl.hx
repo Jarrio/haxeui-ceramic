@@ -72,17 +72,19 @@ class ComponentImpl extends ComponentBase {
 		if (left == null || top == null) {
 			return;
 		}
-		
-		this.visual.x = left;
+		var x = Math.round(left);
+		var y = Math.round(top);
 
 		if (this.isClipped) {
-			this.filter.x = left;
+			this.filter.x = x;
+		} else {
+			this.visual.x = x;
 		}
 
-		this.visual.y = top;
-
 		if (this.isClipped) {
-			this.filter.y = top;
+			this.filter.y = y;
+		} else {
+			this.visual.y = y;
 		}
 	}
 
@@ -289,8 +291,7 @@ class ComponentImpl extends ComponentBase {
 	private override function applyStyle(style:Style) {
 		if (style == null)
 			return;
-		
-		
+
 		determineVisualType(style);
 
 		applyBorderStyles(style);
@@ -311,6 +312,8 @@ class ComponentImpl extends ComponentBase {
 					var tint = cast(f, haxe.ui.filters.Tint);
 					if (this._imageDisplay != null) {
 						this._imageDisplay.visual.color = tint.color;
+					} else if (visual.bgImage != null) {
+						visual.bgImage.color = tint.color;
 					}
 				}
 			}
@@ -339,6 +342,12 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
+		var isCircular = false;
+		if (style.borderRadius != null) {
+			var radiusPercent = style.borderRadius / Math.min(width, height);
+			isCircular = radiusPercent >= 0.45; // Close to 50% just a guesstimate
+		}
+
 		switch (style.borderType) {
 			case Full:
 				border.radius = style.borderRadius;
@@ -356,7 +365,43 @@ class ComponentImpl extends ComponentBase {
 				if (style.borderRadiusBottomRight != null && style.borderRadiusBottomRight > 0) {
 					border.bottomRight = style.borderRadiusBottomRight;
 				}
+
 				var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
+				var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
+				var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
+				var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
+
+				var circularBorderHandled = false;
+
+				if (isCircular) {
+					if ((hasLeft || hasRight) && !(hasTop || hasBottom)) {
+						var thickness = hasLeft ? style.borderLeftSize : style.borderRightSize;
+						var color = hasLeft ? style.borderLeftColor : style.borderRightColor;
+
+						border.setAllBorders(style.borderRadius, thickness, color);
+
+						border.setBorderSideVisible(BorderSide.TOP, false);
+						border.setBorderSideVisible(BorderSide.BOTTOM, false);
+						border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
+						border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
+
+						circularBorderHandled = true;
+					} else if ((hasTop || hasBottom) && !(hasLeft || hasRight)) {
+						var thickness = hasTop ? style.borderTopSize : style.borderBottomSize;
+						var color = hasTop ? style.borderTopColor : style.borderBottomColor;
+
+						border.setAllBorders(style.borderRadius, thickness, color);
+
+						border.setBorderSideVisible(BorderSide.TOP, hasTop);
+						border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
+						border.setBorderSideVisible(BorderSide.LEFT, false);
+						border.setBorderSideVisible(BorderSide.RIGHT, false);
+
+						circularBorderHandled = true;
+					}
+				}
+
+				if (!circularBorderHandled) {
 				border.setBorderSideVisible(BorderSide.TOP, hasTop);
 				if (hasTop) {
 					border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
@@ -365,7 +410,6 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 
-				var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
 				border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
 				if (hasRight) {
 					border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
@@ -374,7 +418,6 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 
-				var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
 				border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
 				if (hasBottom) {
 					border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
@@ -383,7 +426,6 @@ class ComponentImpl extends ComponentBase {
 					}
 				}
 
-				var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
 				border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
 				if (hasLeft) {
 					border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
@@ -391,14 +433,18 @@ class ComponentImpl extends ComponentBase {
 						border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
 					}
 				}
+			}
 			case None:
 				border.setAllBorders(0, 0, Color.NONE);
 		}
 
+		
 		if (bg != null) {
+			
 			if (style.borderRadius != null) {
 				bg.color = style.backgroundColor;
 				bg.radius = style.borderRadius;
+				
 			} else {
 				if (style.borderRadiusTopLeft != null)
 					bg.topLeft = style.borderRadiusTopLeft;
@@ -439,7 +485,6 @@ class ComponentImpl extends ComponentBase {
 				bg.colorMapping = MESH;
 				bg.color = style.backgroundColor;
 			}
-			
 		} else {
 			visual.bgAlpha = 0;
 		}
