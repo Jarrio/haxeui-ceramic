@@ -334,6 +334,56 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	private function determineRoundedBorderType(style:Style):StyleBorderType {
+		var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
+		var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
+		var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
+		var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
+
+		var hasUniformBorder = style.borderSize != null && style.borderSize > 0;
+
+		var hasAnySide = hasLeft || hasRight || hasTop || hasBottom;
+
+		var allSameSize = hasLeft
+			&& hasRight
+			&& hasTop
+			&& hasBottom
+			&& style.borderLeftSize == style.borderRightSize
+			&& style.borderLeftSize == style.borderTopSize
+			&& style.borderLeftSize == style.borderBottomSize;
+
+		var allSameColor = style.borderLeftColor == style.borderRightColor
+			&& style.borderLeftColor == style.borderTopColor
+			&& style.borderLeftColor == style.borderBottomColor;
+
+		var hasSpecificRadii = style.borderRadiusTopLeft != null
+			|| style.borderRadiusTopRight != null
+			|| style.borderRadiusBottomLeft != null
+			|| style.borderRadiusBottomRight != null;
+
+		if (hasSpecificRadii) {
+			var allRadiiSame = style.borderRadiusTopLeft != null
+				&& style.borderRadiusTopRight != null
+				&& style.borderRadiusBottomLeft != null
+				&& style.borderRadiusBottomRight != null
+				&& style.borderRadiusTopLeft == style.borderRadiusTopRight
+				&& style.borderRadiusTopLeft == style.borderRadiusBottomLeft
+				&& style.borderRadiusTopLeft == style.borderRadiusBottomRight;
+
+			if (!allRadiiSame) {
+				return StyleBorderType.Compound;
+			}
+		}
+
+		if (hasUniformBorder || (allSameSize && allSameColor && !hasSpecificRadii)) {
+			return StyleBorderType.Full;
+		} else if (hasAnySide) {
+			return StyleBorderType.Compound;
+		} else {
+			return StyleBorderType.None;
+		}
+	}
+
 	private function applyRoundedBorderStyles(style:Style) {
 		var bg = visual.rounded;
 		var border = visual.roundedBorder;
@@ -348,9 +398,12 @@ class ComponentImpl extends ComponentBase {
 			isCircular = radiusPercent >= 0.45; // Close to 50% just a guesstimate
 		}
 
-		switch (style.borderType) {
+
+		var type = determineRoundedBorderType(style);
+		switch (type) {
 			case Full:
 				border.radius = style.borderRadius;
+
 				border.setAllBorders(style.borderRadius, style.borderSize, style.borderColor);
 			case Compound:
 				if (style.borderRadiusTopLeft != null && style.borderRadiusTopLeft > 0) {
@@ -402,49 +455,46 @@ class ComponentImpl extends ComponentBase {
 				}
 
 				if (!circularBorderHandled) {
-				border.setBorderSideVisible(BorderSide.TOP, hasTop);
-				if (hasTop) {
-					border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
-					if (style.borderTopColor != null) {
-						border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
+					border.setBorderSideVisible(BorderSide.TOP, hasTop);
+					if (hasTop) {
+						border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
+						if (style.borderTopColor != null) {
+							border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
+						}
 					}
-				}
 
-				border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
-				if (hasRight) {
-					border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
-					if (style.borderRightColor != null) {
-						border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
+					border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
+					if (hasRight) {
+						border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
+						if (style.borderRightColor != null) {
+							border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
+						}
 					}
-				}
 
-				border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
-				if (hasBottom) {
-					border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
-					if (style.borderBottomColor != null) {
-						border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
+					border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
+					if (hasBottom) {
+						border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
+						if (style.borderBottomColor != null) {
+							border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
+						}
 					}
-				}
 
-				border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
-				if (hasLeft) {
-					border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
-					if (style.borderLeftColor != null) {
-						border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
+					border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
+					if (hasLeft) {
+						border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
+						if (style.borderLeftColor != null) {
+							border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
+						}
 					}
 				}
-			}
 			case None:
 				border.setAllBorders(0, 0, Color.NONE);
 		}
 
-		
 		if (bg != null) {
-			
 			if (style.borderRadius != null) {
 				bg.color = style.backgroundColor;
 				bg.radius = style.borderRadius;
-				
 			} else {
 				if (style.borderRadiusTopLeft != null)
 					bg.topLeft = style.borderRadiusTopLeft;
@@ -764,28 +814,13 @@ class ComponentImpl extends ComponentBase {
 	// Events
 	//***********************************************************************************************************
 
-	private function hasComponentOver(ref:Component, x:Float, y:Float, reverse:Bool = false):Bool {
-		var array = getVisibleComponentsAtPoint(x, y, reverse);
-		if (array.length == 0)
+	private function hasComponentOver(ref:Component, x:Float, y:Float):Bool {
+		var array:Array<Component> = getComponentsAtPoint(x, y);
+		if (array.length == 0) {
 			return false;
-
-		var topComponent = array[array.length - 1];
-
-		if (ref == topComponent)
-			return false;
-
-		if (hasChildRecursive(cast ref, cast topComponent))
-			return false;
-
-		for (component in array) {
-			if (component == ref)
-				return false;
-
-			if (!hasChildRecursive(cast ref, cast component))
-				return true;
 		}
 
-		return true;
+		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
 	}
 
 	private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
@@ -918,6 +953,7 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
+		// trace(hittest);
 		if (hittest && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 			over = true;
