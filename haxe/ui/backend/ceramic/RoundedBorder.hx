@@ -33,7 +33,6 @@ class RoundedBorder extends Mesh {
 	// Bezier curve control points factor (0.55 is a good approximation for circles)
 	// See: https://spencermortensen.com/articles/bezier-circle/
 	@content public var bezierFactor:Float = 0.55;
-	@content public var taperAmount:Float = 0.7;
 
 	public var radius(default, set):Float;
 
@@ -310,107 +309,81 @@ class RoundedBorder extends Mesh {
 	 * @param taperStart Whether to taper the start of the corner
 	 * @param taperEnd Whether to taper the end of the corner
 	 */
-	private function drawCornerWithTaper(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, cornerThickness:Float,
+	private function drawCornerWithTaper(cx:Float, cy:Float, radius:Float, startAngle:Float, endAngle:Float, color:Color, thickness:Float,
 			taperStart:Bool, taperEnd:Bool) {
-		if (radius <= 0)
+		if (radius <= 0 || thickness <= 0)
 			return;
 
-		var arcCenterX:Float;
-		var arcCenterY:Float;
+		// Ensure minimum radius
+		radius = Math.max(radius, 2.0);
 
-		if (cx == 0 && cy == 0) {
-			// Top-left corner
-			arcCenterX = radius;
-			arcCenterY = radius;
-		} else if (cx > 0 && cy == 0) {
-			// Top-right corner
-			arcCenterX = cx - radius;
-			arcCenterY = radius;
-		} else if (cx > 0 && cy > 0) {
-			// Bottom-right corner
-			arcCenterX = cx - radius;
-			arcCenterY = cy - radius;
-		} else {
-			// Bottom-left corner
-			arcCenterX = radius;
-			arcCenterY = cy - radius;
-		}
+		// Calculate arc center
+		var centerX = (cx == 0) ? radius : cx - radius;
+		var centerY = (cy == 0) ? radius : cy - radius;
 
-		var angleRange = endAngle - startAngle;
-		var startIdx = Std.int(vertices.length / 2);
+		var segments = Math.round(Math.max(8, Std.int(radius / 2)));
 		var alphaColor = color.toAlphaColor();
+		var startIdx = Std.int(vertices.length / 2);
 
-		var outerPoints:Array<{x:Float, y:Float}> = [];
-		var innerPoints:Array<{x:Float, y:Float}> = [];
-		var thicknesses:Array<Float> = [];
+		// Pre-calculate points
+		var outerPoints = [];
+		var innerPoints = [];
 
-		// Use a sinusoidal function for smoother tapering
-		for (i in 0...curveSegments + 1) {
-			var t = i / curveSegments;
-			var angle = startAngle + t * angleRange;
+		// Calculate angle values
+		var angleStep = ((endAngle - startAngle) / segments);
 
-			// Calculate the thickness at this point based on tapering
-			var pointThickness = cornerThickness;
+		for (i in 0...segments + 1) {
+			var t = i / segments;
+			var angle = startAngle + t * (endAngle - startAngle);
 
-			// Apply tapering if needed - use a sinusoidal curve for smoother transition
-			if (taperStart && !taperEnd) {
-				// Taper only at start (first half of the curve)
-				var taperFactor = Math.sin(t * Math.PI / 2); // 0->1 sinusoidal curve
-				pointThickness = cornerThickness * taperFactor;
-			} else if (!taperStart && taperEnd) {
-				// Taper only at end (second half of the curve)
-				var taperFactor = Math.sin((1 - t) * Math.PI / 2); // 1->0 sinusoidal curve
-				pointThickness = cornerThickness * taperFactor;
-			} else if (taperStart && taperEnd) {
-				// Taper at both ends - peak in the middle
-				var taperFactor = Math.sin(t * Math.PI); // 0->1->0 sinusoidal curve
-				pointThickness = cornerThickness * taperFactor;
+			// Calculate thickness with proper easing
+			var adjustedThickness = thickness;
+
+			if (taperStart && taperEnd) {
+				// Symmetrical peak in middle
+				adjustedThickness = thickness * (Math.sin(Math.PI * t));
+			} else if (taperStart) {
+				// Ease-in
+				adjustedThickness = thickness * Math.sin(Math.PI / 2 * t);
+			} else if (taperEnd) {
+				// Ease-out
+				adjustedThickness = thickness * Math.sin(Math.PI / 2 * (1 - t));
 			}
 
-			thicknesses.push(pointThickness);
-
-			var outerX = arcCenterX + Math.cos(angle) * radius;
-			var outerY = arcCenterY + Math.sin(angle) * radius;
+			// Outer point
+			var outerX = centerX + Math.cos(angle) * radius;
+			var outerY = centerY + Math.sin(angle) * radius;
 			outerPoints.push({x: outerX, y: outerY});
 
-			var innerRadius = Math.max(0, radius - pointThickness);
-			var innerX = arcCenterX + Math.cos(angle) * innerRadius;
-			var innerY = arcCenterY + Math.sin(angle) * innerRadius;
+			// Inner point - ensure no negative radius
+			var innerRadius = Math.max(0.1, radius - adjustedThickness);
+			var innerX = centerX + Math.cos(angle) * innerRadius;
+			var innerY = centerY + Math.sin(angle) * innerRadius;
 			innerPoints.push({x: innerX, y: innerY});
 		}
 
+		// Add vertices
 		for (i in 0...outerPoints.length) {
-			// Only add points if they have thickness
-			if (thicknesses[i] > 0) {
-				// Outer point
-				vertices.push(outerPoints[i].x);
-				vertices.push(outerPoints[i].y);
-				colors.push(alphaColor);
+			vertices.push(outerPoints[i].x);
+			vertices.push(outerPoints[i].y);
+			colors.push(alphaColor);
 
-				// Inner point
-				vertices.push(innerPoints[i].x);
-				vertices.push(innerPoints[i].y);
-				colors.push(alphaColor);
-			}
+			vertices.push(innerPoints[i].x);
+			vertices.push(innerPoints[i].y);
+			colors.push(alphaColor);
 		}
 
-		// Create triangles between the points
-		for (i in 0...outerPoints.length - 1) {
-			// Only create triangles if both segments have thickness
-			if (thicknesses[i] > 0 && thicknesses[i + 1] > 0) {
-				var outerIdx1 = startIdx + i * 2;
-				var innerIdx1 = outerIdx1 + 1;
-				var outerIdx2 = startIdx + (i + 1) * 2;
-				var innerIdx2 = outerIdx2 + 1;
+		// Create triangles
+		for (i in 0...segments) {
+			var baseIdx = startIdx + i * 2;
 
-				indices.push(outerIdx1);
-				indices.push(outerIdx2);
-				indices.push(innerIdx1);
+			indices.push(baseIdx); // outer1
+			indices.push(baseIdx + 2); // outer2
+			indices.push(baseIdx + 1); // inner1
 
-				indices.push(innerIdx1);
-				indices.push(outerIdx2);
-				indices.push(innerIdx2);
-			}
+			indices.push(baseIdx + 1); // inner1
+			indices.push(baseIdx + 2); // outer2
+			indices.push(baseIdx + 3); // inner2
 		}
 	}
 
