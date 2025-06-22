@@ -1093,8 +1093,8 @@ class ComponentImpl extends ComponentBase {
 		_onClick(MouseEvent.CLICK, info);
 	}
 
-	function onMouseRightClick(info:TouchInfo) {
-		if (info.buttonId != MouseButton.RIGHT) {
+	function onMouseRightClick(info:TouchInfo, ?long:Bool = false) {
+		if (!long && info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
 		_onClick(MouseEvent.RIGHT_CLICK, info);
@@ -1157,7 +1157,8 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.RIGHT_CLICK:
 				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, this.onMouseRightClick);
+					screen.onPointerUp(visual, (info) -> onMouseRightClick(info));
+					screen.component("longPress", new LongPress((info) -> onMouseRightClick(info, true)));
 				}
 			case MouseEvent.DBL_CLICK:
 				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
@@ -1246,7 +1247,8 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
-					screen.offPointerUp(onMouseRightClick);
+					screen.offPointerUp((info) -> onMouseRightClick(info));
+					screen.removeComponent("longPress");
 					eventMap.remove(MouseEvent.RIGHT_CLICK);
 				}
 			case MouseEvent.MOUSE_MOVE:
