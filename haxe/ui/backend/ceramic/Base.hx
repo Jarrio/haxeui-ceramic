@@ -31,6 +31,7 @@ class Base extends Visual {
 
 	public var border:Border;
 	public var roundedBorder:RoundedBorder;
+	public var customVisuals:Array<Visual>;
 
 	public var bgType(default, set):BGType = NONE;
 
@@ -182,6 +183,13 @@ class Base extends Visual {
 		if (slice != null)
 			slice.alpha = value;
 		return bgAlpha = value;
+	}
+
+	override function interceptPointerOver(hittingVisual:Visual, x:Float, y:Float) {
+		if (hittingVisual.parent != null) {
+			return false;
+		}
+		return true;
 	}
 }
 

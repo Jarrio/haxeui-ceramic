@@ -8,11 +8,9 @@ import ceramic.Entity;
 import ceramic.Component;
 import haxe.ui.backend.ceramic.Base;
 
-
-
 class ComponentSurface {
 	public var visual:Base;
-	
+
 	/**
 	 * We add all components onto this
 	 */
@@ -26,10 +24,10 @@ class ComponentSurface {
 
 	var indices:Array<Int> = [];
 	var vertices:Array<Float> = [];
-	
+
 	public function new() {
 		this.visual = new Base();
-		//visual.depthRange = -1;
+		// visual.depthRange = -1;
 		this.visual.inheritAlpha = true;
 	}
 
@@ -38,7 +36,15 @@ class ComponentSurface {
 		this.visual.height = Std.int(height);
 	}
 
-	public inline function add(visual:Visual) {
+	public function add(visual:Visual) {
+		if (this.visual.customVisuals == null) {
+			this.visual.customVisuals = [];
+		}
+		this.visual.customVisuals.push(visual);
+		addInternal(visual);
+	}
+
+	@:noCompletion private function addInternal(visual:Visual) {
 		visual.inheritAlpha = true;
 
 		if (visual.depth <= 0) {
@@ -50,7 +56,7 @@ class ComponentSurface {
 		// }
 		this.visual.add(visual);
 
-		//this.visual.sortChildrenByDepth();
+		// this.visual.sortChildrenByDepth();
 	}
 
 	public inline function remove(visual:Visual) {
@@ -67,6 +73,7 @@ class ComponentSurface {
 	}
 
 	var x(get, set):Float;
+
 	inline function set_x(value:Float):Float {
 		return this.visual.x = Std.int(value);
 	}
@@ -74,8 +81,9 @@ class ComponentSurface {
 	inline function get_x():Float {
 		return this.visual.x;
 	}
-	
+
 	var y(get, set):Float;
+
 	inline function set_y(value:Float):Float {
 		return this.visual.y = Std.int(value);
 	}

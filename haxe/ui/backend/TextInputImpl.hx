@@ -75,6 +75,7 @@ class TextInputImpl extends TextBase {
 
 		visual.clipText(0, 0, _width, _height);
 		field.onSubmit(visual, this.onSubmit);
+
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
 		field.onStop(visual, this.onStop);
@@ -162,21 +163,21 @@ class TextInputImpl extends TextBase {
 
 		if (_textStyle.backgroundColor != null && background_color != _textStyle.backgroundColor) {
 			background_color = _textStyle.color;
-			// if (field.clipRect != null) {
-			// 	field.clipRect.color = Color.fromInt(color);
-			// }
 		}
 
 		return measureTextRequired;
 	}
 
 	private override function validateData() {
-		if (_text != null && _text != visual.content) {
+		// trace('Text updated: ', '"$_text"');
+		if (_text != visual.content) {
+			// trace('Text updated: ', _text);
 			visual.content = _text;
 		}
 	}
 
 	function onSubmit() {
+		// trace('Text updated: ', '"$_text"');
 		if (parentComponent != null) {
 			parentComponent.dispatch(new UIEvent(UIEvent.SUBMIT));
 		}
@@ -188,6 +189,7 @@ class TextInputImpl extends TextBase {
 		if (focused && text == field.placeholder) {
 			text = '';
 		}
+		// trace('Text updated: ', text);
 		_text = text;
 		visual.content = text;
 		measureText();
@@ -202,6 +204,7 @@ class TextInputImpl extends TextBase {
 	}
 
 	private override function validatePosition() {
+		// trace('Text updated: ', '"$_text"');
 		var x = visual.x - padding_x;
 		var y = visual.y - padding_y;
 		if (_left != x) {
@@ -216,6 +219,7 @@ class TextInputImpl extends TextBase {
 	}
 
 	private override function validateDisplay() {
+		// trace('Text updated: ', '"$_text"');
 		//		trace(_width, _height, visual.height);
 		if (_width != visual.clipTextWidth) {
 			visual.clipTextWidth = _width;

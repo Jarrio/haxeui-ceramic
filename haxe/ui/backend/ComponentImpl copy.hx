@@ -1,15 +1,11 @@
 package haxe.ui.backend;
 
 import haxe.ui.backend.ceramic.Base.BGType;
-import haxe.ui.backend.ceramic.RoundedBg;
 import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import ceramic.AlphaColor;
 import ceramic.Color;
-import ceramic.Border;
-import ceramic.Mesh;
 import ceramic.Quad;
 import haxe.ui.core.Screen;
 import haxe.ui.geom.Rectangle;
@@ -24,14 +20,11 @@ import haxe.ui.styles.Style;
 import ceramic.App;
 import haxe.ui.events.MouseEvent;
 import ceramic.MouseButton;
-import haxe.ui.backend.ToolkitOptions;
 import ceramic.Point;
 import ceramic.Timer;
 import ceramic.Filter;
 import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
-import haxe.ui.backend.ScreenImpl;
-import ceramic.NineSlice;
 import ceramic.TextureTile;
 
 class ComponentImpl extends ComponentBase {
@@ -52,6 +45,7 @@ class ComponentImpl extends ComponentBase {
 			Screen.instance.last_fast_fps = Timer.now;
 			App.app.settings.targetFps = 60;
 		}
+
 		#if filter_root
 		Ceramic.forceRender();
 		#end
@@ -397,7 +391,6 @@ class ComponentImpl extends ComponentBase {
 			var radiusPercent = style.borderRadius / Math.min(width, height);
 			isCircular = radiusPercent >= 0.45; // Close to 50% just a guesstimate
 		}
-
 
 		var type = determineRoundedBorderType(style);
 		switch (type) {
@@ -820,6 +813,7 @@ class ComponentImpl extends ComponentBase {
 			return false;
 		}
 
+
 		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
 	}
 
@@ -873,6 +867,7 @@ class ComponentImpl extends ComponentBase {
 		if (parent == child) {
 			return true;
 		}
+		
 		var r = false;
 		for (t in parent.childComponents) {
 			if (t == child) {
@@ -899,8 +894,8 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 
 		var listener = eventMap.get(MouseEvent.MOUSE_MOVE);
 		var hittest = this.hitTest(x, y);
@@ -921,20 +916,21 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
-		if (!hittest && over) {
+		// if (!hittest && over) {
 			listener(event);
 			over = false;
 			if (!Cursor.lock && (this is InteractiveComponent)) {
-				Cursor.setTo(CursorType.DEFAULT);
+				// Cursor.setTo(CursorType.DEFAULT);
+				Cursor.next = DEFAULT;
 			}
-		}
+		// }
 	}
 
 	function _onMouseOver(info:TouchInfo) {
@@ -944,8 +940,8 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 
 		var event = new MouseEvent(type);
 		event.screenX = x;
@@ -954,13 +950,14 @@ class ComponentImpl extends ComponentBase {
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
 		// trace(hittest);
-		if (hittest && !this.hasComponentOver(cast this, x, y)) {
+		// if (hittest && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 			over = true;
+
 			if (style != null && style.cursor != null && (this is InteractiveComponent)) {
-				Cursor.setTo(CursorType.fromString(style.cursor));
+				Cursor.next = style.cursor;
 			}
-		}
+		// }
 	}
 
 	function onMouseLeftUp(info:TouchInfo) {
@@ -990,8 +987,8 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 
 		var event = new MouseEvent(type);
 		event.screenX = x;
@@ -999,14 +996,14 @@ class ComponentImpl extends ComponentBase {
 		if (Cursor.lock) {
 			Cursor.lock = false;
 			if (!over) {
-				Cursor.setTo(CursorType.DEFAULT);
+				Cursor.next = CursorType.DEFAULT;
 			}
 		}
 
 		var listener = this.eventMap[type];
-		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
+		// if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
-		}
+		// }
 	}
 
 	function onMouseLeftDown(info:TouchInfo) {
@@ -1035,18 +1032,18 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
 
 		var listener = this.eventMap[type];
-		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
+		// if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			Cursor.lock = true;
 			listener(event);
-		}
+		// }
 	}
 
 	public function onMouseWheel(x:Float, y:Float) {
@@ -1119,8 +1116,8 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 		root().screenToVisual(info.x, info.y, point);
-		var x = point.x;
-		var y = point.y;
+		var x = info.x;
+		var y = info.y;
 
 		var event = new MouseEvent(type);
 		event.screenX = x;
@@ -1181,24 +1178,26 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OVER:
 				if (!eventMap.exists(MouseEvent.MOUSE_OVER)) {
 					this.eventMap.set(type, listener);
-					// visual.onPointerOver(visual, this._onMouseOver);
-					screen.onPointerMove(visual, this._onMouseOver);
+					visual.onPointerOver(visual, this._onMouseOver);
+					// screen.onPointerMove(visual, this._onMouseOver);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					// visual.onPointerOut(visual, _onMouseOut);
-					screen.onPointerMove(visual, _onMouseOut);
+					visual.onPointerOut(visual, _onMouseOut);
+					// screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.MOUSE_UP)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, this.onMouseLeftUp);
+					visual.onPointerUp(visual, this.onMouseLeftUp);
+					// screen.onPointerUp(visual, this.onMouseLeftUp);
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (!eventMap.exists(MouseEvent.MOUSE_DOWN)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerDown(visual, this.onMouseLeftDown);
+					// screen.onPointerDown(visual, this.onMouseLeftDown);
+					visual.onPointerDown(visual, this.onMouseLeftDown);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
 				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
@@ -1263,14 +1262,14 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
-					screen.offPointerMove(_onMouseOver);
-					// visual.offPointerOver(_onMouseOver);
+					// screen.offPointerMove(_onMouseOver);
+					visual.offPointerOver(_onMouseOver);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
-					screen.offPointerMove(_onMouseOut);
-					// visual.offPointerOut(_onMouseOut);
+					// screen.offPointerMove(_onMouseOut);
+					visual.offPointerOut(_onMouseOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
 				}
 			case MouseEvent.MOUSE_UP:
@@ -1280,7 +1279,8 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					screen.offPointerUp(onMouseLeftDown);
+					// screen.offPointerUp(onMouseLeftDown);
+					visual.offPointerUp(onMouseLeftDown);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:

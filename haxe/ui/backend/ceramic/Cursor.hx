@@ -1,6 +1,18 @@
 package haxe.ui.backend.ceramic;
 
 class Cursor {
+	public static var next(default, set):CursorType;
+
+	static function set_next(value) {
+		if (current == value || lock) {
+			return value;
+		}
+
+		setTo(next);
+
+		return next = value;
+	}
+
 	public static var current:CursorType = CursorType.DEFAULT;
 	public static var lock:Bool = false;
 
