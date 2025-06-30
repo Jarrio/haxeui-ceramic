@@ -1,15 +1,11 @@
 package haxe.ui.backend;
 
 import haxe.ui.backend.ceramic.Base.BGType;
-import haxe.ui.backend.ceramic.RoundedBg;
 import haxe.ui.backend.ceramic.RoundedBorder;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
-import ceramic.AlphaColor;
 import ceramic.Color;
-import ceramic.Border;
-import ceramic.Mesh;
 import ceramic.Quad;
 import haxe.ui.core.Screen;
 import haxe.ui.geom.Rectangle;
@@ -24,14 +20,11 @@ import haxe.ui.styles.Style;
 import ceramic.App;
 import haxe.ui.events.MouseEvent;
 import ceramic.MouseButton;
-import haxe.ui.backend.ToolkitOptions;
 import ceramic.Point;
 import ceramic.Timer;
 import ceramic.Filter;
 import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
-import haxe.ui.backend.ScreenImpl;
-import ceramic.NineSlice;
 import ceramic.TextureTile;
 
 class ComponentImpl extends ComponentBase {
@@ -1010,7 +1003,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	function onMouseLeftDown(info:TouchInfo) {
-		if (info.buttonId != MouseButton.LEFT) {
+		if (info.buttonId != MouseButton.LEFT && info.touchIndex < 0) {
 			return;
 		}
 		onMouseDown(MouseEvent.MOUSE_DOWN, info);
@@ -1100,8 +1093,8 @@ class ComponentImpl extends ComponentBase {
 		_onClick(MouseEvent.CLICK, info);
 	}
 
-	function onMouseRightClick(info:TouchInfo) {
-		if (info.buttonId != MouseButton.RIGHT) {
+	function onMouseRightClick(info:TouchInfo, ?long:Bool = false) {
+		if (!long && info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
 		_onClick(MouseEvent.RIGHT_CLICK, info);
@@ -1164,7 +1157,8 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.RIGHT_CLICK:
 				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, this.onMouseRightClick);
+					screen.onPointerUp(visual, (info) -> onMouseRightClick(info));
+					screen.component("longPress", new LongPress((info) -> onMouseRightClick(info, true)));
 				}
 			case MouseEvent.DBL_CLICK:
 				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
@@ -1253,7 +1247,8 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
-					screen.offPointerUp(onMouseRightClick);
+					screen.offPointerUp((info) -> onMouseRightClick(info));
+					screen.removeComponent("longPress");
 					eventMap.remove(MouseEvent.RIGHT_CLICK);
 				}
 			case MouseEvent.MOUSE_MOVE:
