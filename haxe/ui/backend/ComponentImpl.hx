@@ -196,9 +196,11 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleVisibility(show:Bool):Void {
+		super.handleVisibility(show);
 		if (show != this.visual.visible) {
 			this.visual.visible = show;
 			this.visual.touchable = show;
+			this.visual.active = show;
 		}
 	}
 
@@ -816,6 +818,7 @@ class ComponentImpl extends ComponentBase {
 		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
 	}
 
+
 	private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
 		return getComponentsAtPoint(x, y, reverse).filter(c -> c.hidden == false);
 	}
@@ -854,7 +857,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private function findChildrenAtPoint(child:Component, x:Float, y:Float, array:Array<Component>) {
-		if (child.hitTest(x, y)) {
+		if (child.hitTest(x, y) && child.visible) {
 			array.push(child);
 			for (c in child.childComponents) {
 				findChildrenAtPoint(c, x, y, array);
