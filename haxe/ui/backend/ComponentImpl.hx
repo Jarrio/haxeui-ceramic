@@ -198,9 +198,9 @@ class ComponentImpl extends ComponentBase {
 	private override function handleVisibility(show:Bool):Void {
 		super.handleVisibility(show);
 		if (show != this.visual.visible) {
+			this.visual.active = show;
 			this.visual.visible = show;
 			this.visual.touchable = show;
-			this.visual.active = show;
 		}
 	}
 
