@@ -1037,7 +1037,7 @@ class ComponentImpl extends ComponentBase {
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
-
+		event.data = info;
 		var listener = this.eventMap[type];
 		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			Cursor.lock = true;
@@ -1121,6 +1121,7 @@ class ComponentImpl extends ComponentBase {
 		var event = new MouseEvent(type);
 		event.screenX = x;
 		event.screenY = y;
+		event.data = info;
 		event.shiftKey = App.app.input.keyPressed(LSHIFT) || App.app.input.keyPressed(RSHIFT);
 		if (this.hitTest(x, y) && !this.hasComponentOver(cast this, x, y)) {
 			this.eventMap[type](event);
