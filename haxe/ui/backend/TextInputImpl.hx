@@ -1,5 +1,6 @@
 package haxe.ui.backend;
 
+import haxe.ui.events.KeyboardEvent;
 import ceramic.App;
 import haxe.ui.events.UIEvent;
 import ceramic.Color;
@@ -73,24 +74,36 @@ class TextInputImpl extends TextBase {
 			visual.font = font;
 		}
 
-		visual.clipText(0, 0, _width, _height);
 		field.onSubmit(visual, this.onSubmit);
 
 		field.onUpdate(visual, this.onTextChanged);
 		field.onStart(visual, this.onStart);
 		field.onStop(visual, this.onStop);
 
+		visual.clipText(0, 0, _width, _height);
+
 		Toolkit.callLater(function() {
+			parentComponent.registerEvent(UIEvent.RESIZE, this.onResize);
 			visual.visible = true;
 		});
 	}
 
 	function onStop() {
+		Screen.instance.resumeEvent(KeyboardEvent.KEY_DOWN);
+		Screen.instance.resumeEvent(KeyboardEvent.KEY_UP);
+		Screen.instance.resumeEvent(KeyboardEvent.KEY_PRESS);
 		unregisterEvents();
 	}
 
 	function onStart() {
+		Screen.instance.pauseEvent(KeyboardEvent.KEY_DOWN);
+		Screen.instance.pauseEvent(KeyboardEvent.KEY_UP);
+		Screen.instance.pauseEvent(KeyboardEvent.KEY_PRESS);
 		registerEvents();
+	}
+
+	function onResize(e) {
+		trace(_width, _height);
 	}
 
 	public override function focus() {
@@ -130,14 +143,23 @@ class TextInputImpl extends TextBase {
 		if (_inputData.password != this.is_password) {
 			is_password = true;
 		}
+		if (parentComponent.disabled != field.disabled) {
+			field.disabled = parentComponent.disabled;
+		}
 
-		field.disabled = parentComponent.disabled;
-
+		
 		if (_textStyle == null) {
 			return false;
 		}
 
-		field.multiline = _displayData.multiline;
+		if (_displayData.multiline != field.multiline) {
+			field.multiline = _displayData.multiline;
+		}
+
+		if (field.multiline && _displayData.wordWrap && visual.fitWidth != this._width) {
+			visual.fitWidth = this._width;
+			trace('updated width $_width');
+		}
 
 		if (text_align != _textStyle.textAlign) {
 			text_align = _textStyle.textAlign;
@@ -169,6 +191,9 @@ class TextInputImpl extends TextBase {
 	}
 
 	private override function validateData() {
+		if (_text == null) {
+			return;
+		}
 		// trace('Text updated: ', '"$_text"');
 		if (_text != visual.content) {
 			// trace('Text updated: ', _text);
@@ -185,7 +210,10 @@ class TextInputImpl extends TextBase {
 	}
 
 	function onTextChanged(text:String) {
-		var field = cast(parentComponent, TextField);
+		var field:TextField = cast parentComponent;
+		if (field == null || text == _text) {
+			return;
+		}
 		if (focused && text == field.placeholder) {
 			text = '';
 		}
@@ -226,7 +254,7 @@ class TextInputImpl extends TextBase {
 		}
 
 		if (_height != visual.clipTextHeight) {
-			visual.clipTextHeight = visual.height;
+			visual.clipTextHeight = _height;
 		}
 	}
 
