@@ -602,6 +602,7 @@ class ComponentImpl extends ComponentBase {
 				}
 
 				visual.slice.size(style.backgroundWidth ?? width, style.backgroundHeight ?? height);
+				visual.slice.pos(style.backgroundPositionX ?? 0, style.backgroundPositionY ?? 0);
 			} catch (e:Dynamic ) {
 				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
 			}
@@ -634,6 +635,7 @@ class ComponentImpl extends ComponentBase {
 			if (quad == null) {
 				quad = new Quad();
 				quad.size(style.backgroundWidth ?? image.width, style.backgroundHeight ?? image.height);
+				quad.pos(style.backgroundPositionX ?? 0, style.backgroundPositionY ?? 0);
 				vis.add(quad);
 			}
 
