@@ -83,7 +83,6 @@ class TextInputImpl extends TextBase {
 		visual.clipText(0, 0, _width, _height);
 
 		Toolkit.callLater(function() {
-			parentComponent.registerEvent(UIEvent.RESIZE, this.onResize);
 			visual.visible = true;
 		});
 	}
@@ -100,10 +99,6 @@ class TextInputImpl extends TextBase {
 		Screen.instance.pauseEvent(KeyboardEvent.KEY_UP);
 		Screen.instance.pauseEvent(KeyboardEvent.KEY_PRESS);
 		registerEvents();
-	}
-
-	function onResize(e) {
-		trace(_width, _height);
 	}
 
 	public override function focus() {
@@ -158,7 +153,6 @@ class TextInputImpl extends TextBase {
 
 		if (field.multiline && _displayData.wordWrap && visual.fitWidth != this._width) {
 			visual.fitWidth = this._width;
-			trace('updated width $_width');
 		}
 
 		if (text_align != _textStyle.textAlign) {
