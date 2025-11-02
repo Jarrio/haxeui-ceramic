@@ -47,16 +47,7 @@ class ComponentSurface {
 	@:noCompletion private function addInternal(visual:Visual) {
 		visual.inheritAlpha = true;
 
-		if (visual.depth <= 0) {
-			visual.depth = depth_tracker++;
-		}
-
-		// if (visual is Quad) {
-		// 	trace(visual.asQuad.texture == null);
-		// }
 		this.visual.add(visual);
-
-		// this.visual.sortChildrenByDepth();
 	}
 
 	public inline function remove(visual:Visual) {
