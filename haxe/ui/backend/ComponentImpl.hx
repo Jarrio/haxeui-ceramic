@@ -227,41 +227,72 @@ class ComponentImpl extends ComponentBase {
 	// Display tree
 	//***********************************************************************************************************
 
-	inline function mapChildren() {
-		// var components = this.childComponents.copy();
-		// components.sort((a, b) -> Std.int(a.visual.depth - b.visual.depth));
+	var depthLowDirty = true;
+	var depthLow(get, null):Float = Math.POSITIVE_INFINITY;
 
-		// for (i in 0...components.length) {
-		// 	components[i].visual.depth = i + 2;
-		// }
+	function get_depthLow() {
+		var low = depthLow;
+		if (visual.children != null && depthLowDirty) {
+			for (child in visual.children) {
+				if (child.depth < low) {
+					low = child.depth;
+				}
+			}
+			depthLowDirty = false;
+		}
 
-		// visual.sortChildrenByDepth();
+		if (low == Math.POSITIVE_INFINITY) {
+			low = 0;
+		}
+		return depthLow = low;
 	}
 
-	var depth_counter = 0;
+	var depthHighDirty = true;
+	var depthHigh(get, null):Float = Math.NEGATIVE_INFINITY;
+
+	function get_depthHigh() {
+		var max = depthHigh;
+		if (visual.children != null && depthHighDirty) {
+			for (child in visual.children) {
+				if (child.depth > max) {
+					max = child.depth;
+				}
+			}
+			depthHighDirty = false;
+		}
+
+		if (max == Math.NEGATIVE_INFINITY) {
+			max = 0;
+		}
+		return depthHigh = max;
+	}
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
-		child.visual.depth = index + 2;
-		mapChildren();
+		var isTop = index == childComponents.length - 1;
+		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
+		
+		depthLowDirty = depthHighDirty = true;
+		child.visual.depth = position;
 	}
 
 	private override function handleAddComponent(child:Component):Component {
-		child.visual.depth = depth_counter + 2;
-		depth_counter++;
+		var depth = depthHigh + 1;
+		child.visual.depth = depth;
 		this.addInternal(child.visual);
-		mapChildren();
+		depthLowDirty = depthHighDirty = true;
 		return child;
 	}
 
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
-		child.visual.depth = index + 2;
-		handleAddComponent(child);
-		mapChildren();
+		var isTop = index == childComponents.length - 1;
+		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
+		child.visual.depth = position;
+		this.addInternal(child.visual);
+		depthLowDirty = depthHighDirty = true;
 		return child;
 	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
-		depth_counter--;
 		// trace('${pad(this.id)}: remove component -> ${child.id}');
 		child.visual.active = false;
 		if (dispose) {
@@ -269,7 +300,7 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			this.visual.remove(child.visual);
 		}
-		this.mapChildren();
+		depthLowDirty = depthHighDirty = true;
 		return child;
 	}
 
@@ -392,7 +423,6 @@ class ComponentImpl extends ComponentBase {
 			var radiusPercent = style.borderRadius / Math.min(width, height);
 			isCircular = radiusPercent >= 0.45; // Close to 50% just a guesstimate
 		}
-
 
 		var type = determineRoundedBorderType(style);
 		switch (type) {
@@ -819,7 +849,6 @@ class ComponentImpl extends ComponentBase {
 
 		return !hasChildRecursive(cast ref, cast array[array.length - 1]);
 	}
-
 
 	private function getVisibleComponentsAtPoint(x:Float, y:Float, reverse:Bool) {
 		return getComponentsAtPoint(x, y, reverse).filter(c -> c.hidden == false);

@@ -27,30 +27,65 @@ class ScreenImpl extends ScreenBase {
 		App.app.screen.onResize(null, this.handleResize);
 	}
 
-	function mapComponents() {
-		for (k => c in this.rootComponents) {
-			c.visual.depth = k;
-			if (c.visual.children != null) {
-				//c.visual.sortChildrenByDepth();
+	var depthLowDirty = true;
+	var depthLow(get, null):Float = Math.POSITIVE_INFINITY;
+
+	function get_depthLow() {
+		var low = depthLow;
+		if (options.root.children != null && depthLowDirty) {
+			for (child in options.root.children) {
+				if (child.depth < low) {
+					low = child.depth;
+				}
 			}
+			depthLowDirty = false;
 		}
+
+		if (low == Math.POSITIVE_INFINITY) {
+			low = 0;
+		}
+		return depthLow = low;
 	}
-	// TODO: shouldnt be neded
+
+	var depthHighDirty = true;
+	var depthHigh(get, null):Float = Math.NEGATIVE_INFINITY;
+
+	function get_depthHigh() {
+		var max = depthHigh;
+		if (options.root.children != null && depthHighDirty) {
+			for (child in options.root.children) {
+				if (child.depth > max) {
+					max = child.depth;
+				}
+			}
+			depthHighDirty = false;
+		}
+
+		if (max == Math.NEGATIVE_INFINITY) {
+			max = 0;
+		}
+		return depthHigh = max;
+	}
+
 	public override function addComponent(component:haxe.ui.core.Component):haxe.ui.core.Component {
+		var depth = depthHigh + 1;
+		component.visual.depth = depth;
 		@:privateAccess component.recursiveReady();
 		var c = super.addComponent(component);
 		resizeComponent(c);
 		rootComponents.push(component);
 		component.visual.active = true;
 		rootAdd(c.visual);
-		this.mapComponents();
+		depthLowDirty = depthHighDirty = true;
 		return c;
 	}
-	
+
 	private override function handleSetComponentIndex(component:Component, index:Int) {
-		component.visual.depth = index;
+		var isTop = index == rootComponents.length - 1;
+		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
+		component.visual.depth = position;
 		resizeComponent(component);
-		this.mapComponents();
+		depthLowDirty = depthHighDirty = true;
 	}
 
 	public override function removeComponent(component:Component, dispose:Bool = true, invalidate:Bool = true):Component {
@@ -61,7 +96,7 @@ class ScreenImpl extends ScreenBase {
 			rootRemove(component.visual);
 		}
 		rootComponents.remove(component);
-		this.mapComponents();
+		depthLowDirty = depthHighDirty = true;
 		return component;
 	}
 
@@ -197,29 +232,29 @@ class ScreenImpl extends ScreenBase {
 		onKey(KeyboardEvent.KEY_DOWN, key);
 	}
 
-function onKey(type:String, key:Key) {
-	var listener = this.eventMap[type];
-	if (listener == null) {
-		return;
-	}
-	var event = new KeyboardEvent(type);
-	event.keyCode = key.keyCode;
+	function onKey(type:String, key:Key) {
+		var listener = this.eventMap[type];
+		if (listener == null) {
+			return;
+		}
+		var event = new KeyboardEvent(type);
+		event.keyCode = key.keyCode;
 
-	if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
-		event.altKey = true;
-	}
+		if (key.keyCode == KeyCode.LALT || key.keyCode == KeyCode.RALT) {
+			event.altKey = true;
+		}
 
-	if (key.keyCode == KeyCode.LCTRL || key.keyCode == KeyCode.RCTRL) {
-		event.ctrlKey = true;
-	}
+		if (key.keyCode == KeyCode.LCTRL || key.keyCode == KeyCode.RCTRL) {
+			event.ctrlKey = true;
+		}
 
-	if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
-		event.shiftKey = true;
-	}
+		if (key.keyCode == KeyCode.LSHIFT || key.keyCode == KeyCode.RSHIFT) {
+			event.shiftKey = true;
+		}
 
-	event.data = key;
-	listener(event);
-}
+		event.data = key;
+		listener(event);
+	}
 
 	private override function supportsEvent(type:String):Bool {
 		if (type == UIEvent.RESIZE) {
@@ -257,6 +292,7 @@ function onKey(type:String, key:Key) {
 	}
 
 	public var last_fast_fps:Float;
+
 	function init(options:ToolkitOptions) {
 		if (options.performance == null) {
 			options.performance = None;
@@ -279,7 +315,7 @@ function onKey(type:String, key:Key) {
 		App.app.screen.onResize(null, Ceramic.forceRender);
 		App.app.onUpdate(null, onUpdate);
 		#end
-		
+
 		if (options.root == null) {
 			#if no_filter_root
 			var parent = new Visual();
@@ -318,7 +354,6 @@ function onKey(type:String, key:Key) {
 	}
 
 	inline function rootAdd(visual:Visual) {
-		
 		#if filter_root
 		options.root.content.add(visual);
 		#else
@@ -331,7 +366,6 @@ function onKey(type:String, key:Key) {
 		options.root.content.remove(visual);
 		#else
 		options.root.remove(visual);
-		
 		#end
 	}
 }
