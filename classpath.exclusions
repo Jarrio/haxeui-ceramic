@@ -20,6 +20,7 @@
 \/libmysqlclient\/
 \/ceramic\/plugins\/
 \/ceramic\/runtime\/
+\/haxeui-ceramic\/test-app\/
 
 
 
