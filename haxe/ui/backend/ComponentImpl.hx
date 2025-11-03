@@ -1184,12 +1184,29 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	
 	override function handleDisabled(disable:Bool) {
 		super.handleDisabled(disable);
+		if (disabled) {
+			visual.onPointerOver(this.visual, onDisabledOver);
+			visual.onPointerOut(this.visual, onDisabledOut);
+		} else {
+			visual.offPointerOver(onDisabledOver);
+			visual.offPointerOut(onDisabledOut);
+		}
+
 		if (Cursor.current != DEFAULT && disable) {
 			Cursor.lock = false;
-			Cursor.setTo(DEFAULT);
 		}
+	}
+
+	function onDisabledOut(info) {
+		over = false;
+		Cursor.setTo(DEFAULT);
+	}
+	function onDisabledOver(info) {
+		over = true;
+		Cursor.setTo(DISABLED);
 	}
 
 	private override function mapEvent(type:String, listener:UIEvent->Void) {

@@ -7,6 +7,7 @@ enum abstract CursorType(String) from String to String {
 	var POINTER = 'pointer';
 	var MOVE = 'move';
 	var TEXT = 'text';
+	var DISABLED = 'not-allowed';
 
 	public static function fromString(cursor:String):CursorType {
 		return switch (cursor) {
@@ -16,6 +17,7 @@ enum abstract CursorType(String) from String to String {
 			case 'pointer': POINTER;
 			case 'move': MOVE;
 			case 'text': TEXT;
+			case 'not-allowed': DISABLED;
 			default: DEFAULT;
 		}
 	}
@@ -28,6 +30,7 @@ enum abstract CursorType(String) from String to String {
 			case COL_RESIZE: 7;
 			case MOVE: 9;
 			case TEXT: 1;
+			case DISABLED: 10;
 			default: 0;
 		}
 	}
