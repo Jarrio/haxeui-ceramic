@@ -59,7 +59,7 @@ class Base extends Visual {
 		}
 
 		if (visual != null) {
-			visual.depth = 0;
+			// visual.depth = 0;
 			visual.size(width, height);
 			visual.inheritAlpha = true;
 			add(visual);
@@ -88,7 +88,7 @@ class Base extends Visual {
 		}
 
 		if (visual != null) {
-			visual.depth = 1;
+			// visual.depth = 1;
 			visual.size(width, height);
 			visual.inheritAlpha = true;
 			add(visual);

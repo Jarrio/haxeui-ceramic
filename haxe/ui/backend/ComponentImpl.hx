@@ -1184,6 +1184,14 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
+	override function handleDisabled(disable:Bool) {
+		super.handleDisabled(disable);
+		if (Cursor.current != DEFAULT && disable) {
+			Cursor.lock = false;
+			Cursor.setTo(DEFAULT);
+		}
+	}
+
 	private override function mapEvent(type:String, listener:UIEvent->Void) {
 		var screen = App.app.screen;
 		if (visual.destroyed) {
@@ -1307,11 +1315,6 @@ class ComponentImpl extends ComponentBase {
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					screen.offPointerMove(_onMouseOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
-
-					if (Cursor.current != DEFAULT && disabled) {
-						Cursor.lock = false;
-						Cursor.setTo(DEFAULT);
-					}
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
