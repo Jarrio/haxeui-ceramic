@@ -300,6 +300,10 @@ class ComponentImpl extends ComponentBase {
 		} else {
 			this.visual.remove(child.visual);
 		}
+		if (over) {
+			Cursor.lock = false;
+			Cursor.setTo(DEFAULT);
+		}
 		depthLowDirty = depthHighDirty = true;
 		return child;
 	}
@@ -958,7 +962,7 @@ class ComponentImpl extends ComponentBase {
 		if (!hittest && over) {
 			listener(event);
 			over = false;
-			if (!Cursor.lock && (this is InteractiveComponent)) {
+			if (this is InteractiveComponent) {
 				Cursor.setTo(CursorType.DEFAULT);
 			}
 		}
@@ -969,6 +973,8 @@ class ComponentImpl extends ComponentBase {
 		if (!this.eventMap.exists(type)) {
 			return;
 		}
+
+		// trace('here');
 
 		root().screenToVisual(info.x, info.y, point);
 		var x = point.x;
@@ -1300,8 +1306,12 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OUT:
 				if (eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					screen.offPointerMove(_onMouseOut);
-					// visual.offPointerOut(_onMouseOut);
 					eventMap.remove(MouseEvent.MOUSE_OUT);
+
+					if (Cursor.current != DEFAULT && disabled) {
+						Cursor.lock = false;
+						Cursor.setTo(DEFAULT);
+					}
 				}
 			case MouseEvent.MOUSE_UP:
 				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
