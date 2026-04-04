@@ -7,17 +7,29 @@ import ceramic.Files;
 import ceramic.Texture;
 import haxe.io.Bytes;
 import haxe.ui.assets.ImageInfo;
+import haxe.ui.assets.FontInfo;
 import ceramic.App.app;
 
 using StringTools;
 
 class AssetsImpl extends AssetsBase {
+	private override function getFontInternal(resourceId:String, callback:FontInfo->Void):Void {
+		var font = app.assets.font(resourceId);
+		if (font != null) {
+			callback({name: resourceId, data: font});
+		} else {
+			callback(null);
+		}
+	}
+
 	private override function getImageFromHaxeResource(resourceId:String, callback:String->ImageInfo->Void):Void {
 		if (Resource.listNames().indexOf(resourceId) == -1) {
 			callback(resourceId, null);
 		} else {
 			var bytes = Resource.getBytes(resourceId);
-			imageFromBytes(bytes, callback.bind(resourceId));
+			imageFromBytes(bytes, function(imageInfo:ImageInfo) {
+				callback(resourceId, imageInfo);
+			});
 		}
 	}
 
@@ -27,17 +39,17 @@ class AssetsImpl extends AssetsBase {
 			asset = Toolkit.screen.options.assets.imageAsset(resourceId);
 		}
 
-		//if asset still null check if it's in the scene
+		// if asset still null check if it's in the scene
 		if (asset == null && app.scenes.main != null) {
 			asset = app.scenes.main.assets.imageAsset(resourceId);
 		}
 
-		//still missing? check in the global asset object
+		// still missing? check in the global asset object
 		if (asset == null) {
 			asset = app.assets.imageAsset(resourceId);
 		}
 
-		//final check
+		// final check
 		if (asset == null) {
 			for (scene in app.scenes.rootScenes) {
 				var img = scene.assets.imageAsset(resourceId);
@@ -49,9 +61,9 @@ class AssetsImpl extends AssetsBase {
 		}
 
 		if (asset == null) {
-			//trace('ERROR - CANNOT FIND IMAGE RESOURCE $resourceId');
+			// trace('ERROR - CANNOT FIND IMAGE RESOURCE $resourceId');
 		}
-		
+
 		if (asset != null) {
 			if (asset.texture != null) {
 				callback({
@@ -112,7 +124,7 @@ class AssetsImpl extends AssetsBase {
 			});
 		});
 	}
-		
+
 	public override function imageInfoFromImageData(imageData:ImageData):ImageInfo {
 		return {
 			data: imageData,

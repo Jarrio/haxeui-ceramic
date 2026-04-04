@@ -16,6 +16,7 @@ class TextDisplayImpl extends TextBase {
 	public function new() {
 		super();
 		visual = new Visual();
+		visual.depth = 3;
 		visual.active = true;
 		visual.visible = false;
 		visual.inheritAlpha = true;

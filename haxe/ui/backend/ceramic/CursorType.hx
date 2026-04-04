@@ -4,6 +4,10 @@ enum abstract CursorType(String) from String to String {
 	var DEFAULT = 'default';
 	var COL_RESIZE = 'col-resize';
 	var ROW_RESIZE = 'row-resize';
+	var NWSE_RESIZE = 'nwse-resize';
+	var NESW_RESIZE = 'nesw-resize';
+	var NS_RESIZE = 'ns-resize';
+	var EW_RESIZE = 'ew-resize';
 	var POINTER = 'pointer';
 	var MOVE = 'move';
 	var TEXT = 'text';
@@ -14,6 +18,10 @@ enum abstract CursorType(String) from String to String {
 			case 'default': DEFAULT;
 			case 'col-resize': COL_RESIZE;
 			case 'row-resize': ROW_RESIZE;
+			case 'nwse-resize': NWSE_RESIZE;
+			case 'nesw-resize': NESW_RESIZE;
+			case 'ns-resize': NS_RESIZE;
+			case 'ew-resize': EW_RESIZE;
 			case 'pointer': POINTER;
 			case 'move': MOVE;
 			case 'text': TEXT;
@@ -28,6 +36,10 @@ enum abstract CursorType(String) from String to String {
 			case POINTER: 11;
 			case ROW_RESIZE: 8;
 			case COL_RESIZE: 7;
+			case NWSE_RESIZE: 5;
+			case NESW_RESIZE: 6;
+			case EW_RESIZE: 7;
+			case NS_RESIZE: 8;
 			case MOVE: 9;
 			case TEXT: 1;
 			case DISABLED: 10;

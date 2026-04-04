@@ -1,24 +1,20 @@
 package haxe.ui.backend;
 
-import ceramic.Color;
 import ceramic.Quad;
 
 class ImageDisplayImpl extends ImageBase {
 	public var visual:Quad;
-	
+
 	public function new() {
 		super();
 		this.visual = new Quad();
-		//this.visual.depth = 1000;
-		//visual.depthRange = -1;
-		visual.depth = 2;
-		//this.visual.color = Color.NONE;
+		visual.depth = 3;
 	}
 
 	private override function validateData():Void {
 		if (_imageInfo != null) {
 			this.visual.texture = _imageInfo.data;
-			
+
 			this.visual.width = Std.int(_imageInfo.width);
 			this.visual.height = Std.int(_imageInfo.height);
 		}
@@ -26,11 +22,11 @@ class ImageDisplayImpl extends ImageBase {
 
 	private override function validatePosition() {
 		if (visual.x != _left) {
-				visual.x = _left;
+			visual.x = _left;
 		}
 
 		if (visual.y != _top) {
-				visual.y = _top;
+			visual.y = _top;
 		}
 	}
 

@@ -24,6 +24,10 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 	var thickness:Float;
 	var alpha:Float = 1;
 
+	var fillColor:ceramic.Color;
+	var fillAlpha:Float = 1;
+	var hasFill:Bool = false;
+
 	var size:Bool = false;
 
 	// var line = new Line();
@@ -71,12 +75,18 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		if (!size) {
 			return super.strokeStyle(color, thickness, alpha);
 		}
-		if (color == null) {
-			trace(color);
-		}
 		this.color = ceramic.Color.fromInt(color);
 		this.thickness = thickness;
 		this.alpha = alpha;
+	}
+
+	override function fillStyle(color:Null<Color>, alpha:Null<Float> = 1) {
+		if (!size) {
+			return super.fillStyle(color, alpha);
+		}
+		this.fillColor = ceramic.Color.fromInt(color);
+		this.fillAlpha = alpha;
+		this.hasFill = true;
 	}
 
 	override function moveTo(x:Float, y:Float) {
@@ -106,8 +116,8 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 			return super.rectangle(x, y, width, height);
 		}
 		var quad = new Quad();
-		quad.color = this.color;
-		quad.alpha = this.alpha;
+		quad.color = hasFill ? this.fillColor : this.color;
+		quad.alpha = hasFill ? this.fillAlpha : this.alpha;
 		quad.x = x;
 		quad.y = y;
 		quad.width = width;
@@ -126,8 +136,8 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 		arc.borderPosition = MIDDLE;
 		arc.radius = radius;
 		arc.angle = 360;
-		arc.color = this.color;
-		arc.alpha = this.alpha;
+		arc.color = hasFill ? this.fillColor : this.color;
+		arc.alpha = hasFill ? this.fillAlpha : this.alpha;
 
 		arc.thickness = this.thickness;
 		arc.x = x;
@@ -172,7 +182,7 @@ class ComponentGraphicsImpl extends ComponentGraphicsBase {
 			visual.size(w, h);
 			_component.visual.add(visual);
 		}
-		
+
 		if (this.visual.texture != texture) {
 			visual.texture = texture;
 		}

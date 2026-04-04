@@ -2,6 +2,10 @@ package haxe.ui.backend;
 
 import haxe.ui.backend.ceramic.Base.BGType;
 import haxe.ui.backend.ceramic.RoundedBorder;
+import haxe.ui.backend.ceramic.RoundedBg;
+import haxe.ui.backend.ceramic.GradientMesh;
+import ceramic.NineSlice;
+import ceramic.Border;
 import ceramic.Texture;
 import haxe.ui.assets.ImageInfo;
 import haxe.ui.loaders.image.ImageLoader;
@@ -27,6 +31,7 @@ import haxe.ui.backend.ceramic.CursorType;
 import haxe.ui.backend.ceramic.Cursor;
 import ceramic.TextureTile;
 
+@:access(haxe.ui.core.Component)
 class ComponentImpl extends ComponentBase {
 	static var point = new Point(0, 0);
 
@@ -37,7 +42,6 @@ class ComponentImpl extends ComponentBase {
 		super();
 
 		eventMap = new Map<String, UIEvent->Void>();
-		// recursiveReady();
 	}
 
 	function updateRender() {
@@ -113,27 +117,6 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	// private override function handleSize(width:Null<Float>, height:Null<Float>, style:Style) {
-	// 	if (visual == null) {
-	// 		return;
-	// 	}
-	// 	var w = Math.round(width);
-	// 	var h = Math.round(height);
-	// 	if (visual.width != w || visual.height != h) {
-	// 		if (style != null) {
-	// 			applyStyle(style);
-	// 		}
-	// 	}
-	// 	if (h > 0 && h != visual.height) {
-	// 		this.visual.height = h;
-	// 	}
-	// 	if (w > 0 && w != visual.width) {
-	// 		this.visual.width = w;
-	// 	}
-	// 	this.updateRender();
-	// }
-	var v = false;
-
 	override function handleClipRect(value:Rectangle):Void {
 		// @TODO fix clipping with absolute/box
 		if (this.parentComponent == null) {
@@ -170,8 +153,6 @@ class ComponentImpl extends ComponentBase {
 				} else {
 					parent.visual.add(filter);
 				}
-
-				if (this.visual.getBorder() != null) {}
 
 				this.isClipped = true;
 				filter.content.add(this.visual);
@@ -226,51 +207,57 @@ class ComponentImpl extends ComponentBase {
 	//***********************************************************************************************************
 	// Display tree
 	//***********************************************************************************************************
+	// Depths 0-3 are reserved for internal visuals (bg, bgImage, border, content).
+	// Child components start at depth 4+.
+	static inline final RESERVED_DEPTH:Float = 4;
 
 	var depthLowDirty = true;
 	var depthLow(get, null):Float = Math.POSITIVE_INFINITY;
 
 	function get_depthLow() {
-		var low = depthLow;
-		if (visual.children != null && depthLowDirty) {
-			for (child in visual.children) {
-				if (child.depth < low) {
-					low = child.depth;
+		if (depthLowDirty) {
+			depthLow = Math.POSITIVE_INFINITY;
+			if (visual.children != null) {
+				for (child in visual.children) {
+					if (child.depth >= RESERVED_DEPTH && child.depth < depthLow) {
+						depthLow = child.depth;
+					}
 				}
+			}
+			if (depthLow == Math.POSITIVE_INFINITY) {
+				depthLow = RESERVED_DEPTH;
 			}
 			depthLowDirty = false;
 		}
-
-		if (low == Math.POSITIVE_INFINITY) {
-			low = 0;
-		}
-		return depthLow = low;
+		return depthLow;
 	}
 
 	var depthHighDirty = true;
 	var depthHigh(get, null):Float = Math.NEGATIVE_INFINITY;
 
 	function get_depthHigh() {
-		var max = depthHigh;
-		if (visual.children != null && depthHighDirty) {
-			for (child in visual.children) {
-				if (child.depth > max) {
-					max = child.depth;
+		if (depthHighDirty) {
+			depthHigh = Math.NEGATIVE_INFINITY;
+			if (visual.children != null) {
+				for (child in visual.children) {
+					if (child.depth >= RESERVED_DEPTH && child.depth > depthHigh) {
+						depthHigh = child.depth;
+					}
 				}
+			}
+			if (depthHigh == Math.NEGATIVE_INFINITY) {
+				depthHigh = RESERVED_DEPTH;
 			}
 			depthHighDirty = false;
 		}
-
-		if (max == Math.NEGATIVE_INFINITY) {
-			max = 0;
-		}
-		return depthHigh = max;
+		return depthHigh;
 	}
 
 	private override function handleSetComponentIndex(child:Component, index:Int) {
 		var isTop = index == childComponents.length - 1;
 		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
-		
+		if (position < RESERVED_DEPTH)
+			position = RESERVED_DEPTH;
 		depthLowDirty = depthHighDirty = true;
 		child.visual.depth = position;
 	}
@@ -286,6 +273,8 @@ class ComponentImpl extends ComponentBase {
 	private override function handleAddComponentAt(child:Component, index:Int):Component {
 		var isTop = index == childComponents.length - 1;
 		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
+		if (position < RESERVED_DEPTH)
+			position = RESERVED_DEPTH;
 		child.visual.depth = position;
 		this.addInternal(child.visual);
 		depthLowDirty = depthHighDirty = true;
@@ -293,7 +282,6 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
-		// trace('${pad(this.id)}: remove component -> ${child.id}');
 		child.visual.active = false;
 		if (dispose) {
 			child.visual.destroy();
@@ -309,7 +297,6 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
-		// trace('${pad(this.id)}: remove component at index -> ${index}');
 		return this.handleRemoveComponent(this.childComponents[index], dispose);
 	}
 
@@ -359,165 +346,77 @@ class ComponentImpl extends ComponentBase {
 
 		if (visual.bgType == ROUNDED) {
 			applyRoundedBorderStyles(style);
-		} else if (visual.borderType == RECTANGLE && visual.border != null) {
+		} else if (visual.borderType == RECTANGLE && visual.borderVisual != null) {
 			applyRectangleBorderStyles(style);
 		}
 	}
 
-	private function determineRoundedBorderType(style:Style):StyleBorderType {
-		var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
-		var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
-		var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
-		var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
-
-		var hasUniformBorder = style.borderSize != null && style.borderSize > 0;
-
-		var hasAnySide = hasLeft || hasRight || hasTop || hasBottom;
-
-		var allSameSize = hasLeft
-			&& hasRight
-			&& hasTop
-			&& hasBottom
-			&& style.borderLeftSize == style.borderRightSize
-			&& style.borderLeftSize == style.borderTopSize
-			&& style.borderLeftSize == style.borderBottomSize;
-
-		var allSameColor = style.borderLeftColor == style.borderRightColor
-			&& style.borderLeftColor == style.borderTopColor
-			&& style.borderLeftColor == style.borderBottomColor;
-
-		var hasSpecificRadii = style.borderRadiusTopLeft != null
-			|| style.borderRadiusTopRight != null
-			|| style.borderRadiusBottomLeft != null
-			|| style.borderRadiusBottomRight != null;
-
-		if (hasSpecificRadii) {
-			var allRadiiSame = style.borderRadiusTopLeft != null
-				&& style.borderRadiusTopRight != null
-				&& style.borderRadiusBottomLeft != null
-				&& style.borderRadiusBottomRight != null
-				&& style.borderRadiusTopLeft == style.borderRadiusTopRight
-				&& style.borderRadiusTopLeft == style.borderRadiusBottomLeft
-				&& style.borderRadiusTopLeft == style.borderRadiusBottomRight;
-
-			if (!allRadiiSame) {
-				return StyleBorderType.Compound;
-			}
-		}
-
-		if (hasUniformBorder || (allSameSize && allSameColor && !hasSpecificRadii)) {
-			return StyleBorderType.Full;
-		} else if (hasAnySide) {
-			return StyleBorderType.Compound;
-		} else {
-			return StyleBorderType.None;
-		}
-	}
-
 	private function applyRoundedBorderStyles(style:Style) {
-		var bg = visual.rounded;
-		var border = visual.roundedBorder;
+		var bg:RoundedBg = (visual.bgType == ROUNDED && visual.bg != null) ? cast(visual.bg, RoundedBg) : null;
+		var border:RoundedBorder = (visual.borderType == ROUNDED && visual.borderVisual != null) ? cast(visual.borderVisual, RoundedBorder) : null;
 
 		if (border == null) {
 			return;
 		}
 
-		var isCircular = false;
-		if (style.borderRadius != null) {
-			var radiusPercent = style.borderRadius / Math.min(width, height);
-			isCircular = radiusPercent >= 0.45; // Close to 50% just a guesstimate
-		}
+		var fallbackSize:Float = style.borderSize != null ? style.borderSize : 0;
+		var topSize:Float = style.borderTopSize != null ? style.borderTopSize : fallbackSize;
+		var rightSize:Float = style.borderRightSize != null ? style.borderRightSize : fallbackSize;
+		var bottomSize:Float = style.borderBottomSize != null ? style.borderBottomSize : fallbackSize;
+		var leftSize:Float = style.borderLeftSize != null ? style.borderLeftSize : fallbackSize;
 
-		var type = determineRoundedBorderType(style);
-		switch (type) {
-			case Full:
+		var hasBorder = topSize > 0 || rightSize > 0 || bottomSize > 0 || leftSize > 0;
+
+		if (!hasBorder) {
+			border.setAllBorders(0, 0, Color.NONE);
+		} else {
+			var fallbackColor:Null<Color> = style.borderColor;
+			var topColor:Null<Color> = style.borderTopColor != null ? style.borderTopColor : fallbackColor;
+			var rightColor:Null<Color> = style.borderRightColor != null ? style.borderRightColor : fallbackColor;
+			var bottomColor:Null<Color> = style.borderBottomColor != null ? style.borderBottomColor : fallbackColor;
+			var leftColor:Null<Color> = style.borderLeftColor != null ? style.borderLeftColor : fallbackColor;
+
+			if (style.borderRadiusTopLeft != null) {
+				border.topLeft = style.borderRadiusTopLeft;
+			}
+			if (style.borderRadiusTopRight != null) {
+				border.topRight = style.borderRadiusTopRight;
+			}
+			if (style.borderRadiusBottomLeft != null) {
+				border.bottomLeft = style.borderRadiusBottomLeft;
+			}
+			if (style.borderRadiusBottomRight != null) {
+				border.bottomRight = style.borderRadiusBottomRight;
+			}
+			if (style.borderRadius != null) {
 				border.radius = style.borderRadius;
+			}
 
-				border.setAllBorders(style.borderRadius, style.borderSize, style.borderColor);
-			case Compound:
-				if (style.borderRadiusTopLeft != null && style.borderRadiusTopLeft > 0) {
-					border.topLeft = style.borderRadiusTopLeft;
-				}
-				if (style.borderRadiusTopRight != null && style.borderRadiusTopRight > 0) {
-					border.topRight = style.borderRadiusTopRight;
-				}
-				if (style.borderRadiusBottomLeft != null && style.borderRadiusBottomLeft > 0) {
-					border.bottomLeft = style.borderRadiusBottomLeft;
-				}
-				if (style.borderRadiusBottomRight != null && style.borderRadiusBottomRight > 0) {
-					border.bottomRight = style.borderRadiusBottomRight;
-				}
+			border.thickness = Math.max(Math.max(topSize, rightSize), Math.max(bottomSize, leftSize));
 
-				var hasTop = style.borderTopSize != null && style.borderTopSize > 0;
-				var hasRight = style.borderRightSize != null && style.borderRightSize > 0;
-				var hasBottom = style.borderBottomSize != null && style.borderBottomSize > 0;
-				var hasLeft = style.borderLeftSize != null && style.borderLeftSize > 0;
+			border.setBorderSideVisible(BorderSide.TOP, topSize > 0);
+			border.setBorderSideThickness(BorderSide.TOP, topSize);
+			if (topColor != null) {
+				border.setBorderSideColor(BorderSide.TOP, topColor);
+			}
 
-				var circularBorderHandled = false;
+			border.setBorderSideVisible(BorderSide.RIGHT, rightSize > 0);
+			border.setBorderSideThickness(BorderSide.RIGHT, rightSize);
+			if (rightColor != null) {
+				border.setBorderSideColor(BorderSide.RIGHT, rightColor);
+			}
 
-				if (isCircular) {
-					if ((hasLeft || hasRight) && !(hasTop || hasBottom)) {
-						var thickness = hasLeft ? style.borderLeftSize : style.borderRightSize;
-						var color = hasLeft ? style.borderLeftColor : style.borderRightColor;
+			border.setBorderSideVisible(BorderSide.BOTTOM, bottomSize > 0);
+			border.setBorderSideThickness(BorderSide.BOTTOM, bottomSize);
+			if (bottomColor != null) {
+				border.setBorderSideColor(BorderSide.BOTTOM, bottomColor);
+			}
 
-						border.setAllBorders(style.borderRadius, thickness, color);
-
-						border.setBorderSideVisible(BorderSide.TOP, false);
-						border.setBorderSideVisible(BorderSide.BOTTOM, false);
-						border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
-						border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
-
-						circularBorderHandled = true;
-					} else if ((hasTop || hasBottom) && !(hasLeft || hasRight)) {
-						var thickness = hasTop ? style.borderTopSize : style.borderBottomSize;
-						var color = hasTop ? style.borderTopColor : style.borderBottomColor;
-
-						border.setAllBorders(style.borderRadius, thickness, color);
-
-						border.setBorderSideVisible(BorderSide.TOP, hasTop);
-						border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
-						border.setBorderSideVisible(BorderSide.LEFT, false);
-						border.setBorderSideVisible(BorderSide.RIGHT, false);
-
-						circularBorderHandled = true;
-					}
-				}
-
-				if (!circularBorderHandled) {
-					border.setBorderSideVisible(BorderSide.TOP, hasTop);
-					if (hasTop) {
-						border.setBorderSideThickness(BorderSide.TOP, style.borderTopSize);
-						if (style.borderTopColor != null) {
-							border.setBorderSideColor(BorderSide.TOP, style.borderTopColor);
-						}
-					}
-
-					border.setBorderSideVisible(BorderSide.RIGHT, hasRight);
-					if (hasRight) {
-						border.setBorderSideThickness(BorderSide.RIGHT, style.borderRightSize);
-						if (style.borderRightColor != null) {
-							border.setBorderSideColor(BorderSide.RIGHT, style.borderRightColor);
-						}
-					}
-
-					border.setBorderSideVisible(BorderSide.BOTTOM, hasBottom);
-					if (hasBottom) {
-						border.setBorderSideThickness(BorderSide.BOTTOM, style.borderBottomSize);
-						if (style.borderBottomColor != null) {
-							border.setBorderSideColor(BorderSide.BOTTOM, style.borderBottomColor);
-						}
-					}
-
-					border.setBorderSideVisible(BorderSide.LEFT, hasLeft);
-					if (hasLeft) {
-						border.setBorderSideThickness(BorderSide.LEFT, style.borderLeftSize);
-						if (style.borderLeftColor != null) {
-							border.setBorderSideColor(BorderSide.LEFT, style.borderLeftColor);
-						}
-					}
-				}
-			case None:
-				border.setAllBorders(0, 0, Color.NONE);
+			border.setBorderSideVisible(BorderSide.LEFT, leftSize > 0);
+			border.setBorderSideThickness(BorderSide.LEFT, leftSize);
+			if (leftColor != null) {
+				border.setBorderSideColor(BorderSide.LEFT, leftColor);
+			}
 		}
 
 		if (bg != null) {
@@ -537,7 +436,6 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		if (style.borderOpacity != null) {
-			bg.alpha = style.backgroundOpacity;
 			border.alpha = style.borderOpacity;
 		}
 
@@ -557,12 +455,12 @@ class ComponentImpl extends ComponentBase {
 		if (style.backgroundColor != null) {
 			if (style.backgroundColorEnd != null) {
 				applyGradient(style);
-			} else if (visual.solid != null) {
-				visual.solid.color = style.backgroundColor;
-			} else if (visual.bgType == ROUNDED || visual.bgType == GRADIENT) {
-				var bg = (visual.bgType == ROUNDED) ? visual.rounded : visual.gradient;
-				bg.colorMapping = MESH;
-				bg.color = style.backgroundColor;
+			} else if (visual.bgType == SOLID && visual.bg != null) {
+				cast(visual.bg, Quad).color = style.backgroundColor;
+			} else if ((visual.bgType == ROUNDED || visual.bgType == GRADIENT) && visual.bg != null) {
+				var mesh = cast(visual.bg, ceramic.Mesh);
+				mesh.colorMapping = MESH;
+				mesh.color = style.backgroundColor;
 			}
 		} else {
 			visual.bgAlpha = 0;
@@ -570,9 +468,11 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private function applyNineSliceBackground(style:Style) {
-		if (visual == null || visual.slice == null || !visual.active) {
+		if (visual == null || visual.bgType != NINESLICE || visual.bg == null || !visual.active) {
 			return;
 		}
+
+		var slice = cast(visual.bg, NineSlice);
 
 		var hasSlice = style.backgroundImageSliceTop != null
 			|| style.backgroundImageSliceLeft != null
@@ -585,9 +485,11 @@ class ComponentImpl extends ComponentBase {
 			&& style.backgroundImageClipRight != null;
 
 		ImageLoader.instance.load(style.backgroundImage, function(image:ImageInfo) {
-			if (visual == null || visual.slice == null || !visual.active) {
+			if (visual == null || visual.bgType != NINESLICE || visual.bg == null || !visual.active) {
 				return;
 			}
+
+			var slice = cast(visual.bg, NineSlice);
 
 			if (image == null) {
 				trace(
@@ -609,9 +511,9 @@ class ComponentImpl extends ComponentBase {
 					var clipHeight = clipBottom - clipTop;
 
 					var newTile = new TextureTile(texture, clipLeft, clipTop, clipWidth, clipHeight);
-					visual.slice.tile = newTile;
+					slice.tile = newTile;
 				} else {
-					visual.slice.texture = texture;
+					slice.texture = texture;
 				}
 
 				var top = style.backgroundImageSliceTop != null ? style.backgroundImageSliceTop : 0;
@@ -630,26 +532,17 @@ class ComponentImpl extends ComponentBase {
 						bottom = clipHeight - bottom;
 					}
 
-					visual.slice.slice(top, right, bottom, left);
+					slice.slice(top, right, bottom, left);
 				} else {
-					visual.slice.slice(top, right, bottom, left);
+					slice.slice(top, right, bottom, left);
 				}
 
-				visual.slice.size(style.backgroundWidth ?? width, style.backgroundHeight ?? height);
-				visual.slice.pos(style.backgroundPositionX ?? 0, style.backgroundPositionY ?? 0);
+				slice.size(style.backgroundWidth ?? width, style.backgroundHeight ?? height);
+				slice.pos(style.backgroundPositionX ?? 0, style.backgroundPositionY ?? 0);
 			} catch (e:Dynamic ) {
 				trace('[haxeui-ceramic] Error applying nine slice: ${e}');
 			}
 		});
-	}
-
-	private function applySolidBackground(style:Style) {
-		if (visual == null || visual.solid == null) {
-			trace("[ERROR] Visual or solid is null");
-			return;
-		}
-
-		addBgImage(style);
 	}
 
 	function addBgImage(style:Style) {
@@ -660,23 +553,23 @@ class ComponentImpl extends ComponentBase {
 				trace("Image failed to load: " + style.backgroundImage);
 				return;
 			}
-			var vis = visual.getBg();
-			if (visual == null || vis == null) {
-				trace("Visual or bg is null");
+			if (visual == null || visual.bg == null) {
 				return;
 			}
 
 			if (quad == null) {
 				quad = new Quad();
+				quad.depth = 1;
 				quad.size(style.backgroundWidth ?? image.width, style.backgroundHeight ?? image.height);
 				quad.pos(style.backgroundPositionX ?? 0, style.backgroundPositionY ?? 0);
-				vis.add(quad);
+				visual.bgImage = quad;
+				visual.bg.add(quad);
 			}
 
 			try {
 				imgCache.set(style.backgroundImage, image.data);
 				quad.texture = image.data;
-				vis.alpha = 1;
+				visual.bg.alpha = 1;
 			} catch (e:Dynamic ) {
 				trace("Error applying texture: " + e);
 			}
@@ -689,25 +582,25 @@ class ComponentImpl extends ComponentBase {
 		var end = (style.backgroundColorEnd | alpha);
 		var vertical = style.backgroundGradientStyle != "horizontal";
 
-		if (visual.gradient != null) {
-			visual.gradient.setGradient(start, end, vertical);
-		} else if (visual.rounded != null) {
-			visual.rounded.setGradient(start, end, vertical);
+		if (visual.bg != null) {
+			if (visual.bgType == GRADIENT) {
+				cast(visual.bg, GradientMesh).setGradient(start, end, vertical);
+			} else if (visual.bgType == ROUNDED) {
+				cast(visual.bg, RoundedBg).setGradient(start, end, vertical);
+			}
 		}
 	}
 
 	private function applyRectangleBorderStyles(style:Style) {
-		var border = visual.border;
+		var border = cast(visual.borderVisual, Border);
 		border.borderSize = -1;
-		var scaleFactor = App.app.screen.nativeDensity;
-		//		trace(style.borderSize, style.borderLeftSize, style.borderRightSize, style.borderTopSize, style.borderBottomSize);
 		var hasBorder = style.borderSize != null && style.borderSize > 0;
 		var hasCompound = style.borderTopSize != null || style.borderLeftSize != null || style.borderBottomSize != null
 			|| style.borderRightSize != null;
 
 		if (hasBorder) {
 			border.borderSize = style.borderSize;
-			border.borderColor = style.borderColor;
+			border.borderColor = style.borderLeftColor != null ? style.borderLeftColor : style.borderColor;
 		}
 
 		if (hasCompound) {
@@ -776,11 +669,12 @@ class ComponentImpl extends ComponentBase {
 		}
 
 		if (oldType != newType) {
-			if (oldType == NINESLICE && visual.slice != null) {
-				if (visual.slice.tile != null) {
-					visual.slice.tile = null;
+			if (oldType == NINESLICE && visual.bg != null) {
+				var slice = cast(visual.bg, NineSlice);
+				if (slice.tile != null) {
+					slice.tile = null;
 				}
-				visual.slice.texture = null;
+				slice.texture = null;
 			}
 
 			visual.bgType = newType;
@@ -794,7 +688,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	function applySliceAndClip(framed:Bool) {
-		var slice = visual.slice;
+		var slice = cast(visual.bg, NineSlice);
 
 		var top = style.backgroundImageSliceTop;
 		var left = style.backgroundImageSliceLeft;
@@ -803,7 +697,7 @@ class ComponentImpl extends ComponentBase {
 		var bot = style.backgroundImageClipBottom - style.backgroundImageSliceBottom;
 
 		if (framed) {
-			var tile = visual.slice.tile;
+			var tile = slice.tile;
 			tile.frameX = style.backgroundImageClipLeft;
 			tile.frameY = style.backgroundImageClipTop;
 			tile.frameWidth = style.backgroundImageClipRight - style.backgroundImageClipLeft;
@@ -892,7 +786,7 @@ class ComponentImpl extends ComponentBase {
 	}
 
 	private function findChildrenAtPoint(child:Component, x:Float, y:Float, array:Array<Component>) {
-		if (child.hitTest(x, y) && child.visible) {
+		if (child.hitTest(x, y) && !child.hidden) {
 			array.push(child);
 			for (c in child.childComponents) {
 				findChildrenAtPoint(c, x, y, array);
@@ -935,11 +829,19 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = eventMap.get(MouseEvent.MOUSE_MOVE);
 		var hittest = this.hitTest(x, y);
-		if (hittest) {
+		if (hittest && !this.hasComponentOver(cast this, x, y)) {
+			over = true;
 			var event = new MouseEvent(MouseEvent.MOUSE_MOVE);
 			event.screenX = x;
 			event.screenY = y;
 			listener(event);
+			var cs = cast(this, Component)._customStyle;
+			var cursorValue = (cs != null) ? cs.cursor : null;
+			if (cursorValue == null && style != null)
+				cursorValue = style.cursor;
+			if (cursorValue != null && (this is InteractiveComponent)) {
+				Cursor.setTo(CursorType.fromString(cursorValue));
+			}
 		}
 	}
 
@@ -974,8 +876,6 @@ class ComponentImpl extends ComponentBase {
 			return;
 		}
 
-		// trace('here');
-
 		root().screenToVisual(info.x, info.y, point);
 		var x = point.x;
 		var y = point.y;
@@ -986,7 +886,6 @@ class ComponentImpl extends ComponentBase {
 
 		var listener = this.eventMap[type];
 		var hittest = this.hitTest(x, y);
-		// trace(hittest);
 		if (hittest && !this.hasComponentOver(cast this, x, y)) {
 			listener(event);
 			over = true;
@@ -1119,7 +1018,6 @@ class ComponentImpl extends ComponentBase {
 	var click_increment:Int = 0;
 
 	function onMouseLeftClick(info:TouchInfo) {
-		// trace('here');
 		if (info.buttonId == -1) {
 			if (info.touchIndex != 0) {
 				return;
@@ -1133,10 +1031,14 @@ class ComponentImpl extends ComponentBase {
 		_onClick(MouseEvent.CLICK, info);
 	}
 
-	function onMouseRightClick(info:TouchInfo, ?long:Bool = false) {
-		if (!long && info.buttonId != MouseButton.RIGHT) {
+	function onMouseRightClick(info:TouchInfo) {
+		if (info.buttonId != MouseButton.RIGHT) {
 			return;
 		}
+		_onClick(MouseEvent.RIGHT_CLICK, info);
+	}
+
+	function onMouseRightClickLongPress(info:TouchInfo) {
 		_onClick(MouseEvent.RIGHT_CLICK, info);
 	}
 
@@ -1184,7 +1086,6 @@ class ComponentImpl extends ComponentBase {
 		}
 	}
 
-	
 	override function handleDisabled(disable:Bool) {
 		super.handleDisabled(disable);
 		if (disabled) {
@@ -1204,6 +1105,7 @@ class ComponentImpl extends ComponentBase {
 		over = false;
 		Cursor.setTo(DEFAULT);
 	}
+
 	function onDisabledOver(info) {
 		over = true;
 		Cursor.setTo(DISABLED);
@@ -1223,13 +1125,16 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.RIGHT_CLICK:
 				if (!eventMap.exists(MouseEvent.RIGHT_CLICK)) {
 					this.eventMap.set(type, listener);
-					screen.onPointerUp(visual, (info) -> onMouseRightClick(info));
-					screen.component("longPress", new LongPress((info) -> onMouseRightClick(info, true)));
+					screen.onPointerUp(visual, this.onMouseRightClick);
+					screen.component("longPress", new LongPress(this.onMouseRightClickLongPress));
+				}
+			case MouseEvent.MIDDLE_CLICK:
+				if (!eventMap.exists(MouseEvent.MIDDLE_CLICK)) {
+					this.eventMap.set(type, listener);
+					screen.onPointerUp(visual, this.onMouseMiddleClick);
 				}
 			case MouseEvent.DBL_CLICK:
 				if (!eventMap.exists(MouseEvent.DBL_CLICK)) {
-					// trace('registered');
-					// trace(type);
 					this.eventMap.set(type, listener);
 					screen.onPointerUp(visual, onDoubleClick);
 				}
@@ -1241,13 +1146,11 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OVER:
 				if (!eventMap.exists(MouseEvent.MOUSE_OVER)) {
 					this.eventMap.set(type, listener);
-					// visual.onPointerOver(visual, this._onMouseOver);
 					screen.onPointerMove(visual, this._onMouseOver);
 				}
 			case MouseEvent.MOUSE_OUT:
 				if (!eventMap.exists(MouseEvent.MOUSE_OUT)) {
 					this.eventMap.set(MouseEvent.MOUSE_OUT, listener);
-					// visual.onPointerOut(visual, _onMouseOut);
 					screen.onPointerMove(visual, _onMouseOut);
 				}
 			case MouseEvent.MOUSE_UP:
@@ -1287,10 +1190,6 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		// Toolkit.callLater(function() {
-		// 	trace(this.id, type, cast(this, Component).className);
-		// });
-		//		trace('${pad(this.id)}: map event -> ${type}');
 	}
 
 	private override function unmapEvent(type:String, listener:UIEvent->Void) {
@@ -1313,7 +1212,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.RIGHT_CLICK:
 				if (eventMap.exists(MouseEvent.RIGHT_CLICK)) {
-					screen.offPointerUp((info) -> onMouseRightClick(info));
+					screen.offPointerUp(this.onMouseRightClick);
 					screen.removeComponent("longPress");
 					eventMap.remove(MouseEvent.RIGHT_CLICK);
 				}
@@ -1325,7 +1224,6 @@ class ComponentImpl extends ComponentBase {
 			case MouseEvent.MOUSE_OVER:
 				if (eventMap.exists(MouseEvent.MOUSE_OVER)) {
 					screen.offPointerMove(_onMouseOver);
-					// visual.offPointerOver(_onMouseOver);
 					eventMap.remove(MouseEvent.MOUSE_OVER);
 				}
 			case MouseEvent.MOUSE_OUT:
@@ -1340,7 +1238,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					screen.offPointerUp(onMouseLeftDown);
+					screen.offPointerDown(onMouseLeftDown);
 					eventMap.remove(MouseEvent.MOUSE_DOWN);
 				}
 			case MouseEvent.RIGHT_MOUSE_UP:
@@ -1350,7 +1248,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.RIGHT_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
-					screen.offPointerUp(onMouseRightDown);
+					screen.offPointerDown(onMouseRightDown);
 					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
 				}
 			case MouseEvent.MIDDLE_MOUSE_UP:
@@ -1360,7 +1258,7 @@ class ComponentImpl extends ComponentBase {
 				}
 			case MouseEvent.MIDDLE_MOUSE_DOWN:
 				if (eventMap.exists(MouseEvent.MIDDLE_MOUSE_DOWN)) {
-					screen.offPointerUp(onMouseMiddleDown);
+					screen.offPointerDown(onMouseMiddleDown);
 					eventMap.remove(MouseEvent.MIDDLE_MOUSE_DOWN);
 				}
 			case MouseEvent.MOUSE_WHEEL:
@@ -1370,7 +1268,6 @@ class ComponentImpl extends ComponentBase {
 				}
 			default:
 		}
-		// trace('${pad(this.id)}: unmap event -> ${type}');
 	}
 
 	//***********************************************************************************************************
@@ -1379,9 +1276,7 @@ class ComponentImpl extends ComponentBase {
 	public override function createTextDisplay(text:String = null):TextDisplay {
 		if (_textDisplay == null) {
 			super.createTextDisplay(text);
-			// _textDisplay.visual.touchable = false;
 			this.addInternal(_textDisplay.visual);
-			// trace('${pad(this.id)}: create text diplay');
 		}
 		return _textDisplay;
 	}

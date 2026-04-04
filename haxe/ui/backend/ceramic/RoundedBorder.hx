@@ -67,6 +67,10 @@ class RoundedBorder extends Mesh {
 	}
 
 	public function rebuild() {
+		vertices = [];
+		indices = [];
+		colors = [];
+
 		if (width <= 0 || height <= 0) {
 			return;
 		}
@@ -74,10 +78,6 @@ class RoundedBorder extends Mesh {
 		if (thickness <= 0) {
 			return;
 		}
-
-		vertices = [];
-		indices = [];
-		colors = [];
 
 		syncThicknesses();
 

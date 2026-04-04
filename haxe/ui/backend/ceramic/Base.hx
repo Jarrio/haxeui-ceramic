@@ -22,15 +22,9 @@ enum abstract BorderType(String) to String {
 }
 
 class Base extends Visual {
-	public var solid:Quad;
-	public var slice:NineSlice;
-	public var rounded:RoundedBg;
-	public var gradient:GradientMesh;
-	public var clipQuad:Quad;
+	public var bg:Visual;
 	public var bgImage:Quad;
-
-	public var border:Border;
-	public var roundedBorder:RoundedBorder;
+	public var borderVisual:Visual;
 	public var customVisuals:Array<Visual>;
 
 	public var bgType(default, set):BGType = NONE;
@@ -40,29 +34,25 @@ class Base extends Visual {
 			return bgType;
 		}
 
-		var visual:Visual = null;
-
-		if (getBg() != null) {
-			var bg = getBg();
-			if (bg.parent != null) {
-				bg.parent.remove(bg);
-			}
+		if (bg != null) {
+			remove(bg);
 			bg.destroy();
+			bg = null;
 		}
 
-		visual = switch (value) {
-			case SOLID: solid = new Quad();
-			case GRADIENT: gradient = new GradientMesh();
-			case ROUNDED: rounded = new RoundedBg();
-			case NINESLICE: slice = new NineSlice();
+		bg = switch (value) {
+			case SOLID: new Quad();
+			case GRADIENT: new GradientMesh();
+			case ROUNDED: new RoundedBg();
+			case NINESLICE: new NineSlice();
 			default: null;
 		}
 
-		if (visual != null) {
-			// visual.depth = 0;
-			visual.size(width, height);
-			visual.inheritAlpha = true;
-			add(visual);
+		if (bg != null) {
+			bg.depth = 0;
+			bg.size(width, height);
+			bg.inheritAlpha = true;
+			add(bg);
 		}
 
 		return bgType = value;
@@ -75,113 +65,80 @@ class Base extends Visual {
 			return borderType;
 		}
 
-		var visual = null;
-
-		if (getBorder() != null) {
-			getBorder().destroy();
+		if (borderVisual != null) {
+			remove(borderVisual);
+			borderVisual.destroy();
+			borderVisual = null;
 		}
-		visual = switch (value) {
-			case RECTANGLE: border = new Border();
-			case ROUNDED: 
-				roundedBorder = new RoundedBorder();
+
+		borderVisual = switch (value) {
+			case RECTANGLE: new Border();
+			case ROUNDED: new RoundedBorder();
 			default: null;
 		}
 
-		if (visual != null) {
-			visual.depth = 1;
-			visual.size(width, height);
-			visual.inheritAlpha = true;
-			add(visual);
+		if (borderVisual != null) {
+			borderVisual.depth = 2;
+			borderVisual.size(width, height);
+			borderVisual.inheritAlpha = true;
+			add(borderVisual);
 		}
 
 		return borderType = value;
 	}
 
 	override function set_width(value) {
-		
-		if (solid != null) {
-			solid.width = value;
-		}
-		
-		if (gradient != null) {
-			gradient.width = value;
+		if (value == width) {
+			return value;
 		}
 
-		if (rounded != null) {
-			rounded.width = value;
-			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
+		if (bg != null) {
+			bg.width = value;
+			if (bgType == ROUNDED) {
+				var r = cast(bg, RoundedBg);
+				r.createRoundedRect(r.topLeft, r.topRight, r.bottomRight, r.bottomLeft);
+			}
 		}
 
-		if (slice != null) {
-			slice.width = value;
-		}
-
-		if (border != null) {
-			border.width = value;
-		}
-
-		if (roundedBorder != null) {
-			roundedBorder.width = value;
-			roundedBorder.computeContent();
+		if (borderVisual != null) {
+			borderVisual.width = value;
+			if (borderType == ROUNDED) {
+				cast(borderVisual, RoundedBorder).computeContent();
+			}
 		}
 
 		return super.set_width(value);
 	}
 
 	override function set_height(value) {
-		if (solid != null)
-			solid.height = value;
-		if (gradient != null) {
-			gradient.height = value;
-		}
-		if (rounded != null) {
-			rounded.height = value;
-			rounded.createRoundedRect(rounded.topLeft, rounded.topRight, rounded.bottomRight, rounded.bottomLeft);
-		}
-		if (slice != null)
-			slice.height = value;
-
-		if (border != null) {
-			border.height = value;
+		if (value == height) {
+			return value;
 		}
 
-		if (roundedBorder != null) {
-			roundedBorder.height = value;
-			roundedBorder.computeContent();
+		if (bg != null) {
+			bg.height = value;
+			if (bgType == ROUNDED) {
+				var r = cast(bg, RoundedBg);
+				r.createRoundedRect(r.topLeft, r.topRight, r.bottomRight, r.bottomLeft);
+			}
+		}
+
+		if (borderVisual != null) {
+			borderVisual.height = value;
+			if (borderType == ROUNDED) {
+				cast(borderVisual, RoundedBorder).computeContent();
+			}
 		}
 
 		return super.set_height(value);
 	}
 
-	public function getBg():Visual {
-		return switch (bgType) {
-			case SOLID: solid;
-			case GRADIENT: gradient;
-			case ROUNDED: rounded;
-			case NINESLICE: slice;
-			default: null;
-		}
-	}
-
-	public function getBorder():Visual {
-		return switch (borderType) {
-			case RECTANGLE: border;
-			case ROUNDED: roundedBorder;
-			default: null;
-		}
-	}
-
 	public var bgAlpha(default, set):Float;
 
 	function set_bgAlpha(value) {
-		if (solid != null)
-			solid.alpha = value;
-		if (gradient != null)
-			gradient.alpha = value;
-		if (rounded != null)
-			rounded.alpha = value;
-		if (slice != null)
-			slice.alpha = value;
+		if (bg != null) {
+			bg.alpha = value;
+		}
 		return bgAlpha = value;
 	}
 
@@ -191,8 +148,4 @@ class Base extends Visual {
 		}
 		return true;
 	}
-}
-
-private typedef TVisual = {
-	var visual:Visual;
 }

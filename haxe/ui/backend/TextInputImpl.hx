@@ -63,6 +63,7 @@ class TextInputImpl extends TextBase {
 		super();
 
 		visual = new Text();
+		visual.depth = 3;
 		visual.active = true;
 		visual.visible = false;
 		visual.inheritAlpha = true;
@@ -142,7 +143,6 @@ class TextInputImpl extends TextBase {
 			field.disabled = parentComponent.disabled;
 		}
 
-		
 		if (_textStyle == null) {
 			return false;
 		}

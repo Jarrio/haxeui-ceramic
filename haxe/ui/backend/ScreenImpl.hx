@@ -4,7 +4,6 @@ import ceramic.Timer;
 import ceramic.Visual;
 import ceramic.TouchInfo;
 import haxe.ui.core.Component;
-import haxe.ui.backend.ceramic.MouseHelper;
 import ceramic.Entity;
 import ceramic.Key;
 import haxe.ui.events.KeyboardEvent;
@@ -13,13 +12,23 @@ import haxe.ui.events.UIEvent;
 import haxe.ui.events.MouseEvent;
 import ceramic.App;
 import ceramic.Filter;
+import ceramic.Point;
 
 @:access(haxe.ui.backend.ComponentImpl)
 class ScreenImpl extends ScreenBase {
-	var depth_tracker = 1;
 	var eventCallbacks:Map<String, Entity> = [];
 	private var screenEntity:Entity;
 	private var eventMap:Map<String, UIEvent->Void>;
+	private var _point:Point = new Point();
+
+	inline function screenToRoot(inX:Float, inY:Float, point:Point) {
+		if (options != null && options.root != null) {
+			options.root.screenToVisual(inX, inY, point);
+		} else {
+			point.x = inX;
+			point.y = inY;
+		}
+	}
 
 	public function new() {
 		screenEntity = new Entity();
@@ -80,6 +89,10 @@ class ScreenImpl extends ScreenBase {
 		return c;
 	}
 
+	public override function containsComponent(child:Component):Bool {
+		return rootComponents.indexOf(child) != -1;
+	}
+
 	private override function handleSetComponentIndex(component:Component, index:Int) {
 		var isTop = index == rootComponents.length - 1;
 		var position = (isTop) ? depthHigh + 1 : depthLow - 1;
@@ -113,37 +126,9 @@ class ScreenImpl extends ScreenBase {
 				c.height = Std.int((this.height * c.percentHeight) / 100);
 			}
 		}
-	}
 
-	private override function unmapEvent(type:String, listener:UIEvent->Void) {
-		var screen = App.app.screen;
-		switch (type) {
-			case MouseEvent.MOUSE_MOVE:
-				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
-					screen.offPointerMove(onMouseMove);
-					eventMap.remove(MouseEvent.MOUSE_MOVE);
-				}
-			case MouseEvent.MOUSE_UP:
-				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
-					screen.offPointerUp(onLeftMouseUp);
-					eventMap.remove(MouseEvent.MOUSE_UP);
-				}
-			case MouseEvent.MOUSE_DOWN:
-				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
-					screen.offPointerDown(onLeftMouseDown);
-					eventMap.remove(MouseEvent.MOUSE_DOWN);
-				}
-			case KeyboardEvent.KEY_DOWN:
-				if (eventMap.exists(KeyboardEvent.KEY_DOWN)) {
-					App.app.input.offKeyDown(onKeyDown);
-					eventMap.remove(KeyboardEvent.KEY_DOWN);
-				}
-			case KeyboardEvent.KEY_UP:
-				if (eventMap.exists(KeyboardEvent.KEY_UP)) {
-					App.app.input.offKeyUp(onKeyUp);
-					eventMap.remove(KeyboardEvent.KEY_UP);
-				}
-			default:
+		if (eventMap.exists(UIEvent.RESIZE)) {
+			eventMap.get(UIEvent.RESIZE)(new UIEvent(UIEvent.RESIZE));
 		}
 	}
 
@@ -165,6 +150,31 @@ class ScreenImpl extends ScreenBase {
 					eventMap.set(type, listener);
 					screen.onPointerDown(screenEntity, onLeftMouseDown);
 				}
+			case MouseEvent.RIGHT_MOUSE_DOWN:
+				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
+					eventMap.set(type, listener);
+					screen.onPointerDown(screenEntity, onRightMouseDown);
+				}
+			case MouseEvent.RIGHT_MOUSE_UP:
+				if (!eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
+					eventMap.set(type, listener);
+					screen.onPointerUp(screenEntity, onRightMouseUp);
+				}
+			case MouseEvent.MIDDLE_MOUSE_DOWN:
+				if (!eventMap.exists(MouseEvent.MIDDLE_MOUSE_DOWN)) {
+					eventMap.set(type, listener);
+					screen.onPointerDown(screenEntity, onMiddleMouseDown);
+				}
+			case MouseEvent.MIDDLE_MOUSE_UP:
+				if (!eventMap.exists(MouseEvent.MIDDLE_MOUSE_UP)) {
+					eventMap.set(type, listener);
+					screen.onPointerUp(screenEntity, onMiddleMouseUp);
+				}
+			case MouseEvent.MOUSE_WHEEL:
+				if (!eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
+					eventMap.set(type, listener);
+					screen.onMouseWheel(screenEntity, onMouseWheel);
+				}
 			case KeyboardEvent.KEY_UP:
 				if (!eventMap.exists(KeyboardEvent.KEY_UP)) {
 					eventMap.set(type, listener);
@@ -175,6 +185,67 @@ class ScreenImpl extends ScreenBase {
 					eventMap.set(type, listener);
 					App.app.input.onKeyDown(screenEntity, onKeyDown);
 				}
+			case UIEvent.RESIZE:
+				eventMap.set(type, listener);
+			default:
+		}
+	}
+
+	private override function unmapEvent(type:String, listener:UIEvent->Void) {
+		var screen = App.app.screen;
+		switch (type) {
+			case MouseEvent.MOUSE_MOVE:
+				if (eventMap.exists(MouseEvent.MOUSE_MOVE)) {
+					screen.offPointerMove(onMouseMove);
+					eventMap.remove(MouseEvent.MOUSE_MOVE);
+				}
+			case MouseEvent.MOUSE_UP:
+				if (eventMap.exists(MouseEvent.MOUSE_UP)) {
+					screen.offPointerUp(onLeftMouseUp);
+					eventMap.remove(MouseEvent.MOUSE_UP);
+				}
+			case MouseEvent.MOUSE_DOWN:
+				if (eventMap.exists(MouseEvent.MOUSE_DOWN)) {
+					screen.offPointerDown(onLeftMouseDown);
+					eventMap.remove(MouseEvent.MOUSE_DOWN);
+				}
+			case MouseEvent.RIGHT_MOUSE_DOWN:
+				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_DOWN)) {
+					screen.offPointerDown(onRightMouseDown);
+					eventMap.remove(MouseEvent.RIGHT_MOUSE_DOWN);
+				}
+			case MouseEvent.RIGHT_MOUSE_UP:
+				if (eventMap.exists(MouseEvent.RIGHT_MOUSE_UP)) {
+					screen.offPointerUp(onRightMouseUp);
+					eventMap.remove(MouseEvent.RIGHT_MOUSE_UP);
+				}
+			case MouseEvent.MIDDLE_MOUSE_DOWN:
+				if (eventMap.exists(MouseEvent.MIDDLE_MOUSE_DOWN)) {
+					screen.offPointerDown(onMiddleMouseDown);
+					eventMap.remove(MouseEvent.MIDDLE_MOUSE_DOWN);
+				}
+			case MouseEvent.MIDDLE_MOUSE_UP:
+				if (eventMap.exists(MouseEvent.MIDDLE_MOUSE_UP)) {
+					screen.offPointerUp(onMiddleMouseUp);
+					eventMap.remove(MouseEvent.MIDDLE_MOUSE_UP);
+				}
+			case MouseEvent.MOUSE_WHEEL:
+				if (eventMap.exists(MouseEvent.MOUSE_WHEEL)) {
+					screen.offMouseWheel(onMouseWheel);
+					eventMap.remove(MouseEvent.MOUSE_WHEEL);
+				}
+			case KeyboardEvent.KEY_DOWN:
+				if (eventMap.exists(KeyboardEvent.KEY_DOWN)) {
+					App.app.input.offKeyDown(onKeyDown);
+					eventMap.remove(KeyboardEvent.KEY_DOWN);
+				}
+			case KeyboardEvent.KEY_UP:
+				if (eventMap.exists(KeyboardEvent.KEY_UP)) {
+					App.app.input.offKeyUp(onKeyUp);
+					eventMap.remove(KeyboardEvent.KEY_UP);
+				}
+			case UIEvent.RESIZE:
+				eventMap.remove(UIEvent.RESIZE);
 			default:
 		}
 	}
@@ -184,10 +255,10 @@ class ScreenImpl extends ScreenBase {
 		if (!eventMap.exists(type)) {
 			return;
 		}
+		screenToRoot(info.x, info.y, _point);
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
-
+		event.screenX = _point.x;
+		event.screenY = _point.y;
 		this.eventMap[type](event);
 	}
 
@@ -205,13 +276,52 @@ class ScreenImpl extends ScreenBase {
 		onMouseButton(MouseEvent.MOUSE_UP, info);
 	}
 
-	function onMouseButton(type:String, info:TouchInfo) {
+	public function onRightMouseDown(info:TouchInfo) {
+		if (info.buttonId != ceramic.MouseButton.RIGHT) {
+			return;
+		}
+		onMouseButton(MouseEvent.RIGHT_MOUSE_DOWN, info);
+	}
+
+	public function onRightMouseUp(info:TouchInfo) {
+		if (info.buttonId != ceramic.MouseButton.RIGHT) {
+			return;
+		}
+		onMouseButton(MouseEvent.RIGHT_MOUSE_UP, info);
+	}
+
+	public function onMiddleMouseDown(info:TouchInfo) {
+		if (info.buttonId != ceramic.MouseButton.MIDDLE) {
+			return;
+		}
+		onMouseButton(MouseEvent.MIDDLE_MOUSE_DOWN, info);
+	}
+
+	public function onMiddleMouseUp(info:TouchInfo) {
+		if (info.buttonId != ceramic.MouseButton.MIDDLE) {
+			return;
+		}
+		onMouseButton(MouseEvent.MIDDLE_MOUSE_UP, info);
+	}
+
+	public function onMouseWheel(x:Float, y:Float) {
+		var type = MouseEvent.MOUSE_WHEEL;
+		if (!eventMap.exists(type)) {
+			return;
+		}
 		var event = new MouseEvent(type);
-		event.screenX = info.x;
-		event.screenY = info.y;
+		event.delta = y * -1;
+		this.eventMap[type](event);
+	}
+
+	function onMouseButton(type:String, info:TouchInfo) {
+		screenToRoot(info.x, info.y, _point);
+		var event = new MouseEvent(type);
+		event.screenX = _point.x;
+		event.screenY = _point.y;
 		event.data = info.buttonId;
 		switch (type) {
-			case MouseEvent.MOUSE_DOWN | MouseEvent.RIGHT_MOUSE_DOWN:
+			case MouseEvent.MOUSE_DOWN | MouseEvent.RIGHT_MOUSE_DOWN | MouseEvent.MIDDLE_MOUSE_DOWN:
 				event.buttonDown = true;
 			default:
 		}
@@ -256,10 +366,15 @@ class ScreenImpl extends ScreenBase {
 		listener(event);
 	}
 
+	private override function get_dpi():Float {
+		return App.app.screen.nativeDensity * 96;
+	}
+
+	private override function get_isRetina():Bool {
+		return App.app.screen.nativeDensity > 1;
+	}
+
 	private override function supportsEvent(type:String):Bool {
-		if (type == UIEvent.RESIZE) {
-			return true;
-		}
 		return true;
 	}
 
